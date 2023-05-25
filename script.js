@@ -3,19 +3,13 @@ const resetButton = document.getElementById('resetButton');
 const ctx = canvas.getContext('2d');
 const image = new Image();
 const offset = { x: 0, y: 0 };
-const drag = { x: 0, y: 0 };
-
 const zoomSpeed = 0.01;
 
 let zoomLevel = 1;
-let isPanning = false;
 
 // Load the image
 image.src = 'image.jpg';
-image.addEventListener('load', () => {
-    setCanvas();
-    render();
-});
+image.addEventListener('load', setCanvas);
 
 function setCanvas() {
     const imageAspectRatio = image.width / image.height;
@@ -25,7 +19,11 @@ function setCanvas() {
     canvas.width = screenWidth;
     canvas.height = screenHeight;
     zoomLevel = screenWidth / image.width;
+    offset.x = 0;
+    offset.y = 0;
+    render();
 }
+resetButton.onclick = setCanvas;
 
 function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -51,7 +49,6 @@ function handleZoom(event) {
 
 function handleMouseDown(event) {
     if (event.button == 2) {
-        isPanning = true;
         canvas.onmousemove = pan;
     }
 }
