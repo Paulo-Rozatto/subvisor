@@ -2,6 +2,7 @@ const canvas = document.getElementById('canvas');
 const resetButton = document.getElementById('resetButton');
 const ctx = canvas.getContext('2d');
 const image = new Image();
+const points = [];
 const offset = { x: 0, y: 0 };
 const zoomSpeed = 0.01;
 
@@ -28,6 +29,14 @@ resetButton.onclick = setCanvas;
 function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(image, offset.x, offset.y, image.width * zoomLevel, image.height * zoomLevel);
+
+    ctx.fillStyle = 'red';
+    ctx.strokeStyle = 'black';
+    for (let point of points) {
+        ctx.beginPath();
+        ctx.arc(point.x * zoomLevel + offset.x, point.y * zoomLevel + offset.y, 5, 0, 2 * Math.PI);
+        ctx.fill();
+    }
 }
 
 function handleZoom(event) {
@@ -54,7 +63,10 @@ function handleMouseDown(event) {
 }
 
 function handleMouseUp(event) {
-    if (event.button == 2) {
+    if (event.button === 0) {
+        createPoint(event.offsetX, event.offsetY);
+    }
+    else if (event.button === 2) {
         isPanning = false;
         canvas.onmousemove = null;
     }
@@ -63,6 +75,15 @@ function handleMouseUp(event) {
 function pan(event) {
     offset.x += event.movementX;
     offset.y += event.movementY;
+    render();
+}
+
+function createPoint(x, y) {
+    const point = {
+        x: (x - offset.x) / zoomLevel,
+        y: (y - offset.y) / zoomLevel,
+    };
+    points.push(point);
     render();
 }
 
