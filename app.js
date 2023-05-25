@@ -3,6 +3,9 @@ window.addEventListener('DOMContentLoaded', () => {
   const resetButton = document.getElementById('resetButton');
   const ctx = canvas.getContext('2d');
   const image = new Image();
+  const originalImageWidth = 3468; // Replace with the original image width
+  const originalImageHeight = 4624; // Replace with the original image height
+  const points = [];
 
   let zoomLevel = 1;
   let offsetX = 0;
@@ -37,6 +40,7 @@ window.addEventListener('DOMContentLoaded', () => {
   canvas.addEventListener('mousemove', handleMouseMove);
   canvas.addEventListener('mouseup', handleMouseUp);
   canvas.addEventListener('mouseout', handleMouseUp);
+  canvas.addEventListener('click', handleClick);
 
   // Reset button event listener
   resetButton.addEventListener('click', handleReset);
@@ -100,7 +104,31 @@ window.addEventListener('DOMContentLoaded', () => {
     zoomLevel = 1;
     offsetX = 0;
     offsetY = 0;
+    points.length = 0; // Clear the points array
     render();
+  }
+
+  // Handle click event to add a point
+  function handleClick(event) {
+    console.log(event)
+    if (event.button === 0) {
+      // console.log(event)
+      // const pointX = (event.clientX - offsetX) / zoomLevel;
+      // const pointY = (event.clientY - offsetY) / zoomLevel;
+
+      // points.push({ x: pointX, y: pointY });
+      // console.log(event.clientX, event.clientY, pointX, pointY);
+      const { width, height } = canvas.getBoundingClientRect();
+      const inverseZoomLevel = 1 / zoomLevel;
+      const point = {
+        x: event.offsetX + offsetX,
+        y: event.offsetY + offsetY,
+      }
+      points.push(point);
+      console.log(point, width, height);
+
+      render();
+    }
   }
 
   // Render function
@@ -125,6 +153,33 @@ window.addEventListener('DOMContentLoaded', () => {
     const yPos = (canvasHeight - scaledHeight) / 2;
 
     ctx.drawImage(image, xPos, yPos, scaledWidth, scaledHeight);
+
+    // Draw points
+    ctx.fillStyle = 'red';
+    for (const point of points) {
+      let { x, y } = point;
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Draw polygon
+    if (points.length >= 3) {
+      ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+      ctx.beginPath();
+      const startPoint = points[0];
+      const x = (startPoint.x * canvasWidth) / originalImageWidth;
+      const y = (startPoint.y * canvasHeight) / originalImageHeight;
+      ctx.moveTo(x, y);
+      for (let i = 1; i < points.length; i++) {
+        const point = points[i];
+        const x = (point.x * canvasWidth) / originalImageWidth;
+        const y = (point.y * canvasHeight) / originalImageHeight;
+        ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+    }
 
     ctx.restore();
   }
