@@ -8,7 +8,7 @@ const drag = { x: 0, y: 0 };
 const zoomSpeed = 0.01;
 
 let zoomLevel = 1;
-let isDragging = false;
+let isPanning = false;
 
 // Load the image
 image.src = 'image.jpg';
@@ -49,7 +49,29 @@ function handleZoom(event) {
     render();
 }
 
+function handleMouseDown(event) {
+    if (event.button == 2) {
+        isPanning = true;
+        canvas.onmousemove = pan;
+    }
+}
+
+function handleMouseUp(event) {
+    if (event.button == 2) {
+        isPanning = false;
+        canvas.onmousemove = null;
+    }
+}
+
+function pan(event) {
+    offset.x += event.movementX;
+    offset.y += event.movementY;
+    render();
+}
+
 canvas.addEventListener('wheel', handleZoom);
+canvas.addEventListener('mousedown', handleMouseDown);
+canvas.addEventListener('mouseup', handleMouseUp);
 canvas.addEventListener('contextmenu', (event) => {
     event.preventDefault();
 });
