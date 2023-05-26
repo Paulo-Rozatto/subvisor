@@ -3,7 +3,7 @@ const ctx = canvas.getContext('2d');
 const image = new Image();
 const points = [];
 const offset = { x: 0, y: 0 };
-const zoomSpeed = 0.01;
+const zoomSpeed = 0.02;
 
 const START_ARC = 0;
 const END_ARC = 2 * Math.PI;
@@ -32,31 +32,35 @@ function setCanvas() {
 document.getElementById('resetButton').onclick = setCanvas;
 
 function render() {
+    requestAnimationFrame(draw)
+}
+
+function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(image, offset.x, offset.y, image.width * zoomLevel, image.height * zoomLevel);
+        ctx.drawImage(image, offset.x, offset.y, image.width * zoomLevel, image.height * zoomLevel);
 
-    ctx.strokeStyle = '#F07';
-    ctx.lineWidth = 2;
-    let ctxPoint;
-    for (let point of points) {
-        ctxPoint = toCanvasCoords(point);
-        ctx.beginPath();
-        ctx.arc(ctxPoint.x, ctxPoint.y, 5, 0, 2 * Math.PI);
-        ctx.closePath();
-        ctx.stroke();
-    }
-
-    if (points.length > 2) {
-        ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
-        ctx.beginPath();
-        ctx.moveTo(ctxPoint.x, ctxPoint.y);
+        ctx.strokeStyle = '#F07';
+        ctx.lineWidth = 2;
+        let ctxPoint;
         for (let point of points) {
             ctxPoint = toCanvasCoords(point);
-            ctx.lineTo(ctxPoint.x, ctxPoint.y);
+            ctx.beginPath();
+            ctx.arc(ctxPoint.x, ctxPoint.y, 5, 0, 2 * Math.PI);
+            ctx.closePath();
+            ctx.stroke();
         }
-        ctx.closePath();
-        ctx.fill();
-    }
+
+        if (points.length > 2) {
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.moveTo(ctxPoint.x, ctxPoint.y);
+            for (let point of points) {
+                ctxPoint = toCanvasCoords(point);
+                ctx.lineTo(ctxPoint.x, ctxPoint.y);
+            }
+            ctx.closePath();
+            ctx.fill();
+        }
 }
 
 function handleZoom(event) {
