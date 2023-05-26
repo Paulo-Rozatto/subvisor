@@ -1,10 +1,13 @@
 const canvas = document.getElementById('canvas');
-const resetButton = document.getElementById('resetButton');
 const ctx = canvas.getContext('2d');
 const image = new Image();
 const points = [];
 const offset = { x: 0, y: 0 };
 const zoomSpeed = 0.01;
+
+const START_ARC = 0;
+const END_ARC = 2 * Math.PI;
+const RADIUS = 10;
 
 let zoomLevel = 1;
 
@@ -24,7 +27,8 @@ function setCanvas() {
     offset.y = 0;
     render();
 }
-resetButton.onclick = setCanvas;
+
+document.getElementById('resetButton').onclick = setCanvas;
 
 function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -32,9 +36,11 @@ function render() {
 
     ctx.fillStyle = 'red';
     ctx.strokeStyle = 'black';
+    let ctxPoint;
     for (let point of points) {
+        ctxPoint = toCanvasCoords(point);
         ctx.beginPath();
-        ctx.arc(point.x * zoomLevel + offset.x, point.y * zoomLevel + offset.y, 5, 0, 2 * Math.PI);
+        ctx.arc(ctxPoint.x, ctxPoint.y, 5, 0, 2 * Math.PI);
         ctx.fill();
     }
 }
@@ -57,24 +63,35 @@ function handleZoom(event) {
 }
 
 function handleMouseDown(event) {
-    if (event.button == 2) {
+    if (event.button == 0) {
+        for (let point of points) {
+            if (hitCircle(event, point)) {
+                canvas.onmousemove = (event) => panPoint(event, point);
+                canvas.style.cursor = 'grabbing';
+                return;
+            }
+        }
+        createPoint(event.offsetX, event.offsetY);
+    }
+    else if (event.button == 2) {
         canvas.onmousemove = pan;
     }
 }
 
-function handleMouseUp(event) {
-    if (event.button === 0) {
-        createPoint(event.offsetX, event.offsetY);
-    }
-    else if (event.button === 2) {
-        isPanning = false;
-        canvas.onmousemove = null;
-    }
+function handleMouseUp() {
+    canvas.onmousemove = null;
+    canvas.style.cursor = 'crosshair';
 }
 
 function pan(event) {
     offset.x += event.movementX;
     offset.y += event.movementY;
+    render();
+}
+
+function panPoint(event, point) {
+    point.x += event.movementX / zoomLevel;
+    point.y += event.movementY / zoomLevel;
     render();
 }
 
@@ -85,6 +102,20 @@ function createPoint(x, y) {
     };
     points.push(point);
     render();
+}
+
+function toCanvasCoords(point) {
+    return {
+        x: point.x * zoomLevel + offset.x,
+        y: point.y * zoomLevel + offset.y,
+    };
+}
+
+function hitCircle(event, point) {
+    const mouse = { x: event.offsetX, y: event.offsetY };
+    const ctxPoint = toCanvasCoords(point);
+    // l1 distance
+    return Math.abs(mouse.x - ctxPoint.x) + Math.abs(mouse.y - ctxPoint.y) < RADIUS
 }
 
 canvas.addEventListener('wheel', handleZoom);
