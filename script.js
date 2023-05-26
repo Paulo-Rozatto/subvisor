@@ -7,7 +7,8 @@ const zoomSpeed = 0.01;
 
 const START_ARC = 0;
 const END_ARC = 2 * Math.PI;
-const RADIUS = 10;
+const RADIUS = 5;
+const MAX_ZOOM = 3;
 
 let zoomLevel = 1;
 
@@ -20,11 +21,11 @@ function setCanvas() {
     const screenHeight = window.innerHeight * 0.8;
     const screenWidth = screenHeight * imageAspectRatio;
 
-    canvas.width = screenWidth;
-    canvas.height = screenHeight;
-    zoomLevel = screenWidth / image.width;
-    offset.x = 0;
-    offset.y = 0;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    zoomLevel = screenHeight / image.height;
+    offset.x = (canvas.width - screenWidth) * 0.5;
+    offset.y = (canvas.height - screenHeight) * 0.5;
     render();
 }
 
@@ -34,14 +35,15 @@ function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(image, offset.x, offset.y, image.width * zoomLevel, image.height * zoomLevel);
 
-    ctx.fillStyle = 'red';
-    ctx.strokeStyle = 'black';
+    ctx.strokeStyle = '#F07';
+    ctx.lineWidth = 2;
     let ctxPoint;
     for (let point of points) {
         ctxPoint = toCanvasCoords(point);
         ctx.beginPath();
         ctx.arc(ctxPoint.x, ctxPoint.y, 5, 0, 2 * Math.PI);
-        ctx.fill();
+        ctx.closePath();
+        ctx.stroke();
     }
 
     if (points.length > 2) {
@@ -61,7 +63,7 @@ function handleZoom(event) {
     let scale = event.deltaY > 0 ? zoomSpeed : -zoomSpeed;
     let oldLevel = zoomLevel;
     zoomLevel = Math.max(0.1, zoomLevel - scale);
-    zoomLevel = Math.min(1, zoomLevel);
+    zoomLevel = Math.min(MAX_ZOOM, zoomLevel);
 
     // vc quer achar o ponto que o mouse estava sobre na imagem escalada com o novo zoom
     // e substrair esse ponto do ponto que o mouse aponta atualmente e esse é o seu offset
@@ -155,7 +157,7 @@ function toCanvasCoords(point) {
 function hitCircle(event, point) {
     const mouse = { x: event.offsetX, y: event.offsetY };
     const ctxPoint = toCanvasCoords(point);
-    return l1Distance(mouse, ctxPoint) < RADIUS;
+    return l1Distance(mouse, ctxPoint) < (RADIUS + RADIUS);
 }
 
 function l1Distance(p1, p2) {

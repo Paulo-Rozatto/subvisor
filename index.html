@@ -4,17 +4,48 @@
 <head>
     <title>Image Zoom and Pan App</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
         #canvas {
-            border: 1px solid black;
             display: block;
             margin: 0 auto;
             cursor: crosshair;
+            background-color: #f5f5ff;
+        }
+
+        #menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 5px;
+            height: 50px;
+            background-color: #00004d;
+            display: flex;
+            align-items: center;
+        }
+
+        button  {
+            padding: 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: hsl(240, 100%, 35%);
+            color: #fff;
+            cursor: pointer;
         }
     </style>
 </head>
 
 <body>
-    <button id="resetButton">Reset Zoom and Pan</button>
+    <header>
+        <nav id="menu">
+            <button id="resetButton">Reset Zoom and Pan</button>
+        </nav>
+    </header>
     <canvas id="canvas"></canvas>
     <!-- <script src="app.js"></script> -->
     <script src="script.js"></script>
