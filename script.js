@@ -112,7 +112,36 @@ function createPoint(x, y) {
         x: (x - offset.x) / zoomLevel,
         y: (y - offset.y) / zoomLevel,
     };
-    points.push(point);
+
+    if (points.length < 3) {
+        points.push(point);
+        render();
+        return;
+    }
+
+    // calcula a distancia entre o ponto e o ponto medio de cada segmento
+    // insere o ponto no segmento mais proximo do ponto medio
+    // comeca pelo segmento formado pelo primeiro e ultimo ponto
+    let mediumPoint = { x: 0, y: 0 }
+    mediumPoint.x = (points[0].x + points[points.length - 1].x) * 0.5;
+    mediumPoint.y = (points[0].y + points[points.length - 1].y) * 0.5;
+
+    let closer = l1Distance(mediumPoint, point);
+    let index = points.length - 1;
+    let distance;
+
+    for (let i = 0; i < points.length - 1; i++) {
+        mediumPoint.x = (points[i].x + points[i + 1].x) * 0.5;
+        mediumPoint.y = (points[i].y + points[i + 1].y) * 0.5;
+        distance = l1Distance(mediumPoint, point);
+
+        if (distance < closer) {
+            closer = distance;
+            index = i;
+        }
+    }
+
+    points.splice(index + 1, 0, point);
     render();
 }
 
@@ -126,8 +155,11 @@ function toCanvasCoords(point) {
 function hitCircle(event, point) {
     const mouse = { x: event.offsetX, y: event.offsetY };
     const ctxPoint = toCanvasCoords(point);
-    // l1 distance
-    return Math.abs(mouse.x - ctxPoint.x) + Math.abs(mouse.y - ctxPoint.y) < RADIUS
+    return l1Distance(mouse, ctxPoint) < RADIUS;
+}
+
+function l1Distance(p1, p2) {
+    return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
 }
 
 canvas.addEventListener('wheel', handleZoom);
