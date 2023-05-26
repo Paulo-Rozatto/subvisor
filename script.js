@@ -43,6 +43,18 @@ function render() {
         ctx.arc(ctxPoint.x, ctxPoint.y, 5, 0, 2 * Math.PI);
         ctx.fill();
     }
+
+    if (points.length > 2) {
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+        ctx.beginPath();
+        ctx.moveTo(ctxPoint.x, ctxPoint.y);
+        for (let point of points) {
+            ctxPoint = toCanvasCoords(point);
+            ctx.lineTo(ctxPoint.x, ctxPoint.y);
+        }
+        ctx.closePath();
+        ctx.fill();
+    }
 }
 
 function handleZoom(event) {
