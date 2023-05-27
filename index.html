@@ -8,6 +8,7 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
+            font-family: sans-serif;
         }
 
         #canvas {
@@ -36,10 +37,22 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px dashed blue;
+            border: 2px dashed #0000ff;
             background-color: lightblue;
             width: 40vw;
             height: 10vw;
+        }
+
+        #right-panel {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background-color: whitesmoke;
+            border-left: #00004d 1px solid;
+            width: 20vw;
+            height: 100%;
+            overflow-y: auto;
+            padding: 3px;
         }
 
 
@@ -47,14 +60,44 @@
             padding: 5px;
             border: none;
             border-radius: 5px;
-            background-color: hsl(240, 100%, 35%);
+            background-color: #0000b3;
             color: #fff;
             cursor: pointer;
             margin-right: 5px;
         }
 
+        li {
+            text-align: center;
+            padding: 7px;
+            border-bottom: #00004d 1px solid;
+            cursor: pointer;
+            margin-bottom: 1px;
+        }
+
+        li:hover {
+            background-color: #e5e5ff;
+            border-radius: 5%;
+        }
+
+        .select {
+            background-color: hsl(240, 20%, 45%);
+            color: white;
+        }
+
+        .select:hover {
+            background-color: hsl(240, 20%, 55%);
+        }
+
         .hide {
             display: none !important;
+        }
+
+        .checked:after {
+            position: absolute;
+            content: '\2713';
+            display: inline-block;
+            padding: 0 0 0 3px;
+            color: green;
         }
     </style>
 </head>
@@ -65,16 +108,27 @@
             <button id="resetButton">Reset Zoom and Pan</button>
             <button id="uploadButton">Upload</button>
         </nav>
+        <div id="drop_zone" class="hide" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
+            Drop files here...
+        </div>
     </header>
-    <div id="drop_zone" class="hide" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
-       Drop files here...
-    </div>
 
-    <canvas id="canvas"></canvas>
+    <main>
+        <canvas id="canvas"></canvas>
+        <section id="right-panel">
+            <ul id="file-list">
+                <li>33333333333333333333333</li>
+                <li>33333333333333333333333</li>
+                <li>33333333333333333333333</li>
+            </ul>
+        </section>
+    </main>
+
     <script src="script.js"></script>
     <script>
-        const uploadButton = document.querySelector("#uploadButton");
+        const fileList = document.querySelector("#file-list");
         const dropZone = document.querySelector("#drop_zone");
+        const uploadButton = document.querySelector("#uploadButton");
         uploadButton.onclick = () => {
             dropZone.classList.toggle("hide");
         };
@@ -82,6 +136,7 @@
         let markerDir;
         let images = [];
         let markers = [];
+        let selected;
 
         function dropHandler(ev) {
             ev.preventDefault();
@@ -140,7 +195,7 @@
                                 }
                             }
                         },
-                        () => console.log(images, markerDir, markers)
+                        setList
                     );
                 }
             );
@@ -148,11 +203,32 @@
             dropZone.classList.add("hide");
         }
 
+        function setList() {
+            console.log(images, markerDir, markers);
+            fileList.innerHTML = "";
+
+            for (let i = 0; i < images.length; i++) {
+                const li = document.createElement("li");
+                li.innerHTML = images[i].name;
+                li.onclick = () => {
+                    loadImage(images[i]);
+                    selected.classList.remove("select");
+                    selected.classList.add("checked");
+                    li.classList.add("select");
+                    selected = li;
+                };
+                fileList.appendChild(li);
+                if (i == 0) {
+                    selected = li;
+                    li.classList.add("select");
+                }
+            }
+            loadImage(images[0]);
+        }
+
         function dragOverHandler(ev) {
             ev.preventDefault();
         }
-
-
     </script>
 </body>
 

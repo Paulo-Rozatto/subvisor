@@ -1,9 +1,10 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const image = new Image();
-const points = [];
 const offset = { x: 0, y: 0 };
 const zoomSpeed = 0.02;
+
+const IMAGE_MAP = {}
 
 const START_ARC = 0;
 const END_ARC = 2 * Math.PI;
@@ -11,9 +12,32 @@ const RADIUS = 5;
 const MAX_ZOOM = 3;
 
 let zoomLevel = 1;
+let points = [];
 
-// Load the image
-image.src = 'image.jpg';
+
+function loadImage(fileEntry) {
+    const img = IMAGE_MAP[fileEntry.name];
+
+    if (img) {
+        image.src = img.src;
+        points = img.points;
+        return;
+    }
+
+    fileEntry.file((file) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const src = event.target.result;
+            const pts = [];
+
+            image.src = src;
+            points = pts;
+            IMAGE_MAP[fileEntry.name] = { src, points: pts}
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
 image.addEventListener('load', setCanvas);
 
 function setCanvas() {
@@ -37,30 +61,30 @@ function render() {
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(image, offset.x, offset.y, image.width * zoomLevel, image.height * zoomLevel);
+    ctx.drawImage(image, offset.x, offset.y, image.width * zoomLevel, image.height * zoomLevel);
 
-        ctx.strokeStyle = '#F07';
-        ctx.lineWidth = 2;
-        let ctxPoint;
+    ctx.strokeStyle = '#F07';
+    ctx.lineWidth = 2;
+    let ctxPoint;
+    for (let point of points) {
+        ctxPoint = toCanvasCoords(point);
+        ctx.beginPath();
+        ctx.arc(ctxPoint.x, ctxPoint.y, 5, 0, 2 * Math.PI);
+        ctx.closePath();
+        ctx.stroke();
+    }
+
+    if (points.length > 2) {
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+        ctx.beginPath();
+        ctx.moveTo(ctxPoint.x, ctxPoint.y);
         for (let point of points) {
             ctxPoint = toCanvasCoords(point);
-            ctx.beginPath();
-            ctx.arc(ctxPoint.x, ctxPoint.y, 5, 0, 2 * Math.PI);
-            ctx.closePath();
-            ctx.stroke();
+            ctx.lineTo(ctxPoint.x, ctxPoint.y);
         }
-
-        if (points.length > 2) {
-            ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
-            ctx.beginPath();
-            ctx.moveTo(ctxPoint.x, ctxPoint.y);
-            for (let point of points) {
-                ctxPoint = toCanvasCoords(point);
-                ctx.lineTo(ctxPoint.x, ctxPoint.y);
-            }
-            ctx.closePath();
-            ctx.fill();
-        }
+        ctx.closePath();
+        ctx.fill();
+    }
 }
 
 function handleZoom(event) {
