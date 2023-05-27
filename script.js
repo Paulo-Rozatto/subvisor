@@ -13,6 +13,7 @@ const MAX_ZOOM = 3;
 
 let zoomLevel = 1;
 let points = [];
+let mousePos = { x: 0, y: 0 };
 
 
 function loadImage(fileEntry) {
@@ -32,7 +33,7 @@ function loadImage(fileEntry) {
 
             image.src = src;
             points = pts;
-            IMAGE_MAP[fileEntry.name] = { src, points: pts}
+            IMAGE_MAP[fileEntry.name] = { src, points: pts }
         };
         reader.readAsDataURL(file);
     });
@@ -105,9 +106,10 @@ function handleZoom(event) {
 }
 
 function handleMouseDown(event) {
+    const mouse = { x: event.offsetX, y: event.offsetY };
     if (event.button == 0) {
         for (let point of points) {
-            if (hitCircle(event, point)) {
+            if (hitCircle(mouse, point)) {
                 canvas.onmousemove = (event) => panPoint(event, point);
                 canvas.style.cursor = 'grabbing';
                 return;
@@ -121,7 +123,7 @@ function handleMouseDown(event) {
 }
 
 function handleMouseUp() {
-    canvas.onmousemove = null;
+    canvas.onmousemove = trackMouse;
     canvas.style.cursor = 'crosshair';
 }
 
@@ -182,8 +184,7 @@ function toCanvasCoords(point) {
     };
 }
 
-function hitCircle(event, point) {
-    const mouse = { x: event.offsetX, y: event.offsetY };
+function hitCircle(mouse, point) {
     const ctxPoint = toCanvasCoords(point);
     return l1Distance(mouse, ctxPoint) < (RADIUS + RADIUS);
 }
@@ -192,9 +193,35 @@ function l1Distance(p1, p2) {
     return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
 }
 
+function removePoint() {
+    for (let i = 0; i < points.length; i++) {
+        if (hitCircle(mousePos, points[i])) {
+            points.splice(i, 1);
+            render();
+            return;
+        }
+    }
+}
+
+function keyDownHandler(event) {
+    if (event.key == 'Delete') {
+        removePoint();
+    }
+}
+
+// todo: as i have to use this tack mouse, this should function should the only one assigend to canvas.onmousemove
+function trackMouse(event) {
+    mousePos.x = event.offsetX;
+    mousePos.y = event.offsetY;
+}
+
+
+canvas.onmousemove = trackMouse;
 canvas.addEventListener('wheel', handleZoom);
 canvas.addEventListener('mousedown', handleMouseDown);
 canvas.addEventListener('mouseup', handleMouseUp);
 canvas.addEventListener('contextmenu', (event) => {
     event.preventDefault();
 });
+
+window.addEventListener('keydown', keyDownHandler);
