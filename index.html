@@ -29,13 +29,32 @@
             align-items: center;
         }
 
-        button  {
+        #drop_zone {
+            position: absolute;
+            top: 50px;
+            left: calc(50% - 20vw);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed blue;
+            background-color: lightblue;
+            width: 40vw;
+            height: 10vw;
+        }
+
+
+        button {
             padding: 5px;
             border: none;
             border-radius: 5px;
             background-color: hsl(240, 100%, 35%);
             color: #fff;
             cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .hide {
+            display: none !important;
         }
     </style>
 </head>
@@ -44,11 +63,97 @@
     <header>
         <nav id="menu">
             <button id="resetButton">Reset Zoom and Pan</button>
+            <button id="uploadButton">Upload</button>
         </nav>
     </header>
+    <div id="drop_zone" class="hide" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
+       Drop files here...
+    </div>
+
     <canvas id="canvas"></canvas>
-    <!-- <script src="app.js"></script> -->
     <script src="script.js"></script>
+    <script>
+        const uploadButton = document.querySelector("#uploadButton");
+        const dropZone = document.querySelector("#drop_zone");
+        uploadButton.onclick = () => {
+            dropZone.classList.toggle("hide");
+        };
+
+        let markerDir;
+        let images = [];
+        let markers = [];
+
+        function dropHandler(ev) {
+            ev.preventDefault();
+
+            if (!ev.dataTransfer.items) {
+                console.error("No items in dataTransfer.items")
+                return;
+            }
+
+            const root = [...ev.dataTransfer.items][0]?.webkitGetAsEntry();
+            if (!root.isDirectory) {
+                console.error("Expected directory in dataTransfer.items, got: ", root)
+                return;
+            }
+
+            // readEntries pode nao retornar todos os arquivos, entao tem que chamar de novo ate nao encontrar mais nada
+            const read = (reader, onProgress, onFinish) => {
+                reader.readEntries(
+                    (entries) => {
+                        if (!entries || entries.length === 0) {
+                            onFinish && onFinish();
+                            return;
+                        }
+                        onProgress(entries);
+                        read(reader, onProgress, onFinish);
+                    },
+                    (error) => {
+                        console.error(error); reject(error)
+                    }
+                );
+            };
+
+            // deve haver um jeito mais elegante de fazer isso, mas eu nao vou conseguir pensar nisso agora xD
+            // o problema eh que o readEntries eh assincrono, mas nao eh uma promise, entao nao da pra usar await
+            const rootReader = root.createReader();
+            const response = read(
+                rootReader, // reader
+                (entries) => { // onProgress
+                    for (let entry of entries) {
+                        if (entry.isFile && entry.name.endsWith(".jpg")) {
+                            images.push(entry);
+                        } else if (entry.isDirectory && entry.name === "marker") {
+                            markerDir = entry;
+                        }
+                    }
+
+                },
+                () => { // onFinish
+                    const markerReader = markerDir.createReader();
+                    read(
+                        markerReader,
+                        (entries) => {
+                            for (let entry of entries) {
+                                if (entry.isFile && entry.name.endsWith(".xml")) {
+                                    markers.push(entry);
+                                }
+                            }
+                        },
+                        () => console.log(images, markerDir, markers)
+                    );
+                }
+            );
+
+            dropZone.classList.add("hide");
+        }
+
+        function dragOverHandler(ev) {
+            ev.preventDefault();
+        }
+
+
+    </script>
 </body>
 
 </html>
