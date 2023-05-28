@@ -63,6 +63,7 @@ async function loadImage(fileEntry, marker, leaf) {
         image.src = img.src;
         markerPoints = img.markerPoints;
         leafPoints = img.leafPoints;
+        setSelectedPoints();
         return;
     }
 
@@ -74,10 +75,10 @@ async function loadImage(fileEntry, marker, leaf) {
             const src = event.target.result;
             image.src = src;
             IMAGE_MAP[fileEntry.name] = { src, markerPoints, leafPoints }
+            setSelectedPoints();
         };
         reader.readAsDataURL(file);
     });
-    setSelectedPoints();
 }
 
 image.addEventListener('load', setCanvas);
@@ -105,8 +106,8 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(image, offset.x, offset.y, image.width * zoomLevel, image.height * zoomLevel);
 
-    drawPolygon(markerPoints, '#0F7', 'rgba(0, 255, 0, 0.3)');
-    drawPolygon(leafPoints, '#F07', 'rgba(255, 0, 0, 0.5)');
+    drawPolygon(markerPoints, '#0A2', 'rgba(0, 200, 0, 0.4)');
+    drawPolygon(leafPoints, '#A02', 'rgba(200, 0, 0, 0.5)');
 }
 
 function drawPolygon(points, stroke, fill) {
