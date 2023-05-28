@@ -106,14 +106,14 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(image, offset.x, offset.y, image.width * zoomLevel, image.height * zoomLevel);
 
-    drawPolygon(markerPoints, '#0A2', 'rgba(0, 200, 0, 0.4)');
+    drawPolygon(markerPoints, '#052', 'rgba(0, 200, 0, 0.4)');
     drawPolygon(leafPoints, '#A02', 'rgba(200, 0, 0, 0.5)');
 }
 
 function drawPolygon(points, stroke, fill) {
     ctx.strokeStyle = stroke;
     ctx.fillStyle = fill;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
 
     let ctxPoint;
     if (points == selectedPoints) {

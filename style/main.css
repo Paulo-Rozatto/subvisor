@@ -1,0 +1,103 @@
+* {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: sans-serif;
+}
+
+#canvas {
+    display: block;
+    margin: 0 auto;
+    cursor: crosshair;
+    background-color: #f5f5ff;
+}
+
+#menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 5px;
+    height: 50px;
+    background-color: #00004d;
+    display: flex;
+    align-items: center;
+}
+
+#drop_zone {
+    position: absolute;
+    top: 70px;
+    left: calc(50% - 20vw);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #0000ff;
+    background-color: lightblue;
+    width: 40vw;
+    height: 10vw;
+}
+
+#right-panel {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background-color: whitesmoke;
+    border-left: #00004d 1px solid;
+    width: 20vw;
+    height: 100%;
+    overflow-y: auto;
+    padding: 3px;
+}
+
+nav {
+    color: white;
+}
+
+input {
+    margin-left: 7px;
+    margin-right: 3px;
+}
+
+button {
+    padding: 5px;
+    border: none;
+    border-radius: 5px;
+    background-color: #0000b3;
+    color: #fff;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+li {
+    text-align: center;
+    padding: 7px;
+    border-bottom: #00004d 1px solid;
+    cursor: pointer;
+    margin-bottom: 1px;
+}
+
+li:hover {
+    background-color: #e5e5ff;
+    border-radius: 5%;
+}
+
+.select {
+    background-color: hsl(240, 20%, 45%);
+    color: white;
+}
+
+.select:hover {
+    background-color: hsl(240, 20%, 55%);
+}
+
+.hide {
+    display: none !important;
+}
+
+.checked:after {
+    position: absolute;
+    content: '\2713';
+    display: inline-block;
+    padding: 0 0 0 3px;
+    color: green;
+}
