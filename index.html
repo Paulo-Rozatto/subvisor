@@ -55,6 +55,14 @@
             padding: 3px;
         }
 
+        nav {
+            color: white;
+        }
+
+        input {
+            margin-left: 7px;
+            margin-right: 3px;
+        }
 
         button {
             padding: 5px;
@@ -107,6 +115,11 @@
         <nav id="menu">
             <button id="resetButton">Reset Zoom and Pan</button>
             <button id="uploadButton">Upload</button>
+            <b>Editing:</b> 
+            <input type="radio" name="object" id="marker" checked onclick="setSelectedPoints()">
+            <label for="marker">Marker</label>
+            <input type="radio" name="object" id="leaf" onclick="setSelectedPoints()">
+            <label for="leaf">Leaf</label>
         </nav>
         <div id="drop_zone" class="hide" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
             Drop files here...
@@ -129,9 +142,10 @@
             dropZone.classList.toggle("hide");
         };
 
-        let markerDir;
+        let markerDir, leafDir;
         let images = [];
         let markers = [];
+        let leafs = [];
         let selected;
 
         function dropHandler(ev) {
@@ -165,6 +179,26 @@
                 );
             };
 
+            // async read
+            const asyncRead = (reader, onProgress) => {
+                new Promise((resolve, reject) => {
+                    reader.readEntries(
+                        (entries) => {
+                            if (!entries || entries.length === 0) {
+                                return resolve();
+                            }
+                            onProgress(entries);
+                            return resolve(asyncRead(reader, onProgress));
+                        },
+                        (error) => {
+                            console.error(error);
+                            return reject(error);
+                        }
+                    );
+                });
+            };
+
+
             // deve haver um jeito mais elegante de fazer isso, mas eu nao vou conseguir pensar nisso agora xD
             // o problema eh que o readEntries eh assincrono, mas nao eh uma promise, entao nao da pra usar await
             const rootReader = root.createReader();
@@ -177,10 +211,22 @@
                         } else if (entry.isDirectory && entry.name === "marker") {
                             markerDir = entry;
                         }
+                        else if (entry.isDirectory && entry.name === "leaf") {
+                            leafDir = entry;
+                        }
                     }
 
                 },
                 () => { // onFinish
+                    const leafReader = leafDir.createReader();
+                    (async () => await asyncRead(leafReader, (entries) => {
+                        for (let entry of entries) {
+                            if (entry.isFile && entry.name.endsWith(".xml")) {
+                                leafs.push(entry);
+                            }
+                        }
+                    }))();
+
                     const markerReader = markerDir.createReader();
                     read(
                         markerReader,
@@ -202,13 +248,14 @@
         function setList() {
             images.sort((a, b) => a.name.localeCompare(b.name));
             markers.sort((a, b) => a.name.localeCompare(b.name));
+            leafs.sort((a, b) => a.name.localeCompare(b.name));
 
             fileList.innerHTML = "";
             for (let i = 0; i < images.length; i++) {
                 const li = document.createElement("li");
                 li.innerHTML = images[i].name;
                 li.onclick = () => {
-                    loadImage(images[i], markers[i]);
+                    loadImage(images[i], markers[i], leafs[i]);
                     selected.classList.remove("select");
                     selected.classList.add("checked");
                     li.classList.add("select");
@@ -220,7 +267,7 @@
                     li.classList.add("select");
                 }
             }
-            loadImage(images[0], markers[0]);
+            loadImage(images[0], markers[0], leafs[0]);
         }
 
         function dragOverHandler(ev) {

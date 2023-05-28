@@ -2,10 +2,10 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const image = new Image();
 const offset = { x: 0, y: 0 };
-const zoomSpeed = 0.02;
+const zoomSpeed = 0.04;
 
 // altura da imagem em pixels, normalizamos os pontos para ficarem entre 0 e 1
-const NORMALIZER = 4624; 
+const NORMALIZER = 4624;
 const IMAGE_MAP = {}
 
 const START_ARC = 0;
@@ -14,11 +14,23 @@ const RADIUS = 5;
 const MAX_ZOOM = 3;
 
 let zoomLevel = 1;
-let points = [];
+let markerPoints = [];
+let leafPoints = [];
+let selectedPoints = markerPoints;
 let mousePos = { x: 0, y: 0 };
 
 
-function pointsFromEntry(entry, tag){
+function setSelectedPoints() {
+    if (document.getElementById('marker').checked) {
+        selectedPoints = markerPoints;
+    }
+    else if (document.getElementById('leaf').checked) {
+        selectedPoints = leafPoints;
+    }
+    render();
+}
+
+function pointsFromEntry(entry, tag) {
     return new Promise((resolve, reject) => {
         entry.file((file) => {
             const reader = new FileReader();
@@ -28,7 +40,7 @@ function pointsFromEntry(entry, tag){
                 const xml = parser.parseFromString(src, 'text/xml');
                 const corners = xml.getElementsByTagName(tag)[0].children;
                 const pts = [];
-    
+
                 for (let i = 0; i < corners.length; i += 2) {
                     const point = {
                         x: parseFloat(corners[i].textContent) * NORMALIZER,
@@ -36,7 +48,7 @@ function pointsFromEntry(entry, tag){
                     }
                     pts.push(point);
                 }
-    
+
                 resolve(pts);
             }
             reader.readAsText(file);
@@ -44,26 +56,28 @@ function pointsFromEntry(entry, tag){
     });
 }
 
-async function loadImage(fileEntry, marker) {
+async function loadImage(fileEntry, marker, leaf) {
     const img = IMAGE_MAP[fileEntry.name];
 
     if (img) {
         image.src = img.src;
-        points = img.points;
+        markerPoints = img.markerPoints;
+        leafPoints = img.leafPoints;
         return;
     }
 
-    const pts = await pointsFromEntry(marker, "corners");
+    markerPoints = await pointsFromEntry(marker, "corners");
+    leafPoints = await pointsFromEntry(leaf, "points");
     fileEntry.file((file) => {
         const reader = new FileReader();
         reader.onload = (event) => {
             const src = event.target.result;
             image.src = src;
-            IMAGE_MAP[fileEntry.name] = { src, points: pts }
-            points = pts;
+            IMAGE_MAP[fileEntry.name] = { src, markerPoints, leafPoints }
         };
         reader.readAsDataURL(file);
     });
+    setSelectedPoints();
 }
 
 image.addEventListener('load', setCanvas);
@@ -91,23 +105,32 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(image, offset.x, offset.y, image.width * zoomLevel, image.height * zoomLevel);
 
-    ctx.strokeStyle = '#F07';
+    drawPolygon(markerPoints, '#0F7', 'rgba(0, 255, 0, 0.3)');
+    drawPolygon(leafPoints, '#F07', 'rgba(255, 0, 0, 0.5)');
+}
+
+function drawPolygon(points, stroke, fill) {
+    ctx.strokeStyle = stroke;
+    ctx.fillStyle = fill;
     ctx.lineWidth = 2;
+
     let ctxPoint;
-    for (let point of points) {
-        ctxPoint = toCanvasCoords(point);
-        ctx.beginPath();
-        ctx.arc(ctxPoint.x, ctxPoint.y, 5, 0, 2 * Math.PI);
-        ctx.closePath();
-        ctx.stroke();
+    if (points == selectedPoints) {
+        for (let point of points) {
+            ctxPoint = toCanvasCoords(point);
+            ctx.beginPath();
+            ctx.arc(ctxPoint.x, ctxPoint.y, 5, 0, 2 * Math.PI);
+            ctx.closePath();
+            ctx.stroke();
+        }
     }
 
     if (points.length > 2) {
-        ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
         ctx.beginPath();
+        ctxPoint = toCanvasCoords(points[0]);
         ctx.moveTo(ctxPoint.x, ctxPoint.y);
-        for (let point of points) {
-            ctxPoint = toCanvasCoords(point);
+        for (let i = 1; i < points.length; i++) {
+            ctxPoint = toCanvasCoords(points[i]);
             ctx.lineTo(ctxPoint.x, ctxPoint.y);
         }
         ctx.closePath();
@@ -135,7 +158,7 @@ function handleZoom(event) {
 function handleMouseDown(event) {
     const mouse = { x: event.offsetX, y: event.offsetY };
     if (event.button == 0) {
-        for (let point of points) {
+        for (let point of selectedPoints) {
             if (hitCircle(mouse, point)) {
                 canvas.onmousemove = (event) => panPoint(event, point);
                 canvas.style.cursor = 'grabbing';
@@ -172,8 +195,8 @@ function createPoint(x, y) {
         y: (y - offset.y) / zoomLevel,
     };
 
-    if (points.length < 3) {
-        points.push(point);
+    if (selectedPoints.length < 3) {
+        selectedPoints.push(point);
         render();
         return;
     }
@@ -182,16 +205,16 @@ function createPoint(x, y) {
     // insere o ponto no segmento mais proximo do ponto medio
     // comeca pelo segmento formado pelo primeiro e ultimo ponto
     let mediumPoint = { x: 0, y: 0 }
-    mediumPoint.x = (points[0].x + points[points.length - 1].x) * 0.5;
-    mediumPoint.y = (points[0].y + points[points.length - 1].y) * 0.5;
+    mediumPoint.x = (selectedPoints[0].x + selectedPoints[selectedPoints.length - 1].x) * 0.5;
+    mediumPoint.y = (selectedPoints[0].y + selectedPoints[selectedPoints.length - 1].y) * 0.5;
 
     let closer = l1Distance(mediumPoint, point);
-    let index = points.length - 1;
+    let index = selectedPoints.length - 1;
     let distance;
 
-    for (let i = 0; i < points.length - 1; i++) {
-        mediumPoint.x = (points[i].x + points[i + 1].x) * 0.5;
-        mediumPoint.y = (points[i].y + points[i + 1].y) * 0.5;
+    for (let i = 0; i < selectedPoints.length - 1; i++) {
+        mediumPoint.x = (selectedPoints[i].x + selectedPoints[i + 1].x) * 0.5;
+        mediumPoint.y = (selectedPoints[i].y + selectedPoints[i + 1].y) * 0.5;
         distance = l1Distance(mediumPoint, point);
 
         if (distance < closer) {
@@ -200,7 +223,7 @@ function createPoint(x, y) {
         }
     }
 
-    points.splice(index + 1, 0, point);
+    selectedPoints.splice(index + 1, 0, point);
     render();
 }
 
@@ -221,9 +244,9 @@ function l1Distance(p1, p2) {
 }
 
 function removePoint() {
-    for (let i = 0; i < points.length; i++) {
-        if (hitCircle(mousePos, points[i])) {
-            points.splice(i, 1);
+    for (let i = 0; i < selectedPoints.length; i++) {
+        if (hitCircle(mousePos, selectedPoints[i])) {
+            selectedPoints.splice(i, 1);
             render();
             return;
         }
