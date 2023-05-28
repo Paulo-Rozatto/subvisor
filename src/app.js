@@ -4,28 +4,37 @@ const image = new Image();
 const offset = { x: 0, y: 0 };
 const zoomSpeed = 0.04;
 
-// altura da imagem em pixels, normalizamos os pontos para ficarem entre 0 e 1
-const NORMALIZER = 4624;
-const IMAGE_MAP = {}
-
 const START_ARC = 0;
 const END_ARC = 2 * Math.PI;
 const RADIUS = 5;
-const MAX_ZOOM = 3;
+const MAX_ZOOM = 5;
+
+// altura da imagem em pixels, normalizamos os pontos para ficarem entre 0 e 1
+export const NORMALIZER = 4624;
+export const IMAGE_MAP = {}
+export const CLASSES = {
+    MARKER: 0,
+    LEAF: 1,
+}
 
 let zoomLevel = 1;
 let markerPoints = [];
 let leafPoints = [];
 let selectedPoints = markerPoints;
 let mousePos = { x: 0, y: 0 };
+let currentClass = CLASSES.MARKER;
 
 
-function setSelectedPoints() {
-    if (document.getElementById('marker').checked) {
+export function setSelectedPoints(option) {
+    if (option == CLASSES.MARKER) {
         selectedPoints = markerPoints;
-    }
-    else if (document.getElementById('leaf').checked) {
+        currentClass = CLASSES.MARKER;
+    } else if (option == CLASSES.LEAF) {
         selectedPoints = leafPoints;
+        currentClass = CLASSES.LEAF;
+    } else {
+        setSelectedPoints(currentClass);
+        return;
     }
     render();
 }
@@ -56,7 +65,7 @@ function pointsFromEntry(entry, tag) {
     });
 }
 
-async function loadImage(fileEntry, marker, leaf) {
+export async function loadImage(fileEntry, marker, leaf) {
     const img = IMAGE_MAP[fileEntry.name];
 
     if (img) {
@@ -97,6 +106,7 @@ function setCanvas() {
 }
 
 document.getElementById('resetButton').onclick = setCanvas;
+setCanvas();
 
 function render() {
     requestAnimationFrame(draw)
@@ -120,7 +130,7 @@ function drawPolygon(points, stroke, fill) {
         for (let point of points) {
             ctxPoint = toCanvasCoords(point);
             ctx.beginPath();
-            ctx.arc(ctxPoint.x, ctxPoint.y, 5, 0, 2 * Math.PI);
+            ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
             ctx.closePath();
             ctx.stroke();
         }
@@ -140,7 +150,7 @@ function drawPolygon(points, stroke, fill) {
 }
 
 function handleZoom(event) {
-    let scale = event.deltaY > 0 ? zoomSpeed : -zoomSpeed;
+    let scale = event.deltaY > 0 ? 1.25 * zoomSpeed : -zoomSpeed;
     let oldLevel = zoomLevel;
     zoomLevel = Math.max(0.1, zoomLevel - scale);
     zoomLevel = Math.min(MAX_ZOOM, zoomLevel);

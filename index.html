@@ -13,12 +13,13 @@
             <button id="uploadButton">Upload</button>
             <b>Editing:</b>
             <!-- TODO: don't use onclcik in html -->
-            <input type="radio" name="object" id="marker" checked onclick="setSelectedPoints()">
+            <input type="radio" name="object" id="markerRadio" checked>
             <label for="marker">Marker</label>
-            <input type="radio" name="object" id="leaf" onclick="setSelectedPoints()">
+            <input type="radio" name="object" id="leafRadio">
             <label for="leaf">Leaf</label>
+            <a class="btn" id="export" download>Export XML</a>
         </nav>
-        <div id="drop_zone" class="hide" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
+        <div id="drop_zone" class="hide">
             Drop files here...
         </div>
     </header>
@@ -31,8 +32,7 @@
     </main>
 
     <!-- TOOD: make script files become well organized modules -->
-    <script src="src/app.js"></script>
-    <script src="src/controller.js"></script>
+    <script type="module" src="src/controller.js"></script>
 </body>
 
 </html>

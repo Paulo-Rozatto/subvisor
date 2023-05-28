@@ -49,6 +49,11 @@
     padding: 3px;
 }
 
+#export {
+    position: absolute;
+    right: 2em;
+}
+
 nav {
     color: white;
 }
@@ -58,7 +63,7 @@ input {
     margin-right: 3px;
 }
 
-button {
+button, .btn {
     padding: 5px;
     border: none;
     border-radius: 5px;
@@ -66,6 +71,10 @@ button {
     color: #fff;
     cursor: pointer;
     margin-right: 5px;
+}
+
+button:hover, .btn:hover {
+    background-color: #0101db;
 }
 
 li {
