@@ -4,6 +4,8 @@ const image = new Image();
 const offset = { x: 0, y: 0 };
 const zoomSpeed = 0.02;
 
+// altura da imagem em pixels, normalizamos os pontos para ficarem entre 0 e 1
+const NORMALIZER = 4624; 
 const IMAGE_MAP = {}
 
 const START_ARC = 0;
@@ -16,7 +18,33 @@ let points = [];
 let mousePos = { x: 0, y: 0 };
 
 
-function loadImage(fileEntry) {
+function pointsFromEntry(entry, tag){
+    return new Promise((resolve, reject) => {
+        entry.file((file) => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const src = event.target.result;
+                const parser = new DOMParser();
+                const xml = parser.parseFromString(src, 'text/xml');
+                const corners = xml.getElementsByTagName(tag)[0].children;
+                const pts = [];
+    
+                for (let i = 0; i < corners.length; i += 2) {
+                    const point = {
+                        x: parseFloat(corners[i].textContent) * NORMALIZER,
+                        y: parseFloat(corners[i + 1].textContent) * NORMALIZER,
+                    }
+                    pts.push(point);
+                }
+    
+                resolve(pts);
+            }
+            reader.readAsText(file);
+        });
+    });
+}
+
+async function loadImage(fileEntry, marker) {
     const img = IMAGE_MAP[fileEntry.name];
 
     if (img) {
@@ -25,15 +53,14 @@ function loadImage(fileEntry) {
         return;
     }
 
+    const pts = await pointsFromEntry(marker, "corners");
     fileEntry.file((file) => {
         const reader = new FileReader();
         reader.onload = (event) => {
             const src = event.target.result;
-            const pts = [];
-
             image.src = src;
-            points = pts;
             IMAGE_MAP[fileEntry.name] = { src, points: pts }
+            points = pts;
         };
         reader.readAsDataURL(file);
     });
@@ -76,7 +103,7 @@ function draw() {
     }
 
     if (points.length > 2) {
-        ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
         ctx.beginPath();
         ctx.moveTo(ctxPoint.x, ctxPoint.y);
         for (let point of points) {

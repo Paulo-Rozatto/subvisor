@@ -200,14 +200,15 @@
         }
 
         function setList() {
-            console.log(images, markerDir, markers);
-            fileList.innerHTML = "";
+            images.sort((a, b) => a.name.localeCompare(b.name));
+            markers.sort((a, b) => a.name.localeCompare(b.name));
 
+            fileList.innerHTML = "";
             for (let i = 0; i < images.length; i++) {
                 const li = document.createElement("li");
                 li.innerHTML = images[i].name;
                 li.onclick = () => {
-                    loadImage(images[i]);
+                    loadImage(images[i], markers[i]);
                     selected.classList.remove("select");
                     selected.classList.add("checked");
                     li.classList.add("select");
@@ -219,7 +220,7 @@
                     li.classList.add("select");
                 }
             }
-            loadImage(images[0]);
+            loadImage(images[0], markers[0]);
         }
 
         function dragOverHandler(ev) {
