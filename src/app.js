@@ -8,6 +8,7 @@ const START_ARC = 0;
 const END_ARC = 2 * Math.PI;
 const RADIUS = 5;
 const MAX_ZOOM = 5;
+const MARKER_COLORS = ["#f00", "#0f0", "#00f", "#ff0"];
 
 // altura da imagem em pixels, normalizamos os pontos para ficarem entre 0 e 1
 export const NORMALIZER = 4624;
@@ -116,18 +117,39 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(image, offset.x, offset.y, image.width * zoomLevel, image.height * zoomLevel);
 
-    drawPolygon(markerPoints, '#052', 'rgba(0, 200, 0, 0.4)');
-    drawPolygon(leafPoints, '#A02', 'rgba(200, 0, 0, 0.5)');
+    drawMarker();
+    drawLeaf();
 }
 
-function drawPolygon(points, stroke, fill) {
-    ctx.strokeStyle = stroke;
-    ctx.fillStyle = fill;
+function drawMarker() {
+    ctx.fillStyle = 'rgba(0, 200, 0, 0.4)';
     ctx.lineWidth = 3;
 
-    let ctxPoint;
-    if (points == selectedPoints) {
-        for (let point of points) {
+    drawPolygon(markerPoints);
+
+    if (selectedPoints == markerPoints) {
+        let ctxPoint;
+        for (let i = 0; i < markerPoints.length && i < 4; i++) {
+            ctx.strokeStyle = MARKER_COLORS[i];
+            ctxPoint = toCanvasCoords(markerPoints[i]);
+            ctx.beginPath();
+            ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
+            ctx.closePath();
+            ctx.stroke();
+        }
+    }
+}
+
+function drawLeaf() {
+    ctx.strokeStyle = '#A02';
+    ctx.fillStyle = 'rgba(200, 0, 0, 0.5)';
+    ctx.lineWidth = 3;
+
+    drawPolygon(leafPoints);
+
+    if (selectedPoints == leafPoints) {
+        let ctxPoint;
+        for (let point of leafPoints) {
             ctxPoint = toCanvasCoords(point);
             ctx.beginPath();
             ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
@@ -135,7 +157,9 @@ function drawPolygon(points, stroke, fill) {
             ctx.stroke();
         }
     }
+}
 
+function drawPolygon(points) {
     if (points.length > 2) {
         ctx.beginPath();
         ctxPoint = toCanvasCoords(points[0]);
@@ -201,6 +225,10 @@ function panPoint(event, point) {
 }
 
 function createPoint(x, y) {
+    if (selectedPoints == markerPoints && selectedPoints.length == 4) {
+        return;
+    }
+
     const point = {
         x: (x - offset.x) / zoomLevel,
         y: (y - offset.y) / zoomLevel,
