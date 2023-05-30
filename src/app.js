@@ -1,5 +1,6 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
+const exchange = document.getElementById('exchange');
 const image = new Image();
 const offset = { x: 0, y: 0 };
 const zoomSpeed = 0.04;
@@ -9,6 +10,7 @@ const END_ARC = 2 * Math.PI;
 const RADIUS = 5;
 const MAX_ZOOM = 5;
 const MARKER_COLORS = ["#f00", "#070", "#00f", "#950"];
+const EXCHANGE_ALLOWED_KEYS = ["1", "2", "3", "4", "Backspace", "Enter"];
 
 // altura da imagem em pixels, normalizamos os pontos para ficarem entre 0 e 1
 export const NORMALIZER = 4624;
@@ -30,9 +32,11 @@ export function setSelectedPoints(option) {
     if (option == CLASSES.MARKER) {
         selectedPoints = markerPoints;
         currentClass = CLASSES.MARKER;
+        exchange.parentElement.classList.remove('hide')
     } else if (option == CLASSES.LEAF) {
         selectedPoints = leafPoints;
         currentClass = CLASSES.LEAF;
+        exchange.parentElement.classList.add('hide')
     } else {
         setSelectedPoints(currentClass);
         return;
@@ -299,6 +303,68 @@ function keyDownHandler(event) {
     if (event.key == 'Delete') {
         removePoint();
     }
+    else if (selectedPoints === markerPoints) {
+        if (event.key == 'ArrowLeft' && markerPoints.length > 1) {
+            markerPoints.unshift(markerPoints.pop())
+            render();
+        } else if (event.key == 'ArrowRight' && markerPoints.length > 1) {
+            markerPoints.push(markerPoints.shift())
+            render();
+        }
+        else if (document.activeElement != exchange && EXCHANGE_ALLOWED_KEYS.includes(event.key)) {
+            exchange.focus();
+            console.log(1)
+            exchangeKeydown(event);
+        }
+    }
+}
+
+function exchangeKeydown(event) {
+    event.preventDefault();
+
+    if (event.key == 'Enter') {
+        const regex = /([1-4]+);([1-4])/;
+        const match = regex.exec(exchange.value);
+        console.log(match);
+        if (!match || match.length < 3) {
+            return;
+        }
+
+        const first = parseInt(match[1]) - 1;
+        const second = parseInt(match[2]) - 1;
+
+        if (Math.max(first, second) >= markerPoints.length || Math.min(first, second) < 0) {
+            return;
+        }
+
+        const temp = markerPoints[first];
+        markerPoints[first] = markerPoints[second];
+        markerPoints[second] = temp;
+        render();
+    }
+
+    if (!EXCHANGE_ALLOWED_KEYS.includes(event.key)) {
+        return;
+    }
+
+    if (event.key == 'Backspace') {
+        if (exchange.value.length == 3) {
+            exchange.value = exchange.value.slice(0,2);
+            return;
+        }
+        exchange.value = "";
+        return;
+    }
+
+    let value = exchange.value + event.key;
+
+    if (value.length == 1) {
+        value += ';';
+    } else if (value.length > 3) {
+        return;
+    }
+
+    exchange.value = value;
 }
 
 // todo: as i have to use this tack mouse, this should function should the only one assigend to canvas.onmousemove
@@ -315,5 +381,7 @@ canvas.addEventListener('mouseup', handleMouseUp);
 canvas.addEventListener('contextmenu', (event) => {
     event.preventDefault();
 });
+
+exchange.addEventListener('keydown', exchangeKeydown);
 
 window.addEventListener('keydown', keyDownHandler);
