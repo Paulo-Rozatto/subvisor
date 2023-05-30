@@ -8,7 +8,7 @@ const START_ARC = 0;
 const END_ARC = 2 * Math.PI;
 const RADIUS = 5;
 const MAX_ZOOM = 5;
-const MARKER_COLORS = ["#f00", "#0f0", "#00f", "#ff0"];
+const MARKER_COLORS = ["#f00", "#070", "#00f", "#950"];
 
 // altura da imagem em pixels, normalizamos os pontos para ficarem entre 0 e 1
 export const NORMALIZER = 4624;
@@ -122,20 +122,23 @@ function draw() {
 }
 
 function drawMarker() {
-    ctx.fillStyle = 'rgba(0, 200, 0, 0.4)';
-    ctx.lineWidth = 3;
+    ctx.fillStyle = 'rgba(0, 200, 200, 0.4)';
 
     drawPolygon(markerPoints);
 
     if (selectedPoints == markerPoints) {
         let ctxPoint;
+        ctx.font = "20px serif";
         for (let i = 0; i < markerPoints.length && i < 4; i++) {
             ctx.strokeStyle = MARKER_COLORS[i];
+            ctx.lineWidth = 3;
             ctxPoint = toCanvasCoords(markerPoints[i]);
             ctx.beginPath();
             ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
             ctx.closePath();
             ctx.stroke();
+            ctx.lineWidth = 1;
+            ctx.strokeText(`${i + 1}`, ctxPoint.x + 15, ctxPoint.y + 10);
         }
     }
 }
