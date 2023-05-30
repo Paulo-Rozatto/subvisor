@@ -169,7 +169,7 @@ function drawLeaf() {
 function drawPolygon(points) {
     if (points.length > 2) {
         ctx.beginPath();
-        ctxPoint = toCanvasCoords(points[0]);
+        let ctxPoint = toCanvasCoords(points[0]);
         ctx.moveTo(ctxPoint.x, ctxPoint.y);
         for (let i = 1; i < points.length; i++) {
             ctxPoint = toCanvasCoords(points[i]);
