@@ -349,7 +349,7 @@ function exchangeKeydown(event) {
 
     if (event.key == 'Backspace') {
         if (exchange.value.length == 3) {
-            exchange.value = exchange.value.slice(0,2);
+            exchange.value = exchange.value.slice(0, 2);
             return;
         }
         exchange.value = "";
@@ -378,9 +378,8 @@ canvas.onmousemove = trackMouse;
 canvas.addEventListener('wheel', handleZoom);
 canvas.addEventListener('mousedown', handleMouseDown);
 canvas.addEventListener('mouseup', handleMouseUp);
-canvas.addEventListener('contextmenu', (event) => {
-    event.preventDefault();
-});
+canvas.addEventListener('mouseleave', (event) => canvas.onmousemove = trackMouse);
+canvas.addEventListener('contextmenu', (event) => event.preventDefault());
 
 exchange.addEventListener('keydown', exchangeKeydown);
 
