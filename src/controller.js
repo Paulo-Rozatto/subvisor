@@ -25,100 +25,69 @@ let markers = [];
 let leafs = [];
 let selected;
 
-function dropHandler(ev) {
-    ev.preventDefault();
+function dropHandler(event) {
+    event.preventDefault();
 
-    if (!ev.dataTransfer.items) {
+    if (!event.dataTransfer.items) {
         console.error("No items in dataTransfer.items")
         return;
     }
 
-    const root = [...ev.dataTransfer.items][0]?.webkitGetAsEntry();
+    const root = [...event.dataTransfer.items][0]?.webkitGetAsEntry();
     leafName = root.name;
     if (!root.isDirectory) {
         console.error("Expected directory in dataTransfer.items, got: ", root)
         return;
     }
 
-    // readEntries pode nao retornar todos os arquivos, entao tem que chamar de novo ate nao encontrar mais nada
-    const read = (reader, onProgress, onFinish) => {
-        reader.readEntries(
-            (entries) => {
+    // o reader.readerEntries é o que retorna os arquivos e pastas dentro de um diretorio
+    // ele executa assincronamente e chama as funcoes de callback onSuccess ou onError dependendo do resultado da operacao
+    // readEntries pode nao retornar todos os arquivos, entao tem que chamar de novo recursivamente ate nao encontrar mais nada
+    // encapsulando o readEntries dentro de uma Promise, podemos esperar o resultado da operacao usando await depois
+    const asyncRead = (reader, onProgress) => {
+        return new Promise((resolve, reject) => {
+            const onSuccess = (entries) => {
                 if (!entries || entries.length === 0) {
-                    onFinish && onFinish();
-                    return;
+                    return resolve();
                 }
                 onProgress(entries);
-                read(reader, onProgress, onFinish);
-            },
-            (error) => {
-                console.error(error); reject(error)
-            }
-        );
-    };
+                return resolve(asyncRead(reader, onProgress));
+            };
 
-    // async read
-    const asyncRead = (reader, onProgress) => {
-        new Promise((resolve, reject) => {
-            reader.readEntries(
-                (entries) => {
-                    if (!entries || entries.length === 0) {
-                        return resolve();
-                    }
-                    onProgress(entries);
-                    return resolve(asyncRead(reader, onProgress));
-                },
-                (error) => {
-                    console.error(error);
-                    return reject(error);
-                }
-            );
+            const onError = (error) => {
+                console.error(error);
+                return reject(error);
+            };
+
+            reader.readEntries(onSuccess, onError);
         });
     };
 
+    // o codigo abaixo usa o asyncRead para ler os arquivos e pastas dentro do diretorio raiz
+    // ele esta dentro de uma funcao auto-executavel, ou seja, a funcao executa assim que e declarada sem precisar chmar
+    // isson foi feito pq o await so pode ser usado dentro de uma funcao async
+    (async () => {
+        const findDir = (entries, name) => entries.find((entry) => entry.isDirectory && entry.name === name);
+        const filterFiles = (entries, ext) => entries.filter((entry) => entry.isFile && entry.name.endsWith(ext));
 
-    // deve haver um jeito mais elegante de fazer isso, mas eu nao vou conseguir pensar nisso agora xD
-    // o problema eh que o readEntries eh assincrono, mas nao eh uma promise, entao nao da pra usar await
-    const rootReader = root.createReader();
-    const response = read(
-        rootReader, // reader
-        (entries) => { // onProgress
-            for (let entry of entries) {
-                if (entry.isFile && entry.name.endsWith(".jpg")) {
-                    images.push(entry);
-                } else if (entry.isDirectory && entry.name === "marker") {
-                    markerDir = entry;
-                }
-                else if (entry.isDirectory && entry.name === "leaf") {
-                    leafDir = entry;
-                }
-            }
-
-        },
-        () => { // onFinish
-            const leafReader = leafDir.createReader();
-            (async () => await asyncRead(leafReader, (entries) => {
-                for (let entry of entries) {
-                    if (entry.isFile && entry.name.endsWith(".xml")) {
-                        leafs.push(entry);
-                    }
-                }
-            }))();
-
-            const markerReader = markerDir.createReader();
-            read(
-                markerReader,
-                (entries) => {
-                    for (let entry of entries) {
-                        if (entry.isFile && entry.name.endsWith(".xml")) {
-                            markers.push(entry);
-                        }
-                    }
-                },
-                setList
-            );
+        const rootReader = root.createReader();
+        const rootCallback = (entries) => {
+            images = filterFiles(entries, ".jpg");
+            markerDir = findDir(entries, "marker");
+            leafDir = findDir(entries, "leaf");
         }
-    );
+        await asyncRead(rootReader, rootCallback);
+
+        const markerReader = markerDir.createReader();
+        const markerCallback = (entries) => markers = filterFiles(entries, ".xml");
+        await asyncRead(markerReader, markerCallback);
+
+        const leafReader = leafDir.createReader();
+        const leafCallback = (entries) => leafs = filterFiles(entries, ".xml");
+        await asyncRead(leafReader, leafCallback);
+
+        setList();
+    })();
 
     dropZone.classList.add("hide");
 }
@@ -148,8 +117,8 @@ function setList() {
     loadImage(images[0], markers[0], leafs[0]);
 }
 
-function dragOverHandler(ev) {
-    ev.preventDefault();
+function dragOverHandler(event) {
+    event.preventDefault();
 }
 
 async function download() {
@@ -165,7 +134,7 @@ async function download() {
         leafFolder.file(imgName.replace(".jpg", ".xml"), leafXml);
     }
 
-    const content =  await zip.generateAsync({ type: "blob" })
+    const content = await zip.generateAsync({ type: "blob" })
     saveAs(content, `${leafName}.zip`);
 }
 
