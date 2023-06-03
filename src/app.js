@@ -247,15 +247,11 @@ function createPoint(x, y) {
         return;
     }
 
-    // calcula a distancia entre o ponto e o ponto medio de cada segmento
-    // insere o ponto no segmento mais proximo do ponto medio
-    // comeca pelo segmento formado pelo primeiro e ultimo ponto
-    let mediumPoint = { x: 0, y: 0 }
-    mediumPoint.x = (selectedPoints[0].x + selectedPoints[selectedPoints.length - 1].x) * 0.5;
-    mediumPoint.y = (selectedPoints[0].y + selectedPoints[selectedPoints.length - 1].y) * 0.5;
 
-    let closer = l1Distance(mediumPoint, point);
+    // varre todos os segmentos e acha o mais proximo, começa com o segmento formado pelo primeiro e ultimo ponto
+    let closer = point2Segment(point, selectedPoints[0], selectedPoints[selectedPoints.length - 1]);
     let index = selectedPoints.length - 1;
+    let distance;
 
     for (let i = 0; i < selectedPoints.length - 1; i++) {
         distance = point2Segment(point, selectedPoints[i], selectedPoints[i + 1])
