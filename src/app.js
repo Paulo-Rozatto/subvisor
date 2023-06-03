@@ -256,12 +256,9 @@ function createPoint(x, y) {
 
     let closer = l1Distance(mediumPoint, point);
     let index = selectedPoints.length - 1;
-    let distance;
 
     for (let i = 0; i < selectedPoints.length - 1; i++) {
-        mediumPoint.x = (selectedPoints[i].x + selectedPoints[i + 1].x) * 0.5;
-        mediumPoint.y = (selectedPoints[i].y + selectedPoints[i + 1].y) * 0.5;
-        distance = l1Distance(mediumPoint, point);
+        distance = point2Segment(point, selectedPoints[i], selectedPoints[i + 1])
 
         if (distance < closer) {
             closer = distance;
@@ -287,6 +284,18 @@ function hitCircle(mouse, point) {
 
 function l1Distance(p1, p2) {
     return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
+}
+
+function point2Segment(target, p1, p2) {
+    let vec1 = { x: p2.x - p1.x, y: p2.y - p1.y };
+    let vec2 = { x: target.x - p1.x, y: target.y - p1.y };
+
+    // find projection of vec2 onto vec1: vec2 = lambda * vec1
+    // make lambda between 0 and 1 so that the projection is between p1 and p2
+    let lambda = (vec1.x * vec2.x + vec1.y * vec2.y) / (vec1.x * vec1.x + vec1.y * vec1.y);
+    lambda = Math.max(0, Math.min(1, lambda));
+    let closerPt = { x: p1.x + lambda * vec1.x, y: p1.y + lambda * vec1.y };
+    return l1Distance(target, closerPt);
 }
 
 function removePoint() {
@@ -349,7 +358,7 @@ function exchangeKeydown(event) {
 
     if (event.key == 'Backspace') {
         if (exchange.value.length == 3) {
-            exchange.value = exchange.value.slice(0,2);
+            exchange.value = exchange.value.slice(0, 2);
             return;
         }
         exchange.value = "";
@@ -378,9 +387,8 @@ canvas.onmousemove = trackMouse;
 canvas.addEventListener('wheel', handleZoom);
 canvas.addEventListener('mousedown', handleMouseDown);
 canvas.addEventListener('mouseup', handleMouseUp);
-canvas.addEventListener('contextmenu', (event) => {
-    event.preventDefault();
-});
+canvas.addEventListener('mouseleave', (event) => canvas.onmousemove = trackMouse);
+canvas.addEventListener('contextmenu', (event) => event.preventDefault());
 
 exchange.addEventListener('keydown', exchangeKeydown);
 
