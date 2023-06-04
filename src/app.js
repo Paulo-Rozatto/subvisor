@@ -110,6 +110,24 @@ function setCanvas() {
     render();
 }
 
+function centerObject() {
+    const x0 = Math.min(...selectedPoints.map(p => p.x));
+    const x1 = Math.max(...selectedPoints.map(p => p.x));
+    const y0 = Math.min(...selectedPoints.map(p => p.y));
+    const y1 = Math.max(...selectedPoints.map(p => p.y));
+    const width = x1 - x0;
+    const height = y1 - y0;
+    const aspectRation = width / height;
+    const screenHeight = window.innerHeight * 0.8;
+    const screenWidth = screenHeight * aspectRation;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    zoomLevel = screenHeight / height;
+    offset.x = (canvas.width - screenWidth) * 0.5 - x0 * zoomLevel;
+    offset.y = (canvas.height - screenHeight) * 0.5 - y0 * zoomLevel;
+    render();
+}
+
 document.getElementById('resetButton').onclick = setCanvas;
 setCanvas();
 
@@ -308,6 +326,9 @@ function keyDownHandler(event) {
     if (event.key == 'Delete') {
         removePoint();
     }
+    else if (event.key == 'c') {
+        centerObject();
+    }
     else if (selectedPoints === markerPoints) {
         if (event.key == 'ArrowLeft' && markerPoints.length > 1) {
             markerPoints.unshift(markerPoints.pop())
@@ -318,7 +339,6 @@ function keyDownHandler(event) {
         }
         else if (document.activeElement != exchange && EXCHANGE_ALLOWED_KEYS.includes(event.key)) {
             exchange.focus();
-            console.log(1)
             exchangeKeydown(event);
         }
     }
@@ -330,7 +350,6 @@ function exchangeKeydown(event) {
     if (event.key == 'Enter') {
         const regex = /([1-4]+);([1-4])/;
         const match = regex.exec(exchange.value);
-        console.log(match);
         if (!match || match.length < 3) {
             return;
         }
