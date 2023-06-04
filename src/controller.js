@@ -27,6 +27,9 @@ let selected;
 
 function dropHandler(event) {
     event.preventDefault();
+    leafName = "";
+    markerDir = null, leafDir = null, selected = null;
+    images = [], markers = [], leafs = [];
 
     if (!event.dataTransfer.items) {
         console.error("No items in dataTransfer.items")
