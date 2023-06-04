@@ -24,6 +24,7 @@ let zoomLevel = 1;
 let markerPoints = [];
 let leafPoints = [];
 let selectedPoints = markerPoints;
+let focusIndex = -1;
 let mousePos = { x: 0, y: 0 };
 let currentClass = CLASSES.MARKER;
 
@@ -93,6 +94,7 @@ export async function loadImage(fileEntry, marker, leaf) {
         };
         reader.readAsDataURL(file);
     });
+    focusIndex = -1;
 }
 
 image.addEventListener('load', setCanvas);
@@ -125,6 +127,13 @@ function centerObject() {
     zoomLevel = screenHeight / height;
     offset.x = (canvas.width - screenWidth) * 0.5 - x0 * zoomLevel;
     offset.y = (canvas.height - screenHeight) * 0.5 - y0 * zoomLevel;
+    render();
+}
+
+function centerPoint() {
+    zoomLevel = MAX_ZOOM;
+    offset.x = -selectedPoints[focusIndex].x * zoomLevel + canvas.width * 0.5;
+    offset.y = -selectedPoints[focusIndex].y * zoomLevel + canvas.height * 0.5;
     render();
 }
 
@@ -328,6 +337,18 @@ function keyDownHandler(event) {
     }
     else if (event.key == 'c') {
         centerObject();
+    }
+    else if (event.key == 'v') {
+        focusIndex += 1;
+        focusIndex %= selectedPoints.length;
+        centerPoint();
+    }
+    else if (event.key == 'x') {
+        focusIndex -= 1;
+        if (focusIndex < 0) {
+            focusIndex = selectedPoints.length - 1;
+        }
+        centerPoint();
     }
     else if (selectedPoints === markerPoints) {
         if (event.key == 'ArrowLeft' && markerPoints.length > 1) {
