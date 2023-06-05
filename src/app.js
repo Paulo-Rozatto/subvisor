@@ -145,6 +145,7 @@ function render() {
 }
 
 function draw() {
+    ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(image, offset.x, offset.y, image.width * zoomLevel, image.height * zoomLevel);
 
