@@ -3,17 +3,16 @@ import JSZip from 'jszip';
 import saveAs from 'file-saver';
 
 const fileList = document.querySelector("#file-list");
-const dropZone = document.querySelector("#drop_zone");
-const uploadButton = document.querySelector("#uploadButton");
+const dropZone = document.querySelector("#drop-zone");
 const markerRadio = document.querySelector("#markerRadio");
 const leafRadio = document.querySelector("#leafRadio");
 const downloadButton = document.querySelector("#export");
 
-dropZone.ondragover = dragOverHandler;
-dropZone.ondrop = dropHandler;
-uploadButton.onclick = () => {
-    dropZone.classList.toggle("hide");
-};
+window.ondragover = dragOverHandler;
+window.ondrop = dropHandler;
+window.ondragend = dragLeaveHandler;
+dropZone.onclick = dragLeaveHandler;
+
 markerRadio.onclick = () => { setSelectedPoints(CLASSES.MARKER) };
 leafRadio.onclick = () => { setSelectedPoints(CLASSES.LEAF) };
 downloadButton.onclick = download;
@@ -132,6 +131,13 @@ function setList() {
 
 function dragOverHandler(event) {
     event.preventDefault();
+    dropZone.classList.remove("hide");
+    window.onmouseup = dragLeaveHandler;
+}
+
+function dragLeaveHandler() {
+    console.log("drag leave");
+    dropZone.classList.add("hide");
 }
 
 async function download() {
