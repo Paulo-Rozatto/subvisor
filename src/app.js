@@ -8,7 +8,7 @@ const zoomSpeed = 0.04;
 const START_ARC = 0;
 const END_ARC = 2 * Math.PI;
 const RADIUS = 5;
-const MAX_ZOOM = 5;
+const MAX_ZOOM = 8;
 const MARKER_COLORS = ["#f00", "#070", "#00f", "#950"];
 const EXCHANGE_ALLOWED_KEYS = ["1", "2", "3", "4", "Backspace", "Enter"];
 
@@ -82,8 +82,9 @@ export async function loadImage(fileEntry, marker, leaf) {
         return;
     }
 
-    markerPoints = await pointsFromEntry(marker, "corners");
-    leafPoints = await pointsFromEntry(leaf, "points");
+    markerPoints = !marker ? [] : await pointsFromEntry(marker, "corners");
+    leafPoints = !leaf ? [] : await pointsFromEntry(leaf, "points");
+
     fileEntry.file((file) => {
         const reader = new FileReader();
         reader.onload = (event) => {

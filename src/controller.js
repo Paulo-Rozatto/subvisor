@@ -30,6 +30,9 @@ function dropHandler(event) {
     leafName = "";
     markerDir = null, leafDir = null, selected = null;
     images = [], markers = [], leafs = [];
+    for (key in IMAGE_MAP) {
+        delete IMAGE_MAP[key];
+    }
 
     if (!event.dataTransfer.items) {
         console.error("No items in dataTransfer.items")
@@ -100,12 +103,19 @@ function setList() {
     markers.sort((a, b) => a.name.localeCompare(b.name));
     leafs.sort((a, b) => a.name.localeCompare(b.name));
 
+    let mIndex = 0, lIndex = 0;
     fileList.innerHTML = "";
     for (let i = 0; i < images.length; i++) {
         const li = document.createElement("li");
-        li.innerHTML = images[i].name;
+        const imageName = images[i].name.slice(0, -4);
+        const markerName = markers[mIndex]?.name.slice(0, -4);
+        const leafName = leafs[lIndex]?.name.slice(0, -4);
+        const marker = markerName === imageName ? markers[mIndex++] : null;
+        const leaf = leafName === imageName ? leafs[lIndex++] : null;
+
+        li.innerHTML = imageName;
         li.onclick = () => {
-            loadImage(images[i], markers[i], leafs[i]);
+            loadImage(images[i], marker, leaf);
             selected.classList.remove("select");
             selected.classList.add("checked");
             li.classList.add("select");
