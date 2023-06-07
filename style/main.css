@@ -80,6 +80,38 @@
     width: calc(100% - 17px);
 }
 
+#info-button {
+    position: absolute;
+    right: 10em;
+}
+
+#info {
+    position: absolute;
+    top: calc(50% - 25vh);
+    left: calc(50% - 15vw);
+    background-color: #00004d;
+    backdrop-filter: blur(5px);
+    width: 30vw;
+    height: 50vh;
+    z-index: 2;
+    color: white;
+    overflow-y: auto;
+}
+
+#info h2 {
+    text-align: center;
+    padding-top: 5px;
+    margin: 0 auto;
+}
+
+#info b {
+    text-decoration: underline solid lightblue;
+}
+
+#info p {
+    padding-top: 15px;
+    padding-left: 15px;
+}
 
 nav {
     color: white;

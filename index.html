@@ -9,13 +9,13 @@
 <body>
     <header>
         <nav id="menu">
-            <button id="resetButton">Reset Zoom and Pan</button>
+            <button id="reset-button">Reset Zoom and Pan</button>
             <b>Editing:</b>
-            <!-- TODO: don't use onclcik in html -->
-            <input type="radio" name="object" id="markerRadio" checked>
+            <input type="radio" name="object" id="marker-radio" checked>
             <label for="marker">Marker</label>
-            <input type="radio" name="object" id="leafRadio">
+            <input type="radio" name="object" id="leaf-radio">
             <label for="leaf">Leaf</label>
+            <button id="info-button">info</button>
             <a class="btn" id="export" download>Export XML</a>
         </nav>
         <div id="drop-zone" class="hide">
@@ -33,6 +33,15 @@
         <section id="right-panel">
             <ul id="file-list"></ul>
         </section>
+        <article id="info" class="hide">
+            <h2>Infos</h2>
+            <p><b>Fazer upload:</b> Arraste a pasta que contém as imagens e xmls para qualquer lugar da janela.</p>
+            <p><b>Salvar xmls:</b> Clique em `Export XML`</p>
+            <p><b>Girar pontos:</b> Cilque na seta esquerda ou seta direita</p>
+            <p><b>Trocar pontos:</b> Digite 2 números no intervalo [1,4] e aperte ENTER para trocá-los de posição (só para marcadores)</p>
+            <p><b>Centralizar:</b> As teclas adjacentes <em>"X"</em>, <i>"C"</i> e <i>"V"</i> centralizam respectivamente no ponto anterior, centro do objeto, proximo ponto.</p>
+            <!-- ponto anterior -->
+        </article>
     </main>
 
     <!-- TOOD: make script files become well organized modules -->

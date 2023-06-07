@@ -138,7 +138,7 @@ function centerPoint() {
     render();
 }
 
-document.getElementById('resetButton').onclick = setCanvas;
+document.getElementById('reset-button').onclick = setCanvas;
 setCanvas();
 
 function render() {

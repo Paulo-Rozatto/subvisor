@@ -4,9 +4,11 @@ import saveAs from 'file-saver';
 
 const fileList = document.querySelector("#file-list");
 const dropZone = document.querySelector("#drop-zone");
-const markerRadio = document.querySelector("#markerRadio");
-const leafRadio = document.querySelector("#leafRadio");
+const markerRadio = document.querySelector("#marker-radio");
+const leafRadio = document.querySelector("#leaf-radio");
 const downloadButton = document.querySelector("#export");
+const infoButton = document.querySelector("#info-button")
+const info = document.querySelector("#info")
 
 window.ondragover = dragOverHandler;
 window.ondrop = dropHandler;
@@ -16,6 +18,8 @@ dropZone.onclick = dragLeaveHandler;
 markerRadio.onclick = () => { setSelectedPoints(CLASSES.MARKER) };
 leafRadio.onclick = () => { setSelectedPoints(CLASSES.LEAF) };
 downloadButton.onclick = download;
+
+infoButton.onclick = () => {info.classList.toggle("hide"); dropZone.classList.toggle("hide")}
 
 let leafName;
 let markerDir, leafDir;
@@ -138,6 +142,7 @@ function dragOverHandler(event) {
 function dragLeaveHandler() {
     console.log("drag leave");
     dropZone.classList.add("hide");
+    info.classList.add("hide");
 }
 
 async function download() {
