@@ -33,7 +33,7 @@ function dropHandler(event) {
     leafName = "";
     markerDir = null, leafDir = null, selected = null;
     images = [], markers = [], leafs = [];
-    for (key in IMAGE_MAP) {
+    for (const key in IMAGE_MAP) {
         delete IMAGE_MAP[key];
     }
 
