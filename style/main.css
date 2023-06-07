@@ -42,7 +42,7 @@
     position: absolute;
     top: 60px;
     right: 0;
-    background-color: whitesmoke;
+    background-color: rgba(245, 245, 245, 0.8);
     border-left: #00004d 1px solid;
     width: 20vw;
     height: calc(100% - 60px);
