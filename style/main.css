@@ -45,9 +45,9 @@
     background-color: whitesmoke;
     border-left: #00004d 1px solid;
     width: 20vw;
-    height: 100%;
-    overflow-y: auto;
+    height: calc(100% - 60px);
     padding: 3px;
+    overflow-y: auto;
 }
 
 #export {
