@@ -48,6 +48,7 @@ function dropHandler(event) {
         console.error("Expected directory in dataTransfer.items, got: ", root)
         return;
     }
+    document.querySelector("#title").innerHTML = leafName;
 
     // o reader.readerEntries é o que retorna os arquivos e pastas dentro de um diretorio
     // ele executa assincronamente e chama as funcoes de callback onSuccess ou onError dependendo do resultado da operacao
