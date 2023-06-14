@@ -4,6 +4,8 @@ const exchange = document.getElementById('exchange');
 const image = new Image();
 const offset = { x: 0, y: 0 };
 const zoomSpeed = 0.04;
+const undoStack = [];
+const redoStack = [];
 
 const START_ARC = 0;
 const END_ARC = 2 * Math.PI;
@@ -11,6 +13,7 @@ const RADIUS = 5;
 const MAX_ZOOM = 8;
 const MARKER_COLORS = ["#f00", "#070", "#00f", "#950"];
 const EXCHANGE_ALLOWED_KEYS = ["1", "2", "3", "4", "Backspace", "Enter"];
+const MAX_STACK_SIZE = 20;
 
 // altura da imagem em pixels, normalizamos os pontos para ficarem entre 0 e 1
 export const NORMALIZER = 4624;
@@ -229,13 +232,23 @@ function handleZoom(event) {
 function handleMouseDown(event) {
     const mouse = { x: event.offsetX, y: event.offsetY };
     if (event.button == 0) {
-        for (let point of selectedPoints) {
-            if (hitCircle(mouse, point)) {
-                canvas.onmousemove = (event) => panPoint(event, point);
+        // for (let point of selectedPoints) {
+        //     if (hitCircle(mouse, point)) {
+        //         canvas.onmousemove = (event) => panPoint(event, point);
+        //         canvas.style.cursor = 'grabbing';
+        //         return;
+        //     }
+        // }
+        // rewrite for usin let let i = 0; i < selectedPoints.length; i++
+        for (let i = 0; i < selectedPoints.length; i++) {
+            if (hitCircle(mouse, selectedPoints[i])) {
+                addHistory("move", { ...selectedPoints[i] }, selectedPoints, i);
+                canvas.onmousemove = (event) => panPoint(event, selectedPoints[i]);
                 canvas.style.cursor = 'grabbing';
                 return;
             }
         }
+
         createPoint(event.offsetX, event.offsetY);
     }
     else if (event.button == 2) {
@@ -271,6 +284,7 @@ function createPoint(x, y) {
     };
 
     if (selectedPoints.length < 3) {
+        addHistory("add", point, selectedPoints, selectedPoints.length);
         selectedPoints.push(point);
         render();
         return;
@@ -292,6 +306,7 @@ function createPoint(x, y) {
     }
 
     selectedPoints.splice(index + 1, 0, point);
+    addHistory("add", point, selectedPoints, index + 1);
     render();
 }
 
@@ -326,6 +341,7 @@ function point2Segment(target, p1, p2) {
 function removePoint() {
     for (let i = 0; i < selectedPoints.length; i++) {
         if (hitCircle(mousePos, selectedPoints[i])) {
+            addHistory("remove", selectedPoints[i], selectedPoints, i);
             selectedPoints.splice(i, 1);
             render();
             return;
@@ -334,6 +350,15 @@ function removePoint() {
 }
 
 function keyDownHandler(event) {
+    if (event.ctrlKey) {
+        if (event.key == 'z') {
+            undo();
+        } else if (event.key == 'y') {
+            redo();
+        }
+        return;
+    }
+
     if (event.key == 'Delete') {
         removePoint();
     }
@@ -418,6 +443,64 @@ function exchangeKeydown(event) {
 function trackMouse(event) {
     mousePos.x = event.offsetX;
     mousePos.y = event.offsetY;
+}
+
+function addHistory(type, point, selectedPoints, index) {
+    undoStack.push({ type, point, selectedPoints, index });
+    if (undoStack.length > MAX_STACK_SIZE) {
+        undoStack.shift();
+    }
+}
+
+function undo() {
+    if (undoStack.length > 0) {
+        const step = undoStack.pop();
+        const { type, point, selectedPoints, index } = step;
+
+        redoStack.push(step);
+        if (redoStack.length > MAX_STACK_SIZE) {
+            redoStack.shift();
+        }
+
+        if (type == "add") {
+            selectedPoints.splice(index, 1);
+        } else if (type == "remove") {
+            selectedPoints.splice(index, 0, point);
+        } else if (type == "move") {
+            let { x, y } = selectedPoints[index];
+            selectedPoints[index].x = point.x;
+            selectedPoints[index].y = point.y;
+            point.x = x;
+            point.y = y;
+        }
+        render();
+    }
+}
+
+function redo() {
+    if (redoStack.length > 0) {
+        const { type, point, selectedPoints, index } = redoStack.pop();
+
+        undoStack.push({ type, point, selectedPoints, index });
+        if (undoStack.length > MAX_STACK_SIZE) {
+            undoStack.shift();
+        }
+
+        if (type == "add") {
+            selectedPoints.splice(index, 0, point);
+        }
+        else if (type == "remove") {
+            selectedPoints.splice(index, 1);
+        } else if (type == "move") {
+            let { x, y } = selectedPoints[index];
+            selectedPoints[index].x = point.x;
+            selectedPoints[index].y = point.y;
+            point.x = x;
+            point.y = y;
+        }
+
+        render();
+    }
 }
 
 

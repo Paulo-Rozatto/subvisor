@@ -141,7 +141,6 @@ function dragOverHandler(event) {
 }
 
 function dragLeaveHandler() {
-    console.log("drag leave");
     dropZone.classList.add("hide");
     info.classList.add("hide");
 }
