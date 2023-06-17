@@ -12,23 +12,23 @@
 <body>
     <header>
         <section>
-            <button class="btn">Resetar</button>
-            <a class="btn">
-                <input type="radio" name="mode" id="">
+            <button class="btn" id="reset-button">Resetar</button>
+            <a class="btn" id="marker-button">
+                <input type="radio" name="mode" id="marker-radio" checked>
                 Marker
             </a>
-            <a class="btn">
-                <input type="radio" name="mode" id="">
+            <a class="btn" id="leaf-button">
+                <input type="radio" name="mode" id="leaf-radio">
                 Leaf
             </a>
         </section>
         <section>
-            <h2>000</h2>
+            <h2 id="title">000</h2>
         </section>
         <section>
-            <button class="btn" id="btnTheme">Tema</button>
-            <button class="btn">Info</button>
-            <a class="btn">Exportar</a>
+            <button class="btn" id="theme-button">Tema</button>
+            <button class="btn" id="info-button">Info</button>
+            <a class="btn" id="export-button">Exportar</a>
         </section>
     </header>
 
@@ -37,28 +37,19 @@
         <h5>(click to dimiss)</h5>
     </article>
 
+    <article class="info"></article>
+
     <main>
         <article class="display">
             <section class="float-input">
                 <input type="text" name="exchange" id="exchange" placeholder="ex: 1;3">
                 <label for="exchange"></label><small>Trocar pontos</small>
             </section>
-            <canvas></canvas>
+            <canvas id="canvas"></canvas>
         </article>
         <aside></aside>
     </main>
-    <script>
-        const checkPreference = () => {
-            const preferenceQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            document.querySelector("body").classList.add("dark-mode");
-        }
-        const toggleDarkMode = () => {
-            document.querySelector("body").classList.toggle("dark-mode");
-        }
-
-        window.addEventListener('DOMContentLoaded', checkPreference)
-        document.querySelector("#btnTheme").addEventListener("click", toggleDarkMode);
-    </script>
+    <script type="module" src="src/controller.js"></script>
 </body>
 
 </html>

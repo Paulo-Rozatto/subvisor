@@ -78,6 +78,7 @@ aside {
     justify-content: center;
     height: 100%;
     width: 100%;
+    z-index: 2;
     color: $selection;
     background-color: rgba($color: $primary, $alpha: 0.5);
     backdrop-filter: blur(5px);

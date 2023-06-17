@@ -1,6 +1,7 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-const exchange = document.getElementById('exchange');
+const display = document.querySelector('.display');
+const exchange = document.querySelector('#exchange');
 const image = new Image();
 const offset = { x: 0, y: 0 };
 const zoomSpeed = 0.04;
@@ -105,11 +106,11 @@ image.addEventListener('load', setCanvas);
 
 function setCanvas() {
     const imageAspectRatio = image.width / image.height;
-    const screenHeight = window.innerHeight * 0.8;
+    const screenHeight = display.clientHeight * 0.8;
     const screenWidth = screenHeight * imageAspectRatio;
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = display.clientWidth;
+    canvas.height = display.clientHeight;
     zoomLevel = screenHeight / image.height;
     offset.x = (canvas.width - screenWidth) * 0.5;
     offset.y = (canvas.height - screenHeight) * 0.5;
@@ -124,10 +125,10 @@ function centerObject() {
     const width = x1 - x0;
     const height = y1 - y0;
     const aspectRation = width / height;
-    const screenHeight = window.innerHeight * 0.8;
+    const screenHeight = display.clientHeight * 0.8;
     const screenWidth = screenHeight * aspectRation;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = display.clientWidth;
+    canvas.height = display.clientHeight;
     zoomLevel = screenHeight / height;
     offset.x = (canvas.width - screenWidth) * 0.5 - x0 * zoomLevel;
     offset.y = (canvas.height - screenHeight) * 0.5 - y0 * zoomLevel;
