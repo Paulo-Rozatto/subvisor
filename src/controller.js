@@ -2,24 +2,28 @@ import { loadImage, setSelectedPoints, CLASSES, IMAGE_MAP, NORMALIZER } from './
 import JSZip from 'jszip';
 import saveAs from 'file-saver';
 
-const fileList = document.querySelector("#file-list");
-const dropZone = document.querySelector("#drop-zone");
+const sideBar = document.querySelector("aside");
+const dropZone = document.querySelector(".drop-zone");
+const markerButton = document.querySelector("#marker-button");
+const leafButton = document.querySelector("#leaf-button")
 const markerRadio = document.querySelector("#marker-radio");
 const leafRadio = document.querySelector("#leaf-radio");
-const downloadButton = document.querySelector("#export");
+const downloadButton = document.querySelector("#export-button");
 const infoButton = document.querySelector("#info-button")
-const info = document.querySelector("#info")
+const info = document.querySelector(".info")
+const themeButton = document.querySelector("#theme-button")
 
 window.ondragover = dragOverHandler;
 window.ondrop = dropHandler;
 window.ondragend = dragLeaveHandler;
+window.onload = checkIsDarkTheme;
 dropZone.onclick = dragLeaveHandler;
 
-markerRadio.onclick = () => { setSelectedPoints(CLASSES.MARKER) };
-leafRadio.onclick = () => { setSelectedPoints(CLASSES.LEAF) };
+markerButton.onclick = () => { markerRadio.checked = true; setSelectedPoints(CLASSES.MARKER) };
+leafButton.onclick = () => { leafRadio.checked = true; setSelectedPoints(CLASSES.LEAF) };
+infoButton.onclick = () => { info.classList.toggle("hide"); dropZone.classList.toggle("hide") }
+themeButton.onclick = toggleTheme;
 downloadButton.onclick = download;
-
-infoButton.onclick = () => {info.classList.toggle("hide"); dropZone.classList.toggle("hide")}
 
 let leafName;
 let markerDir, leafDir;
@@ -27,6 +31,19 @@ let images = [];
 let markers = [];
 let leafs = [];
 let selected;
+
+function toggleTheme() {
+    const current = localStorage.getItem("isDarkMode") === "true";
+    localStorage.setItem("isDarkMode", String(!current));
+    document.querySelector("body").classList.toggle("dark-mode");
+}
+
+function checkIsDarkTheme() {
+    const isDark = localStorage.getItem("isDarkMode") === "true";
+    if (isDark){
+        document.querySelector("body").classList.add("dark-mode");
+    }
+}
 
 function dropHandler(event) {
     event.preventDefault();
@@ -108,27 +125,29 @@ function setList() {
     leafs.sort((a, b) => a.name.localeCompare(b.name));
 
     let mIndex = 0, lIndex = 0;
-    fileList.innerHTML = "";
+    sideBar.innerHTML = "";
     for (let i = 0; i < images.length; i++) {
-        const li = document.createElement("li");
+        const button = document.createElement("button");
+        button.classList.add("btn");
+
         const imageName = images[i].name.slice(0, -4);
         const markerName = markers[mIndex]?.name.slice(0, -4);
         const leafName = leafs[lIndex]?.name.slice(0, -4);
         const marker = markerName === imageName ? markers[mIndex++] : null;
         const leaf = leafName === imageName ? leafs[lIndex++] : null;
 
-        li.innerHTML = imageName;
-        li.onclick = () => {
+        button.innerText = imageName;
+        button.onclick = () => {
             loadImage(images[i], marker, leaf);
-            selected.classList.remove("select");
+            selected.classList.remove("selected");
             selected.classList.add("checked");
-            li.classList.add("select");
-            selected = li;
+            button.classList.add("selected");
+            selected = button;
         };
-        fileList.appendChild(li);
+        sideBar.appendChild(button);
         if (i == 0) {
-            selected = li;
-            li.classList.add("select");
+            selected = button;
+            button.classList.add("selected");
         }
     }
     loadImage(images[0], markers[0], leafs[0]);
