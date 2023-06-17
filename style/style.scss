@@ -84,6 +84,45 @@ aside {
     backdrop-filter: blur(5px);
 }
 
+.info {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    width: 50vw;
+    height: 50vh;
+    min-width: 600px;
+    min-height: 300px;
+    overflow-y: auto;
+    padding: 1em;
+    font-size: 1.25em;
+    text-align: justify;
+    z-index: 3;
+    color: $accent;
+    background-color: rgba($color: $base, $alpha: 0.95);
+}
+
+.info h2 {
+    text-align: center;
+    margin-bottom: 10px;
+    color: $selection;
+}
+
+.info p {
+    margin-bottom: 15px;
+}
+
+.info b {
+    color: $selection;
+}
+
+.info u {
+    text-decoration: none;
+    color: $hover;
+}
+
 
 // components
 .btn {
@@ -197,6 +236,22 @@ aside {
         border-bottom: 1px solid $selection;
     }
 
+    .info {
+        color: $accent;
+        background-color: $base;
+    }
+
+    .info h2 {
+        color: $selection;
+    }
+
+    .info b {
+        color: $selection;
+    }
+
+    .info u {
+        color: $hover;
+    }
 }
 
 .dark-mode {

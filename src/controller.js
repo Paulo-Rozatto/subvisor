@@ -21,10 +21,9 @@ dropZone.onclick = dragLeaveHandler;
 
 markerButton.onclick = () => { markerRadio.checked = true; setSelectedPoints(CLASSES.MARKER) };
 leafButton.onclick = () => { leafRadio.checked = true; setSelectedPoints(CLASSES.LEAF) };
+infoButton.onclick = () => { info.classList.toggle("hide"); dropZone.classList.toggle("hide") }
 themeButton.onclick = toggleTheme;
 downloadButton.onclick = download;
-
-// infoButton.onclick = () => { info.classList.toggle("hide"); dropZone.classList.toggle("hide") }
 
 let leafName;
 let markerDir, leafDir;
