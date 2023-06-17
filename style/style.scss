@@ -2,6 +2,8 @@ $base: #00004d;
 $base-light: #e0e0eb;
 $primary: #0F0F99;
 $accent: #f5f5f5;
+// $hover: hsl(240, 100%, 85%);
+$hover: hsl(106, 50%, 72%);
 $selection: #38cb0b;
 
 * {
@@ -60,11 +62,25 @@ aside {
     min-width: 200px;
     overflow-y: auto;
     background-color: $primary;
+    border-left: 1px solid $base;
 }
 
 .display {
     flex: 80%;
     background-color: $base-light;
+}
+
+.drop-zone {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    color: $selection;
+    background-color: rgba($color: $primary, $alpha: 0.5);
+    backdrop-filter: blur(5px);
 }
 
 
@@ -92,7 +108,11 @@ aside {
 
 .selected {
     color: $base;
-    background-color: $selection;
+    background-color: $hover;
+}
+
+.hide {
+    display: none;
 }
 
 @mixin dark-mode {
@@ -100,6 +120,7 @@ aside {
     $base-light: #686973;
     $primary: #373740;
     $accent: #a1a2aa;
+    $hover: #c68553;
     $selection: #c27c47;
 
     body {
@@ -126,7 +147,7 @@ aside {
 
     .btn:hover {
         color: $primary;
-        background-color: $selection;
+        background-color: $hover;
     }
 
     .selected {
@@ -134,12 +155,14 @@ aside {
         background-color: $selection;
     }
 
+    .drop-zone {
+        color: $hover;
+        background-color: rgba($color: $primary, $alpha: 0.90);
+        backdrop-filter: blur(5px);
+    }
+
 }
 
 .dark-mode {
     @include dark-mode;
 }
-
-// @media (prefers-color-scheme: dark) {
-//     @include dark-mode;
-// }
