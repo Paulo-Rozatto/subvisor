@@ -4,7 +4,7 @@ const display = document.querySelector('.display');
 const exchange = document.querySelector('#exchange');
 const image = new Image();
 const offset = { x: 0, y: 0 };
-const zoomSpeed = 0.04;
+const zoomFactor = 0.1;
 const undoStack = [];
 const redoStack = [];
 
@@ -214,9 +214,9 @@ function drawPolygon(points) {
 }
 
 function handleZoom(event) {
-    let scale = event.deltaY > 0 ? 1.25 * zoomSpeed : -zoomSpeed;
+    let scale = event.deltaY > 0 ? 1 - zoomFactor : 1 + zoomFactor;
     let oldLevel = zoomLevel;
-    zoomLevel = Math.max(0.1, zoomLevel - scale);
+    zoomLevel = Math.max(0.1, zoomLevel * scale);
     zoomLevel = Math.min(MAX_ZOOM, zoomLevel);
 
     // vc quer achar o ponto que o mouse estava sobre na imagem escalada com o novo zoom
