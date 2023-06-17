@@ -1,40 +1,8 @@
-@mixin light-mode {
-    $base: #00004d;
-    $base-light: #e0e0eb;
-    $primary: #0F0F99;
-    $accent: #38cb0b;
-
-    color: $accent;
-
-    header {
-        background-color: $base;
-    }
-
-    .display {
-        background-color: $base-light;
-    }
-
-    .btn {
-        background-color: $primary;
-    }
-
-    .btn:hover {
-        background-color: $base;
-    }
-}
-
-@mixin dark-mode {
-    $base: #0A0B0D;
-    $base-light: #686973;
-    $primary: #373740;
-    $accent: #a1a2aa;
-
-}
-
-$base: #0A0B0D;
-$base-light: #686973;
-$primary: #373740;
-$accent: #a1a2aa;
+$base: #00004d;
+$base-light: #e0e0eb;
+$primary: #0F0F99;
+$accent: #f5f5f5;
+$selection: #38cb0b;
 
 * {
     box-sizing: border-box;
@@ -48,6 +16,7 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    color: $accent;
 }
 
 header {
@@ -57,6 +26,7 @@ header {
     flex-direction: row;
     align-items: center;
     border-bottom: 1px solid black;
+    background-color: $base;
 }
 
 header section {
@@ -85,17 +55,16 @@ main {
 
 aside {
     flex: 20%;
-    min-width: 200px;
-    border-left: 1px solid black;
-    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    flex-grow: 0;
+    min-width: 200px;
+    overflow-y: auto;
+    background-color: $primary;
 }
 
 .display {
     flex: 80%;
-    background-color: whitesmoke;
+    background-color: $base-light;
 }
 
 
@@ -108,13 +77,69 @@ aside {
     height: 40px;
     min-height: 40px;
     min-width: 5em;
-    box-shadow: 1px 1px 3px gray;
+    box-shadow: 1px 1px 3px $base-light;
     text-align: center;
     vertical-align: center;
-    background-color: white;
+    color: $accent;
+    background-color: $primary;
     cursor: pointer;
 }
 
 .btn:hover {
-    background-color: whitesmoke;
+    color: $base;
+    background-color: $selection;
 }
+
+.selected {
+    color: $base;
+    background-color: $selection;
+}
+
+@mixin dark-mode {
+    $base: #0A0B0D;
+    $base-light: #686973;
+    $primary: #373740;
+    $accent: #a1a2aa;
+    $selection: #c27c47;
+
+    body {
+        color: $accent;
+    }
+
+    header {
+        background-color: $base;
+    }
+
+    aside {
+        background-color: $primary;
+        border-left: 1px solid $accent;
+    }
+
+    .display {
+        background-color: $base-light;
+    }
+
+    .btn {
+        color: $accent;
+        background-color: $primary;
+    }
+
+    .btn:hover {
+        color: $primary;
+        background-color: $selection;
+    }
+
+    .selected {
+        color: $base;
+        background-color: $selection;
+    }
+
+}
+
+.dark-mode {
+    @include dark-mode;
+}
+
+// @media (prefers-color-scheme: dark) {
+//     @include dark-mode;
+// }

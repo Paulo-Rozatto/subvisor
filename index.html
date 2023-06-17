@@ -12,6 +12,7 @@
 <body>
     <header>
         <section>
+            <button class="btn">Resetar</button>
             <a class="btn">
                 <input type="radio" name="mode" id="">
                 Marker
@@ -25,9 +26,9 @@
             <h2>000</h2>
         </section>
         <section>
+            <button class="btn" id="btnTheme">Tema</button>
             <button class="btn">Info</button>
-            <button class="btn">Reset</button>
-            <a class="btn">Export</a>
+            <a class="btn">Exportar</a>
         </section>
     </header>
     <main>
@@ -36,30 +37,20 @@
         </article>
 
         <aside>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">ABCDEFGH_IJK.LMN</a>
-            <a class="btn">LLLDEFGH_IJK.LMN</a>
         </aside>
     </main>
+    <script>
+        const checkPreference = () => {
+            const preferenceQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            document.querySelector("body").classList.add("dark-mode");
+        }
+        const toggleDarkMode = () => {
+            document.querySelector("body").classList.toggle("dark-mode");
+        }
+
+        window.addEventListener('DOMContentLoaded', checkPreference)
+        document.querySelector("#btnTheme").addEventListener("click", toggleDarkMode);
+    </script>
 </body>
 
 </html>
