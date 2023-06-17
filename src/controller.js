@@ -129,6 +129,7 @@ function setList() {
     for (let i = 0; i < images.length; i++) {
         const button = document.createElement("button");
         button.classList.add("btn");
+        button.tabIndex = -1;
 
         const imageName = images[i].name.slice(0, -4);
         const markerName = markers[mIndex]?.name.slice(0, -4);

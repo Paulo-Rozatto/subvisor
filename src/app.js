@@ -182,7 +182,7 @@ function drawMarker() {
 
 function drawLeaf() {
     ctx.strokeStyle = '#A02';
-    ctx.fillStyle = 'rgba(200, 0, 0, 0.5)';
+    ctx.fillStyle = 'rgba(200, 0, 0, 0.4)';
     ctx.lineWidth = 3;
 
     drawPolygon(leafPoints);
@@ -233,17 +233,10 @@ function handleZoom(event) {
 function handleMouseDown(event) {
     const mouse = { x: event.offsetX, y: event.offsetY };
     if (event.button == 0) {
-        // for (let point of selectedPoints) {
-        //     if (hitCircle(mouse, point)) {
-        //         canvas.onmousemove = (event) => panPoint(event, point);
-        //         canvas.style.cursor = 'grabbing';
-        //         return;
-        //     }
-        // }
-        // rewrite for usin let let i = 0; i < selectedPoints.length; i++
         for (let i = 0; i < selectedPoints.length; i++) {
             if (hitCircle(mouse, selectedPoints[i])) {
                 addHistory("move", { ...selectedPoints[i] }, selectedPoints, i);
+                focusIndex = i;
                 canvas.onmousemove = (event) => panPoint(event, selectedPoints[i]);
                 canvas.style.cursor = 'grabbing';
                 return;
@@ -286,6 +279,7 @@ function createPoint(x, y) {
 
     if (selectedPoints.length < 3) {
         addHistory("add", point, selectedPoints, selectedPoints.length);
+        focusIndex = selectedPoints.length;
         selectedPoints.push(point);
         render();
         return;
@@ -308,6 +302,7 @@ function createPoint(x, y) {
 
     selectedPoints.splice(index + 1, 0, point);
     addHistory("add", point, selectedPoints, index + 1);
+    focusIndex = index + 1;
     render();
 }
 
