@@ -31,6 +31,7 @@ let selectedPoints = markerPoints;
 let focusIndex = -1;
 let mousePos = { x: 0, y: 0 };
 let currentClass = CLASSES.MARKER;
+let showObjects = true;
 
 
 export function setSelectedPoints(option) {
@@ -150,12 +151,16 @@ function render() {
 }
 
 function draw() {
+    showObjects = true;
+    drawImage();
+    drawMarker();
+    drawLeaf();
+}
+
+function drawImage() {
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(image, offset.x, offset.y, image.width * zoomLevel, image.height * zoomLevel);
-
-    drawMarker();
-    drawLeaf();
 }
 
 function drawMarker() {
@@ -355,7 +360,7 @@ function keyDownHandler(event) {
         return;
     }
 
-    if (event.key == 'Delete') {
+    if (event.key == 'Delete' || event.key == 'z') {
         removePoint();
     }
     else if (event.key == 'c') {
@@ -372,6 +377,14 @@ function keyDownHandler(event) {
             focusIndex = selectedPoints.length - 1;
         }
         centerPoint();
+    }
+    else if (event.key == 'b') {
+        showObjects = !showObjects;
+        if (showObjects) {
+            render();
+        } else {
+            drawImage();
+        }
     }
     else if (selectedPoints === markerPoints) {
         if (event.key == 'ArrowLeft' && markerPoints.length > 1) {
