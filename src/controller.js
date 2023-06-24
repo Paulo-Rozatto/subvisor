@@ -40,7 +40,7 @@ function toggleTheme() {
 
 function checkIsDarkTheme() {
     const isDark = localStorage.getItem("isDarkMode") === "true";
-    if (isDark){
+    if (isDark) {
         document.querySelector("body").classList.add("dark-mode");
     }
 }
@@ -124,18 +124,20 @@ function setList() {
     markers.sort((a, b) => a.name.localeCompare(b.name));
     leafs.sort((a, b) => a.name.localeCompare(b.name));
 
-    let mIndex = 0, lIndex = 0;
+    if (images.length !== markers.length || images.length !== leafs.length) {
+        alert("Quantidade de imagens, marcadores e folhas não são iguais.\n" +
+            `- Imagens: ${images.length}\n- Marcadores: ${markers.length}\n- Folhas: ${leafs.length}`);
+    }
+
     sideBar.innerHTML = "";
     for (let i = 0; i < images.length; i++) {
         const button = document.createElement("button");
         button.classList.add("btn");
         button.tabIndex = -1;
 
-        const imageName = images[i].name.slice(0, -4);
-        const markerName = markers[mIndex]?.name.slice(0, -4);
-        const leafName = leafs[lIndex]?.name.slice(0, -4);
-        const marker = markerName === imageName ? markers[mIndex++] : null;
-        const leaf = leafName === imageName ? leafs[lIndex++] : null;
+        const imageName = images[i].name.replace(".jpg", "");
+        const marker = markers.find((marker) => marker.name.replace(".xml", "") === imageName);
+        const leaf = leafs.find((leaf) => leaf.name.replace(".xml", "") === imageName);
 
         button.innerText = imageName;
         button.onclick = () => {
