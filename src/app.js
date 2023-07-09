@@ -4,14 +4,16 @@ const display = document.querySelector('.display');
 const exchange = document.querySelector('#exchange');
 const image = new Image();
 const offset = { x: 0, y: 0 };
-const zoomFactor = 0.1;
 const undoStack = [];
 const redoStack = [];
 
+// constants padroes
 const START_ARC = 0;
 const END_ARC = 2 * Math.PI;
 const RADIUS = 5;
-const MAX_ZOOM = 8;
+const DEFAULT_MAX_ZOOM = 8;
+const DEFAULT_STEP_ZOOM = 0.1;
+const DEFAULT_OPACITY = 0.4;
 const MARKER_COLORS = ["#f00", "#070", "#00f", "#950"];
 const EXCHANGE_ALLOWED_KEYS = ["1", "2", "3", "4", "Backspace", "Enter"];
 const MAX_STACK_SIZE = 20;
@@ -32,7 +34,21 @@ let focusIndex = -1;
 let mousePos = { x: 0, y: 0 };
 let currentClass = CLASSES.MARKER;
 let showObjects = true;
+let maxZoom = DEFAULT_MAX_ZOOM;
+let stepZoom = DEFAULT_STEP_ZOOM;
+let opacity = DEFAULT_OPACITY;
 
+export function getConfigs() {
+    return { maxZoom, stepZoom, opacity };
+}
+
+export function setConfigs(configs) {
+    maxZoom = configs.maxZoom || maxZoom;
+    stepZoom = configs.stepZoom || stepZoom;
+    opacity = configs.opacity || opacity;
+    setCanvas();
+    render();
+}
 
 export function setSelectedPoints(option) {
     if (option == CLASSES.MARKER) {
@@ -137,7 +153,7 @@ function centerObject() {
 }
 
 function centerPoint() {
-    zoomLevel = MAX_ZOOM;
+    zoomLevel = maxZoom;
     offset.x = -selectedPoints[focusIndex].x * zoomLevel + canvas.width * 0.5;
     offset.y = -selectedPoints[focusIndex].y * zoomLevel + canvas.height * 0.5;
     render();
@@ -164,7 +180,7 @@ function drawImage() {
 }
 
 function drawMarker() {
-    ctx.fillStyle = 'rgba(0, 200, 200, 0.4)';
+    ctx.fillStyle = `rgba(0, 200, 200, ${opacity})`;
 
     drawPolygon(markerPoints);
 
@@ -187,7 +203,7 @@ function drawMarker() {
 
 function drawLeaf() {
     ctx.strokeStyle = '#A02';
-    ctx.fillStyle = 'rgba(200, 0, 0, 0.4)';
+    ctx.fillStyle = `rgba(200, 0, 0, ${opacity})`;
     ctx.lineWidth = 3;
 
     drawPolygon(leafPoints);
@@ -219,10 +235,10 @@ function drawPolygon(points) {
 }
 
 function handleZoom(event) {
-    let scale = event.deltaY > 0 ? 1 - zoomFactor : 1 + zoomFactor;
+    let scale = event.deltaY > 0 ? 1 - stepZoom : 1 + stepZoom;
     let oldLevel = zoomLevel;
     zoomLevel = Math.max(0.1, zoomLevel * scale);
-    zoomLevel = Math.min(MAX_ZOOM, zoomLevel);
+    zoomLevel = Math.min(maxZoom, zoomLevel);
 
     // vc quer achar o ponto que o mouse estava sobre na imagem escalada com o novo zoom
     // e substrair esse ponto do ponto que o mouse aponta atualmente e esse é o seu offset
@@ -393,10 +409,6 @@ function keyDownHandler(event) {
         } else if (event.key == 'ArrowRight' && markerPoints.length > 1) {
             markerPoints.push(markerPoints.shift())
             render();
-        }
-        else if (document.activeElement != exchange && EXCHANGE_ALLOWED_KEYS.includes(event.key)) {
-            exchange.focus();
-            exchangeKeydown(event);
         }
     }
 }

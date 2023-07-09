@@ -1,4 +1,4 @@
-import { loadImage, setSelectedPoints, CLASSES, IMAGE_MAP, NORMALIZER } from './app.js';
+import { loadImage, setSelectedPoints, CLASSES, IMAGE_MAP, NORMALIZER, getConfigs, setConfigs } from './app.js';
 import JSZip from 'jszip';
 import saveAs from 'file-saver';
 
@@ -10,18 +10,23 @@ const markerRadio = document.querySelector("#marker-radio");
 const leafRadio = document.querySelector("#leaf-radio");
 const downloadButton = document.querySelector("#export-button");
 const infoButton = document.querySelector("#info-button")
-const info = document.querySelector(".info")
+const info = document.querySelector("#info")
 const themeButton = document.querySelector("#theme-button")
+const configs = document.querySelector("#configs");
+const configsButton = document.querySelector("#configs-button");
+const configsForm = document.querySelector("#configs-form");
 
 window.ondragover = dragOverHandler;
 window.ondrop = dropHandler;
 window.ondragend = dragLeaveHandler;
-window.onload = checkIsDarkTheme;
+window.onload = setDefaultPreferences;
 dropZone.onclick = dragLeaveHandler;
+configsForm.onsubmit = setConfigsHandler;
 
 markerButton.onclick = () => { markerRadio.checked = true; setSelectedPoints(CLASSES.MARKER) };
 leafButton.onclick = () => { leafRadio.checked = true; setSelectedPoints(CLASSES.LEAF) };
-infoButton.onclick = () => { info.classList.toggle("hide"); dropZone.classList.toggle("hide") }
+infoButton.onclick = () => modalToggle(info)
+configsButton.onclick = () => modalToggle(configs);
 themeButton.onclick = toggleTheme;
 downloadButton.onclick = download;
 
@@ -38,11 +43,59 @@ function toggleTheme() {
     document.querySelector("body").classList.toggle("dark-mode");
 }
 
-function checkIsDarkTheme() {
+function setDefaultPreferences() {
+    // carrega tema salvo
     const isDark = localStorage.getItem("isDarkMode") === "true";
     if (isDark) {
         document.querySelector("body").classList.add("dark-mode");
     }
+
+    let { maxZoom, stepZoom, opacity } = getConfigs();
+    const maxZoomStorage = localStorage.getItem("max-zoom");
+    if (maxZoomStorage) {
+        maxZoom = parseFloat(maxZoomStorage);
+    }
+
+    const stepZoomStorage = localStorage.getItem("step-zoom");
+    if (stepZoomStorage) {
+        stepZoom = parseFloat(stepZoomStorage);
+    }
+
+    const opacityStorage = localStorage.getItem("opacity");
+    if (opacityStorage) {
+        opacity = parseFloat(opacityStorage);
+    }
+
+    setConfigs({ maxZoom, stepZoom, opacity });
+    document.querySelector("#max-zoom").value = maxZoom;
+    document.querySelector("#step-zoom").value = stepZoom;
+    document.querySelector("#opacity").value = opacity;
+}
+
+function setConfigsHandler(event) {
+    event.preventDefault();
+
+    const confs = getConfigs();
+    const maxZoom = document.querySelector("#max-zoom").value;
+    const stepZoom = document.querySelector("#step-zoom").value;
+    const opacity = document.querySelector("#opacity").value;
+
+    confs.maxZoom = parseFloat(maxZoom);
+    confs.stepZoom = parseFloat(stepZoom);
+    confs.opacity = parseFloat(opacity);
+
+    localStorage.setItem("max-zoom", maxZoom);
+    localStorage.setItem("step-zoom", stepZoom);
+    localStorage.setItem("opacity", opacity);
+
+    setConfigs(confs);
+    configs.classList.add("hide");
+    dropZone.classList.add("hide");
+}
+
+function modalToggle(modal) {
+    modal.classList.toggle("hide");
+    dropZone.classList.toggle("hide");
 }
 
 function dropHandler(event) {
@@ -159,12 +212,13 @@ function setList() {
 function dragOverHandler(event) {
     event.preventDefault();
     dropZone.classList.remove("hide");
-    window.onmouseup = dragLeaveHandler;
+    dropZone.onmouseup = dragLeaveHandler;
 }
 
 function dragLeaveHandler() {
     dropZone.classList.add("hide");
     info.classList.add("hide");
+    configs.classList.add("hide");
 }
 
 async function download() {
