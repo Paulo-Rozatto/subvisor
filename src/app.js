@@ -36,15 +36,17 @@ let currentClass = CLASSES.MARKER;
 let showObjects = true;
 let maxZoom = DEFAULT_MAX_ZOOM;
 let stepZoom = DEFAULT_STEP_ZOOM;
+let pointZoom = DEFAULT_MAX_ZOOM;// zoom quando se centraliza um ponto usando 'v' ou 'x'
 let opacity = DEFAULT_OPACITY;
 
 export function getConfigs() {
-    return { maxZoom, stepZoom, opacity };
+    return { maxZoom, stepZoom, pointZoom, opacity };
 }
 
 export function setConfigs(configs) {
     maxZoom = configs.maxZoom || maxZoom;
     stepZoom = configs.stepZoom || stepZoom;
+    pointZoom = configs.pointZoom || pointZoom;
     opacity = configs.opacity || opacity;
     setCanvas();
     render();
@@ -153,7 +155,7 @@ function centerObject() {
 }
 
 function centerPoint() {
-    zoomLevel = maxZoom;
+    zoomLevel = pointZoom;
     offset.x = -selectedPoints[focusIndex].x * zoomLevel + canvas.width * 0.5;
     offset.y = -selectedPoints[focusIndex].y * zoomLevel + canvas.height * 0.5;
     render();

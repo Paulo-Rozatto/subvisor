@@ -50,7 +50,7 @@ function setDefaultPreferences() {
         document.querySelector("body").classList.add("dark-mode");
     }
 
-    let { maxZoom, stepZoom, opacity } = getConfigs();
+    let { maxZoom, stepZoom, pointZoom, opacity } = getConfigs();
     const maxZoomStorage = localStorage.getItem("max-zoom");
     if (maxZoomStorage) {
         maxZoom = parseFloat(maxZoomStorage);
@@ -61,14 +61,20 @@ function setDefaultPreferences() {
         stepZoom = parseFloat(stepZoomStorage);
     }
 
+    const pointZoomStorage = localStorage.getItem("point-zoom");
+    if (pointZoomStorage) {
+        pointZoom = parseFloat(pointZoomStorage);
+    }
+
     const opacityStorage = localStorage.getItem("opacity");
     if (opacityStorage) {
         opacity = parseFloat(opacityStorage);
     }
 
-    setConfigs({ maxZoom, stepZoom, opacity });
+    setConfigs({ maxZoom, stepZoom, pointZoom, opacity });
     document.querySelector("#max-zoom").value = maxZoom;
     document.querySelector("#step-zoom").value = stepZoom;
+    document.querySelector("#point-zoom").value = pointZoom;
     document.querySelector("#opacity").value = opacity;
 }
 
@@ -78,14 +84,17 @@ function setConfigsHandler(event) {
     const confs = getConfigs();
     const maxZoom = document.querySelector("#max-zoom").value;
     const stepZoom = document.querySelector("#step-zoom").value;
+    const pointZoom = document.querySelector("#point-zoom").value;
     const opacity = document.querySelector("#opacity").value;
 
     confs.maxZoom = parseFloat(maxZoom);
     confs.stepZoom = parseFloat(stepZoom);
+    confs.pointZoom = parseFloat(pointZoom);
     confs.opacity = parseFloat(opacity);
 
     localStorage.setItem("max-zoom", maxZoom);
     localStorage.setItem("step-zoom", stepZoom);
+    localStorage.setItem("point-zoom", pointZoom);
     localStorage.setItem("opacity", opacity);
 
     setConfigs(confs);
