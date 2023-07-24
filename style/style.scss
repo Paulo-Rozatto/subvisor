@@ -54,14 +54,27 @@ main {
     flex-direction: row;
 }
 
-aside {
+aside, .image-list {
     flex: 20%;
     display: flex;
     flex-direction: column;
     min-width: 200px;
     overflow-y: auto;
     background-color: $primary;
+}
+
+aside {
     border-left: 1px solid $base;
+}
+
+.stats-bar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: center;
+    padding: 10px;
+    background-color: $base;
+    border-top: 1px solid $accent;
 }
 
 .display {
@@ -209,9 +222,17 @@ aside {
         background-color: $base;
     }
 
-    aside {
+    aside, .image-list {
         background-color: $primary;
+    }
+
+    aside {
         border-left: 1px solid $accent;
+    }
+
+    .stats-bar {
+        background-color: $base;
+        border-top: 1px solid $accent;
     }
 
     .display {

@@ -1,20 +1,35 @@
-import { loadImage, setSelectedPoints, CLASSES, IMAGE_MAP, NORMALIZER, getConfigs, setConfigs } from './app.js';
+import { loadImage, setSelectedPoints, CLASSES, IMAGE_MAP, NORMALIZER, getConfigs, setConfigs, getObjectLength } from './app.js';
 import JSZip from 'jszip';
 import saveAs from 'file-saver';
 
-const sideBar = document.querySelector("aside");
+const MAX_TIME = 99 * 60 + 99;
+
+// modal elements
 const dropZone = document.querySelector(".drop-zone");
+const configsForm = document.querySelector("#configs-form");
+const configs = document.querySelector("#configs");
+const info = document.querySelector("#info")
+
+// side bar elements
+const imageList = document.querySelector(".image-list");
+const objLength = document.querySelector("#obj-length");
+const timer = document.querySelector("#timer");
+
+// left header
 const markerButton = document.querySelector("#marker-button");
 const leafButton = document.querySelector("#leaf-button")
 const markerRadio = document.querySelector("#marker-radio");
 const leafRadio = document.querySelector("#leaf-radio");
-const downloadButton = document.querySelector("#export-button");
-const infoButton = document.querySelector("#info-button")
-const info = document.querySelector("#info")
+/* TODO: mover o reset button para aqui */
+
+// right header
 const themeButton = document.querySelector("#theme-button")
-const configs = document.querySelector("#configs");
 const configsButton = document.querySelector("#configs-button");
-const configsForm = document.querySelector("#configs-form");
+const infoButton = document.querySelector("#info-button")
+const downloadButton = document.querySelector("#export-button");
+
+// canvas
+const canvas = document.getElementById('canvas');
 
 window.ondragover = dragOverHandler;
 window.ondrop = dropHandler;
@@ -22,9 +37,10 @@ window.ondragend = dragLeaveHandler;
 window.onload = setDefaultPreferences;
 dropZone.onclick = dragLeaveHandler;
 configsForm.onsubmit = setConfigsHandler;
+canvas.onclick = updateLengthStats;
 
-markerButton.onclick = () => { markerRadio.checked = true; setSelectedPoints(CLASSES.MARKER) };
-leafButton.onclick = () => { leafRadio.checked = true; setSelectedPoints(CLASSES.LEAF) };
+markerButton.onclick = () => { markerRadio.checked = true; setSelectedPoints(CLASSES.MARKER); updateLengthStats(); };
+leafButton.onclick = () => { leafRadio.checked = true; setSelectedPoints(CLASSES.LEAF); updateLengthStats(); };
 infoButton.onclick = () => modalToggle(info)
 configsButton.onclick = () => modalToggle(configs);
 themeButton.onclick = toggleTheme;
@@ -36,6 +52,8 @@ let images = [];
 let markers = [];
 let leafs = [];
 let selected;
+let time = 0;
+let interval;
 
 function toggleTheme() {
     const current = localStorage.getItem("isDarkMode") === "true";
@@ -102,9 +120,62 @@ function setConfigsHandler(event) {
     dropZone.classList.add("hide");
 }
 
+function updateLengthStats() {
+    const length = getObjectLength();
+    objLength.innerHTML = `Pontos: ${length.toString().padStart(3, "0")}`;
+}
+
 function modalToggle(modal) {
     modal.classList.toggle("hide");
     dropZone.classList.toggle("hide");
+}
+
+function updateTimer() {
+    if (++time > MAX_TIME) {
+        clearInterval(interval);
+        return;
+    }
+
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    timer.textContent = `Tempo: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+async function setList() {
+    images.sort((a, b) => a.name.localeCompare(b.name));
+    markers.sort((a, b) => a.name.localeCompare(b.name));
+    leafs.sort((a, b) => a.name.localeCompare(b.name));
+
+    if (images.length !== markers.length || images.length !== leafs.length) {
+        alert("Quantidade de imagens, marcadores e folhas não são iguais.\n" +
+            `- Imagens: ${images.length}\n- Marcadores: ${markers.length}\n- Folhas: ${leafs.length}`);
+    }
+
+    imageList.innerHTML = "";
+    for (let i = 0; i < images.length; i++) {
+        const button = document.createElement("button");
+        button.classList.add("btn");
+        button.tabIndex = -1;
+
+        const imageName = images[i].name.replace(".jpg", "");
+        const marker = markers.find((marker) => marker.name.replace(".xml", "") === imageName);
+        const leaf = leafs.find((leaf) => leaf.name.replace(".xml", "") === imageName);
+
+        button.innerText = imageName;
+        button.onclick = () => {
+            loadImage(images[i], marker, leaf);
+            selected.classList.remove("selected");
+            selected.classList.add("checked");
+            button.classList.add("selected");
+            selected = button;
+        };
+        imageList.appendChild(button);
+        if (i == 0) {
+            selected = button;
+            button.classList.add("selected");
+        }
+    }
+    await loadImage(images[0], markers[0], leafs[0], updateLengthStats);
 }
 
 function dropHandler(event) {
@@ -176,46 +247,12 @@ function dropHandler(event) {
         await asyncRead(leafReader, leafCallback);
 
         setList();
+        clearInterval(interval);
+        time = 0;
+        interval = setInterval(updateTimer, 1000);
     })();
 
     dropZone.classList.add("hide");
-}
-
-function setList() {
-    images.sort((a, b) => a.name.localeCompare(b.name));
-    markers.sort((a, b) => a.name.localeCompare(b.name));
-    leafs.sort((a, b) => a.name.localeCompare(b.name));
-
-    if (images.length !== markers.length || images.length !== leafs.length) {
-        alert("Quantidade de imagens, marcadores e folhas não são iguais.\n" +
-            `- Imagens: ${images.length}\n- Marcadores: ${markers.length}\n- Folhas: ${leafs.length}`);
-    }
-
-    sideBar.innerHTML = "";
-    for (let i = 0; i < images.length; i++) {
-        const button = document.createElement("button");
-        button.classList.add("btn");
-        button.tabIndex = -1;
-
-        const imageName = images[i].name.replace(".jpg", "");
-        const marker = markers.find((marker) => marker.name.replace(".xml", "") === imageName);
-        const leaf = leafs.find((leaf) => leaf.name.replace(".xml", "") === imageName);
-
-        button.innerText = imageName;
-        button.onclick = () => {
-            loadImage(images[i], marker, leaf);
-            selected.classList.remove("selected");
-            selected.classList.add("checked");
-            button.classList.add("selected");
-            selected = button;
-        };
-        sideBar.appendChild(button);
-        if (i == 0) {
-            selected = button;
-            button.classList.add("selected");
-        }
-    }
-    loadImage(images[0], markers[0], leafs[0]);
 }
 
 function dragOverHandler(event) {

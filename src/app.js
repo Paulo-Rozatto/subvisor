@@ -68,6 +68,10 @@ export function setSelectedPoints(option) {
     render();
 }
 
+export function getObjectLength() {
+    return selectedPoints.length;
+}
+
 function pointsFromEntry(entry, tag) {
     return new Promise((resolve, reject) => {
         entry.file((file) => {
@@ -94,7 +98,7 @@ function pointsFromEntry(entry, tag) {
     });
 }
 
-export async function loadImage(fileEntry, marker, leaf) {
+export async function loadImage(fileEntry, marker, leaf, cb = () => {}) {
     const img = IMAGE_MAP[fileEntry.name];
 
     if (img) {
@@ -115,6 +119,7 @@ export async function loadImage(fileEntry, marker, leaf) {
             image.src = src;
             IMAGE_MAP[fileEntry.name] = { src, markerPoints, leafPoints }
             setSelectedPoints();
+            cb();
         };
         reader.readAsDataURL(file);
     });
