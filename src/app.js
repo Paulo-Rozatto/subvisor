@@ -106,6 +106,7 @@ export async function loadImage(fileEntry, marker, leaf, cb = () => {}) {
         markerPoints = img.markerPoints;
         leafPoints = img.leafPoints;
         setSelectedPoints();
+        cb();
         return;
     }
 

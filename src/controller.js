@@ -163,7 +163,7 @@ async function setList() {
 
         button.innerText = imageName;
         button.onclick = () => {
-            loadImage(images[i], marker, leaf);
+            loadImage(images[i], marker, leaf, updateLengthStats);
             selected.classList.remove("selected");
             selected.classList.add("checked");
             button.classList.add("selected");
