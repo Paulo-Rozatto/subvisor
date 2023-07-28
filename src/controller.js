@@ -31,10 +31,13 @@ const downloadButton = document.querySelector("#export-button");
 // canvas
 const canvas = document.getElementById('canvas');
 
-window.ondragover = dragOverHandler;
-window.ondrop = dropHandler;
-window.ondragend = dragLeaveHandler;
-window.onload = setDefaultPreferences;
+// window events
+addEventListener('DOMContentLoaded', setDefaultPreferences, false);
+addEventListener('dragover', dragOverHandler, false);
+addEventListener('drop', dropHandler, false);
+addEventListener('dragend', dragLeaveHandler, false);
+
+// other events
 dropZone.onclick = dragLeaveHandler;
 configsForm.onsubmit = setConfigsHandler;
 canvas.onclick = updateLengthStats;
