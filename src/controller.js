@@ -2,7 +2,7 @@ import { loadImage, setSelectedPoints, CLASSES, IMAGE_MAP, NORMALIZER, getConfig
 import JSZip from 'jszip';
 import saveAs from 'file-saver';
 
-const MAX_TIME = 99 * 60 + 99;
+const MAX_TIME = 99 * 60 + 59;
 
 // modal elements
 const dropZone = document.querySelector(".drop-zone");
