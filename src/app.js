@@ -72,7 +72,7 @@ export function getObjectLength() {
     return selectedPoints.length;
 }
 
-function pointsFromEntry(entry, tag) {
+function pointsFromEntry(entry, tagName) {
     return new Promise((resolve, reject) => {
         entry.file((file) => {
             const reader = new FileReader();
@@ -80,9 +80,16 @@ function pointsFromEntry(entry, tag) {
                 const src = event.target.result;
                 const parser = new DOMParser();
                 const xml = parser.parseFromString(src, 'text/xml');
-                const corners = xml.getElementsByTagName(tag)[0].children;
-                const pts = [];
+                const tag = xml.getElementsByTagName(tagName)[0];
 
+                if (!tag) {
+                    alert(`ERRO: ${entry.name} não tem tag <${tagName}>`)
+                    reject([]);
+                    return;
+                }
+
+                const corners = tag.children;
+                const pts = [];
                 for (let i = 0; i < corners.length; i += 2) {
                     const point = {
                         x: parseFloat(corners[i].textContent) * NORMALIZER,
@@ -92,13 +99,13 @@ function pointsFromEntry(entry, tag) {
                 }
 
                 resolve(pts);
-            }
+            };
             reader.readAsText(file);
         });
     });
 }
 
-export async function loadImage(fileEntry, marker, leaf, cb = () => {}) {
+export async function loadImage(fileEntry, marker, leaf, cb = () => { }) {
     const img = IMAGE_MAP[fileEntry.name];
 
     if (img) {
