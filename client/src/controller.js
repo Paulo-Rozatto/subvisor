@@ -1,4 +1,4 @@
-import { loadImage, setSelectedPoints, CLASSES, IMAGE_MAP, NORMALIZER, getConfigs, setConfigs, getObjectLength } from './app.js';
+import { loadImage, setSelectedPoints, CLASSES, IMAGE_MAP, NORMALIZER, getConfigs, setConfigs, getObjectLength, setLeaftPoints } from './app.js';
 import JSZip from 'jszip';
 import saveAs from 'file-saver';
 
@@ -307,4 +307,13 @@ ${coordinates.trimEnd()}
     </${tag}>
   </object>
 </annotation>`.trimStart();
+}
+
+const testButton = document.querySelector("#test-button");
+testButton.onclick = async () => {
+    const response = await fetch("http://localhost:8080/api/nn/test", { method: "GET", mode: "cors" })
+    const json = await response.json();
+    const pointsArray =  JSON.parse(json.points) || [];
+    const points = pointsArray.map((point) => ({ x: point[0], y: point[1] }));
+    setLeaftPoints(points);
 }

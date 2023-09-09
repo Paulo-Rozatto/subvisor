@@ -105,7 +105,12 @@ function pointsFromEntry(entry, tagName) {
     });
 }
 
-export async function loadImage(fileEntry, marker, leaf, cb = () => { }) {
+export function setLeaftPoints(points) {
+    leafPoints = points;
+    render();
+}
+
+export async function loadImage(fileEntry, marker, leaf, cb = () => {}) {
     const img = IMAGE_MAP[fileEntry.name];
 
     if (img) {
