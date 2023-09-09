@@ -110,7 +110,7 @@ export function setLeaftPoints(points) {
     render();
 }
 
-export async function loadImage(fileEntry, marker, leaf, cb = () => {}) {
+export async function loadImage(fileEntry, marker, leaf, cb = () => { }) {
     const img = IMAGE_MAP[fileEntry.name];
 
     if (img) {
@@ -123,7 +123,7 @@ export async function loadImage(fileEntry, marker, leaf, cb = () => {}) {
     }
 
     markerPoints = !marker ? [] : await pointsFromEntry(marker, "corners");
-    leafPoints = !leaf ? [] : await pointsFromEntry(leaf, "points");
+    leafPoints = !leaf ? [] : await pointsFromEntry(leaf, "corners");
 
     fileEntry.file((file) => {
         const reader = new FileReader();
