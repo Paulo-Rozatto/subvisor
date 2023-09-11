@@ -15,8 +15,8 @@ public class NNApi {
 
     @CrossOrigin(origins = "http://localhost:1234")
     @GetMapping("/test")
-    public Contour test() {
-        String result = runNetwork();
+    public Contour test(String path, String points) {
+        String result = runNetwork(path, points);
         result = result != null ? result.trim() : "null";
         return new Contour(result);
     }

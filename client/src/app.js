@@ -24,11 +24,13 @@ export const IMAGE_MAP = {}
 export const CLASSES = {
     MARKER: 0,
     LEAF: 1,
+    BOX: 2,
 }
 
 let zoomLevel = 1;
 let markerPoints = [];
 let leafPoints = [];
+let boxPoints = [];
 let selectedPoints = markerPoints;
 let focusIndex = -1;
 let mousePos = { x: 0, y: 0 };
@@ -38,6 +40,7 @@ let maxZoom = DEFAULT_MAX_ZOOM;
 let stepZoom = DEFAULT_STEP_ZOOM;
 let pointZoom = DEFAULT_MAX_ZOOM;// zoom quando se centraliza um ponto usando 'v' ou 'x'
 let opacity = DEFAULT_OPACITY;
+let currentImage = null;
 
 export function getConfigs() {
     return { maxZoom, stepZoom, pointZoom, opacity };
@@ -52,6 +55,22 @@ export function setConfigs(configs) {
     render();
 }
 
+export function getImagePath() {
+    const points = selectedPoints.map(p => `${parseInt(p.x)},${parseInt(p.y)}`).join(",");
+    return {
+        imagePath: IMAGE_MAP[currentImage].filePath,
+        points,
+    };
+}
+
+export function getObjectLength() {
+    return selectedPoints.length;
+}
+
+export function getCurrentClass() {
+    return currentClass;
+}
+
 export function setSelectedPoints(option) {
     if (option == CLASSES.MARKER) {
         selectedPoints = markerPoints;
@@ -61,15 +80,15 @@ export function setSelectedPoints(option) {
         selectedPoints = leafPoints;
         currentClass = CLASSES.LEAF;
         exchange.parentElement.classList.add('hide')
+    } else if (option == CLASSES.BOX) {
+        selectedPoints = boxPoints;
+        currentClass = CLASSES.BOX;
+        exchange.parentElement.classList.add('hide')
     } else {
         setSelectedPoints(currentClass);
         return;
     }
     render();
-}
-
-export function getObjectLength() {
-    return selectedPoints.length;
 }
 
 function pointsFromEntry(entry, tagName) {
@@ -112,6 +131,7 @@ export function setLeaftPoints(points) {
 
 export async function loadImage(fileEntry, marker, leaf, cb = () => { }) {
     const img = IMAGE_MAP[fileEntry.name];
+    currentImage = fileEntry.name;
 
     if (img) {
         image.src = img.src;
@@ -125,12 +145,13 @@ export async function loadImage(fileEntry, marker, leaf, cb = () => { }) {
     markerPoints = !marker ? [] : await pointsFromEntry(marker, "corners");
     leafPoints = !leaf ? [] : await pointsFromEntry(leaf, "corners");
 
+    const filePath = fileEntry.fullPath;
     fileEntry.file((file) => {
         const reader = new FileReader();
         reader.onload = (event) => {
             const src = event.target.result;
             image.src = src;
-            IMAGE_MAP[fileEntry.name] = { src, markerPoints, leafPoints }
+            IMAGE_MAP[fileEntry.name] = { src, markerPoints, leafPoints, filePath }
             setSelectedPoints();
             cb();
         };
@@ -191,6 +212,7 @@ function draw() {
     drawImage();
     drawMarker();
     drawLeaf();
+    drawBox();
 }
 
 function drawImage() {
@@ -237,6 +259,27 @@ function drawLeaf() {
             ctx.closePath();
             ctx.stroke();
         }
+    }
+}
+
+function drawBox() {
+    if (selectedPoints !== boxPoints) {
+        return;
+    }
+
+    ctx.strokeStyle = '#AA2';
+    for (let point of boxPoints) {
+        ctxPoint = toCanvasCoords(point);
+        ctx.beginPath();
+        ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
+        ctx.closePath();
+        ctx.stroke();
+    }
+
+    if (boxPoints.length == 2) {
+        const corner1 = toCanvasCoords(boxPoints[0]);
+        const corner2 = toCanvasCoords(boxPoints[1]);
+        ctx.strokeRect(corner1.x, corner1.y, corner2.x - corner1.x, corner2.y - corner1.y);
     }
 }
 
@@ -310,6 +353,10 @@ function panPoint(event, point) {
 
 function createPoint(x, y) {
     if (selectedPoints == markerPoints && selectedPoints.length == 4) {
+        return;
+    }
+
+    if (selectedPoints === boxPoints && selectedPoints.length == 2) {
         return;
     }
 
