@@ -1,4 +1,15 @@
-import { loadImage, setSelectedPoints, CLASSES, IMAGE_MAP, NORMALIZER, getConfigs, setConfigs, getObjectLength, setLeaftPoints } from './app.js';
+import {
+    loadImage,
+    setSelectedPoints,
+    CLASSES, IMAGE_MAP,
+    NORMALIZER,
+    getConfigs,
+    setConfigs,
+    getObjectLength,
+    setLeaftPoints,
+    getImagePath,
+    getCurrentClass
+} from './app.js';
 import JSZip from 'jszip';
 import saveAs from 'file-saver';
 
@@ -20,6 +31,7 @@ const markerButton = document.querySelector("#marker-button");
 const leafButton = document.querySelector("#leaf-button")
 const markerRadio = document.querySelector("#marker-radio");
 const leafRadio = document.querySelector("#leaf-radio");
+const boxButton = document.querySelector("#box-button");
 /* TODO: mover o reset button para aqui */
 
 // right header
@@ -44,6 +56,7 @@ canvas.onclick = updateLengthStats;
 
 markerButton.onclick = () => { markerRadio.checked = true; setSelectedPoints(CLASSES.MARKER); updateLengthStats(); };
 leafButton.onclick = () => { leafRadio.checked = true; setSelectedPoints(CLASSES.LEAF); updateLengthStats(); };
+boxButton.onclick = boxbuttonHandler;
 infoButton.onclick = () => modalToggle(info)
 configsButton.onclick = () => modalToggle(configs);
 themeButton.onclick = toggleTheme;
@@ -309,11 +322,20 @@ ${coordinates.trimEnd()}
 </annotation>`.trimStart();
 }
 
-const testButton = document.querySelector("#test-button");
-testButton.onclick = async () => {
-    const response = await fetch("http://localhost:8080/api/nn/test", { method: "GET", mode: "cors" })
+async function boxbuttonHandler() {
+    if (getCurrentClass() !== CLASSES.BOX) {
+        setSelectedPoints(CLASSES.BOX);
+        return;
+    }
+
+    const { imagePath, points } = getImagePath();
+    const params = new URLSearchParams({ path: imagePath, points });
+    const response = await fetch(
+        `http://localhost:8080/api/nn/test?${params}`,
+        { method: "GET", mode: "cors" }
+    );
     const json = await response.json();
-    const pointsArray =  JSON.parse(json.points) || [];
-    const points = pointsArray.map((point) => ({ x: point[0], y: point[1] }));
-    setLeaftPoints(points);
+    const pointsArray = JSON.parse(json.points) || [];
+    const resultPoints = pointsArray.map((point) => ({ x: point[0], y: point[1] }));
+    setLeaftPoints(resultPoints);
 }
