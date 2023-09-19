@@ -1,0 +1,16 @@
+.stats-bar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: center;
+    padding: 10px;
+    background-color: $base;
+    border-top: 1px solid $accent;
+}
+
+@mixin dark-stats-bar {
+    .stats-bar {
+        background-color: $dark-base;
+        border-top: 1px solid $dark-accent;
+    }
+}
