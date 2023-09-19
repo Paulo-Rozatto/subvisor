@@ -143,7 +143,7 @@ export async function loadImage(fileEntry, marker, leaf, cb = () => { }) {
     }
 
     markerPoints = !marker ? [] : await pointsFromEntry(marker, "corners");
-    leafPoints = !leaf ? [] : await pointsFromEntry(leaf, "corners");
+    leafPoints = !leaf ? [] : await pointsFromEntry(leaf, "points");
 
     const filePath = fileEntry.fullPath;
     fileEntry.file((file) => {
