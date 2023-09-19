@@ -1,9 +1,5 @@
-$base: #00004d;
-$base-light: #e0e0eb;
-$primary: #0F0F99;
-$accent: #f5f5f5;
-$hover: #a5db94;
-$selection: #38cb0b;
+@import "colors";
+@import "stats-bar";
 
 * {
     box-sizing: border-box;
@@ -54,7 +50,8 @@ main {
     flex-direction: row;
 }
 
-aside, .image-list {
+aside,
+.image-list {
     flex: 20%;
     display: flex;
     flex-direction: column;
@@ -65,16 +62,6 @@ aside, .image-list {
 
 aside {
     border-left: 1px solid $base;
-}
-
-.stats-bar {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    text-align: center;
-    padding: 10px;
-    background-color: $base;
-    border-top: 1px solid $accent;
 }
 
 .display {
@@ -180,7 +167,7 @@ aside {
     width: 10em;
     padding: 3px;
     color: $accent;
-    background-color: rgba($color: $base, $alpha: 0.95) ;
+    background-color: rgba($color: $base, $alpha: 0.95);
 }
 
 .text-input {
@@ -206,87 +193,79 @@ aside {
 }
 
 @mixin dark-mode {
-    $base: #0A0B0D;
-    $base-light: #686973;
-    $primary: #373740;
-    $accent: #a1a2aa;
-    $hover: #c68553;
-    $selection: #c27c47;
+    @include dark-stats-bar;
 
     body {
-        color: $accent;
+        color: $dark-accent;
     }
 
     header {
-        color: $hover;
-        background-color: $base;
+        color: $dark-hover;
+        background-color: $dark-base;
     }
 
-    aside, .image-list {
-        background-color: $primary;
+    aside,
+    .image-list {
+        background-color: $dark-primary;
     }
 
     aside {
-        border-left: 1px solid $accent;
-    }
-
-    .stats-bar {
-        background-color: $base;
-        border-top: 1px solid $accent;
+        border-left: 1px solid $dark-accent;
     }
 
     .display {
-        background-color: $base-light;
+        background-color: $dark-base-light;
     }
 
     .btn {
-        color: $accent;
-        background-color: $primary;
+        color: $dark-accent;
+        background-color: $dark-primary;
     }
 
     .btn:hover {
-        color: $primary;
-        background-color: $hover;
+        color: $dark-primary;
+        background-color: $dark-hover;
     }
 
     .selected {
-        color: $base;
-        background-color: $selection;
+        color: $dark-base;
+        background-color: $dark-selection;
     }
 
     .drop-zone {
-        color: $hover;
-        background-color: rgba($color: $primary, $alpha: 0.90);
+        color: $dark-hover;
+        background-color: rgba($color: $dark-primary, $alpha: 0.90);
         backdrop-filter: blur(5px);
     }
 
     .float-input {
-        color: $accent;
-        background-color: rgba($color: $base, $alpha: 0.5) ;
+        color: $dark-accent;
+        background-color: rgba($color: $dark-base, $alpha: 0.5);
     }
 
     .text-input {
-        color: $selection;
-        border-bottom: 1px solid $selection;
+        color: $dark-selection;
+        border-bottom: 1px solid $dark-selection;
     }
 
     .modal {
-        color: $accent;
-        background-color: $base;
+        color: $dark-accent;
+        background-color: $dark-base;
     }
 
     .modal h2 {
-        color: $selection;
+        color: $dark-selection;
     }
 
     .modal b {
-        color: $selection;
+        color: $dark-selection;
     }
 
     .modal u {
-        color: $hover;
+        color: $dark-hover;
     }
 }
+
 
 .dark-mode {
     @include dark-mode;
