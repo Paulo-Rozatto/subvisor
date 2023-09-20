@@ -12,7 +12,6 @@
 <body>
     <header>
         <section>
-            <button class="btn" id="reset-button">Resetar</button>
             <a class="btn" id="marker-button">
                 <input type="radio" name="mode" id="marker-radio" checked>
                 Marker
@@ -26,12 +25,10 @@
             </a>
         </section>
         <section>
-            <h2 id="title">000</h2>
         </section>
         <section>
             <button class="btn" id="theme-button">Tema</button>
             <button class="btn" id="configs-button">Configs</button>
-            <button class="btn" id="info-button">Info</button>
             <a class="btn" id="export-button">Exportar</a>
         </section>
     </header>
@@ -104,12 +101,36 @@
         <aside>
             <section class="image-list"></section>
             <!-- TODO: possivelmente usar shadow root -->
-            <article class="stats-bar">
-                <span id="obj-length">Pontos: 000</span>
-                <span id="timer">Tempo: 00:00</span>
-            </article>
         </aside>
     </main>
+
+    <footer>
+        <article class="stats-bar">
+            <section class="group left">
+                <span class="item text-highlight" title="Pasta atual">
+                    <i class="bi bi-house"></i>
+                    <span id="title">000</span>
+                </span>
+            </section>
+            <section class="group right">
+                <span id="reset-button" class="item" title="Zoom atual. Clique para resetar">
+                    <i class="bi bi-search"></i>
+                    <span id="current-zoom">100%</span>
+                </span>
+                <span class="item" title="Quantidade de pontos do objeto selecionado">
+                    <i class="bi bi-bounding-box-circles"></i>
+                    <span id="obj-length">000</span>
+                </span>
+                <span class="item" title="Tempo desde upload">
+                    <i class="bi-alarm"></i>
+                    <span id="timer">00:00</span>
+                </span>
+                <span id="info-button" class="item">
+                    <i class="bi bi-info-circle"></i>
+                </span>
+            </section>
+        </article>
+    </footer>
     <script type="module" src="src/controller.js"></script>
 </body>
 

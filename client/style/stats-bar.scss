@@ -3,14 +3,52 @@
     flex-direction: row;
     justify-content: space-between;
     text-align: center;
-    padding: 10px;
     background-color: $base;
     border-top: 1px solid $accent;
+    padding-left: 5px;
+    padding-right: 5px;
+
+    .group {
+        display: flex;
+        flex-direction: row;
+        flex-grow: 1;
+        align-items: stretch;
+        gap: 1px;
+    }
+
+    .left {
+        justify-content: flex-start;
+    }
+
+    .right {
+        justify-content: flex-end;
+    }
+
+    .item {
+        padding: 5px;
+        cursor: pointer;
+    }
+
+    .item:hover {
+        background-color: $primary;
+    }
+
+    .text-highlight {
+        color: $hover;
+    }
 }
 
 @mixin dark-stats-bar {
     .stats-bar {
         background-color: $dark-base;
         border-top: 1px solid $dark-accent;
+    }
+
+    .item:hover {
+        background-color: $dark-primary;
+    }
+
+    .text-highlight {
+        color: $dark-hover;
     }
 }
