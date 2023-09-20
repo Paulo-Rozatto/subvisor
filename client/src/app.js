@@ -2,6 +2,7 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const display = document.querySelector('.display');
 const exchange = document.querySelector('#exchange');
+const currentZoom = document.querySelector('#current-zoom');
 const image = new Image();
 const offset = { x: 0, y: 0 };
 const undoStack = [];
@@ -162,14 +163,23 @@ export async function loadImage(fileEntry, marker, leaf, cb = () => { }) {
 
 image.addEventListener('load', setCanvas);
 
+function setZoomLevel(level, test) {
+    zoomLevel = level;
+    console.log(zoomLevel, test);
+    currentZoom.textContent = (zoomLevel * 100).toFixed(0).padStart(3, '0') + '%';
+}
+
 function setCanvas() {
+    if (!image.src) {
+        return;
+    }
     const imageAspectRatio = image.width / image.height;
     const screenHeight = display.clientHeight * 0.8;
     const screenWidth = screenHeight * imageAspectRatio;
 
     canvas.width = display.clientWidth;
     canvas.height = display.clientHeight;
-    zoomLevel = screenHeight / image.height;
+    setZoomLevel(screenHeight / image.height, true);
     offset.x = (canvas.width - screenWidth) * 0.5;
     offset.y = (canvas.height - screenHeight) * 0.5;
     render();
@@ -187,14 +197,14 @@ function centerObject() {
     const screenWidth = screenHeight * aspectRation;
     canvas.width = display.clientWidth;
     canvas.height = display.clientHeight;
-    zoomLevel = screenHeight / height;
+    setZoomLevel(screenHeight / height);
     offset.x = (canvas.width - screenWidth) * 0.5 - x0 * zoomLevel;
     offset.y = (canvas.height - screenHeight) * 0.5 - y0 * zoomLevel;
     render();
 }
 
 function centerPoint() {
-    zoomLevel = pointZoom;
+    setZoomLevel(zoomLevel = pointZoom);
     offset.x = -selectedPoints[focusIndex].x * zoomLevel + canvas.width * 0.5;
     offset.y = -selectedPoints[focusIndex].y * zoomLevel + canvas.height * 0.5;
     render();
@@ -300,8 +310,9 @@ function drawPolygon(points) {
 function handleZoom(event) {
     let scale = event.deltaY > 0 ? 1 - stepZoom : 1 + stepZoom;
     let oldLevel = zoomLevel;
-    zoomLevel = Math.max(0.1, zoomLevel * scale);
-    zoomLevel = Math.min(maxZoom, zoomLevel);
+    let newZoom = Math.max(0.1, zoomLevel * scale);
+    newZoom = Math.min(maxZoom, newZoom);
+    setZoomLevel(newZoom);
 
     // vc quer achar o ponto que o mouse estava sobre na imagem escalada com o novo zoom
     // e substrair esse ponto do ponto que o mouse aponta atualmente e esse é o seu offset

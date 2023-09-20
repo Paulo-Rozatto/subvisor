@@ -138,7 +138,7 @@ function setConfigsHandler(event) {
 
 function updateLengthStats() {
     const length = getObjectLength();
-    objLength.innerHTML = `Pontos: ${length.toString().padStart(3, "0")}`;
+    objLength.innerHTML = `${length.toString().padStart(3, "0")}`;
 }
 
 function modalToggle(modal) {
@@ -154,7 +154,7 @@ function updateTimer() {
 
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
-    timer.textContent = `Tempo: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
 async function setList() {
