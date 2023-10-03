@@ -126,8 +126,13 @@ function pointsFromEntry(entry, tagName) {
 }
 
 export function setLeaftPoints(points) {
-    leafPoints = points;
-    render();
+    const img = IMAGE_MAP[currentImage];
+
+    if (img) {
+        img.leafPoints = points;
+        leafPoints = points;
+        render();
+    }
 }
 
 export async function loadImage(fileEntry, marker, leaf, cb = () => { }) {
@@ -163,9 +168,8 @@ export async function loadImage(fileEntry, marker, leaf, cb = () => { }) {
 
 image.addEventListener('load', setCanvas);
 
-function setZoomLevel(level, test) {
+function setZoomLevel(level) {
     zoomLevel = level;
-    console.log(zoomLevel, test);
     currentZoom.textContent = (zoomLevel * 100).toFixed(0).padStart(3, '0') + '%';
 }
 
@@ -179,7 +183,7 @@ function setCanvas() {
 
     canvas.width = display.clientWidth;
     canvas.height = display.clientHeight;
-    setZoomLevel(screenHeight / image.height, true);
+    setZoomLevel(screenHeight / image.height);
     offset.x = (canvas.width - screenWidth) * 0.5;
     offset.y = (canvas.height - screenHeight) * 0.5;
     render();

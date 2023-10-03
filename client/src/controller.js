@@ -254,13 +254,17 @@ function dropHandler(event) {
         }
         await asyncRead(rootReader, rootCallback);
 
-        const markerReader = markerDir.createReader();
-        const markerCallback = (entries) => markers = filterFiles(entries, ".xml");
-        await asyncRead(markerReader, markerCallback);
+        if (!!markerDir) {
+            const markerReader = markerDir.createReader();
+            const markerCallback = (entries) => markers = filterFiles(entries, ".xml");
+            await asyncRead(markerReader, markerCallback);
+        }
 
-        const leafReader = leafDir.createReader();
-        const leafCallback = (entries) => leafs = filterFiles(entries, ".xml");
-        await asyncRead(leafReader, leafCallback);
+        if (!!leafDir) {
+            const leafReader = leafDir.createReader();
+            const leafCallback = (entries) => leafs = filterFiles(entries, ".xml");
+            await asyncRead(leafReader, leafCallback);
+        }
 
         setList();
         clearInterval(interval);
