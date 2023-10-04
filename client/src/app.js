@@ -16,6 +16,9 @@ const DEFAULT_MAX_ZOOM = 8;
 const DEFAULT_STEP_ZOOM = 0.1;
 const DEFAULT_OPACITY = 0.4;
 const MARKER_COLORS = ["#f00", "#070", "#00f", "#950"];
+const MARKER_COLORS_SELECTION = ["#f88", "#0f0", "#88f", "#fbb"];
+const HOVER_COLOR = "#00ffff";
+const SELECTION_COLOR = "#aa0077";
 const EXCHANGE_ALLOWED_KEYS = ["1", "2", "3", "4", "Backspace", "Enter"];
 const MAX_STACK_SIZE = 20;
 
@@ -32,7 +35,8 @@ let zoomLevel = 1;
 let markerPoints = [];
 let leafPoints = [];
 let boxPoints = [];
-let selectedPoints = markerPoints;
+let currentPoints = markerPoints;
+let hoverIndex = -1;
 let focusIndex = -1;
 let mousePos = { x: 0, y: 0 };
 let currentClass = CLASSES.MARKER;
@@ -57,7 +61,7 @@ export function setConfigs(configs) {
 }
 
 export function getImagePath() {
-    const points = selectedPoints.map(p => `${parseInt(p.x)},${parseInt(p.y)}`).join(",");
+    const points = currentPoints.map(p => `${parseInt(p.x)},${parseInt(p.y)}`).join(",");
     return {
         imagePath: IMAGE_MAP[currentImage].filePath,
         points,
@@ -65,7 +69,7 @@ export function getImagePath() {
 }
 
 export function getObjectLength() {
-    return selectedPoints.length;
+    return currentPoints.length;
 }
 
 export function getCurrentClass() {
@@ -74,15 +78,15 @@ export function getCurrentClass() {
 
 export function setSelectedPoints(option) {
     if (option == CLASSES.MARKER) {
-        selectedPoints = markerPoints;
+        currentPoints = markerPoints;
         currentClass = CLASSES.MARKER;
         exchange.parentElement.classList.remove('hide')
     } else if (option == CLASSES.LEAF) {
-        selectedPoints = leafPoints;
+        currentPoints = leafPoints;
         currentClass = CLASSES.LEAF;
         exchange.parentElement.classList.add('hide')
     } else if (option == CLASSES.BOX) {
-        selectedPoints = boxPoints;
+        currentPoints = boxPoints;
         currentClass = CLASSES.BOX;
         exchange.parentElement.classList.add('hide')
     } else {
@@ -190,10 +194,10 @@ function setCanvas() {
 }
 
 function centerObject() {
-    const x0 = Math.min(...selectedPoints.map(p => p.x));
-    const x1 = Math.max(...selectedPoints.map(p => p.x));
-    const y0 = Math.min(...selectedPoints.map(p => p.y));
-    const y1 = Math.max(...selectedPoints.map(p => p.y));
+    const x0 = Math.min(...currentPoints.map(p => p.x));
+    const x1 = Math.max(...currentPoints.map(p => p.x));
+    const y0 = Math.min(...currentPoints.map(p => p.y));
+    const y1 = Math.max(...currentPoints.map(p => p.y));
     const width = x1 - x0;
     const height = y1 - y0;
     const aspectRation = width / height;
@@ -209,8 +213,8 @@ function centerObject() {
 
 function centerPoint() {
     setZoomLevel(zoomLevel = pointZoom);
-    offset.x = -selectedPoints[focusIndex].x * zoomLevel + canvas.width * 0.5;
-    offset.y = -selectedPoints[focusIndex].y * zoomLevel + canvas.height * 0.5;
+    offset.x = -currentPoints[focusIndex].x * zoomLevel + canvas.width * 0.5;
+    offset.y = -currentPoints[focusIndex].y * zoomLevel + canvas.height * 0.5;
     render();
 }
 
@@ -240,19 +244,35 @@ function drawMarker() {
 
     drawPolygon(markerPoints);
 
-    if (selectedPoints == markerPoints) {
+    if (currentPoints == markerPoints) {
         let ctxPoint;
-        ctx.font = "20px serif";
+        ctx.font = "20px sans";
+
+        if (focusIndex >= 0) {
+            ctx.fillStyle = MARKER_COLORS_SELECTION[focusIndex];
+            ctxPoint = toCanvasCoords(markerPoints[focusIndex]);
+            ctx.beginPath();
+            ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
+            ctx.fill();
+        }
+
         for (let i = 0; i < markerPoints.length && i < 4; i++) {
             ctx.strokeStyle = MARKER_COLORS[i];
             ctx.lineWidth = 3;
             ctxPoint = toCanvasCoords(markerPoints[i]);
             ctx.beginPath();
             ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
-            ctx.closePath();
             ctx.stroke();
-            ctx.lineWidth = 1;
-            ctx.strokeText(`${i + 1}`, ctxPoint.x + 15, ctxPoint.y + 10);
+            ctx.fillStyle = MARKER_COLORS[i];
+            ctx.fillText(`${i + 1}`, ctxPoint.x + 15, ctxPoint.y + 10);
+        }
+
+        if (hoverIndex >= 0) {
+            ctx.strokeStyle = HOVER_COLOR;
+            ctxPoint = toCanvasCoords(markerPoints[hoverIndex]);
+            ctx.beginPath();
+            ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
+            ctx.stroke();
         }
     }
 }
@@ -264,20 +284,36 @@ function drawLeaf() {
 
     drawPolygon(leafPoints);
 
-    if (selectedPoints == leafPoints) {
+    if (currentPoints == leafPoints) {
         let ctxPoint;
+
+        if (focusIndex >= 0) {
+            ctx.fillStyle = SELECTION_COLOR;
+            ctxPoint = toCanvasCoords(leafPoints[focusIndex]);
+            ctx.beginPath();
+            ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
+            ctx.fill();
+        }
+
         for (let point of leafPoints) {
             ctxPoint = toCanvasCoords(point);
             ctx.beginPath();
             ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
-            ctx.closePath();
+            ctx.stroke();
+        }
+
+        if (hoverIndex >= 0) {
+            ctx.strokeStyle = HOVER_COLOR;
+            ctxPoint = toCanvasCoords(leafPoints[hoverIndex]);
+            ctx.beginPath();
+            ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
             ctx.stroke();
         }
     }
 }
 
 function drawBox() {
-    if (selectedPoints !== boxPoints) {
+    if (currentPoints !== boxPoints) {
         return;
     }
 
@@ -322,9 +358,9 @@ function handleZoom(event) {
     // e substrair esse ponto do ponto que o mouse aponta atualmente e esse é o seu offset
     // p_old = (x - a, y - b) / zoom_old; p_new = zoom_new * p_old; offset = p_mouse - p_new;
     const zoomRatio = zoomLevel / oldLevel;
-    const mouse = { x: event.offsetX, y: event.offsetY };
-    offset.x = mouse.x - zoomRatio * (mouse.x - offset.x);
-    offset.y = mouse.y - zoomRatio * (mouse.y - offset.y);
+    offset.x = mousePos.x - zoomRatio * (mousePos.x - offset.x);
+    offset.y = mousePos.y - zoomRatio * (mousePos.y - offset.y);
+    trackMouse(event);
 
     render();
 }
@@ -332,11 +368,11 @@ function handleZoom(event) {
 function handleMouseDown(event) {
     const mouse = { x: event.offsetX, y: event.offsetY };
     if (event.button == 0) {
-        for (let i = 0; i < selectedPoints.length; i++) {
-            if (hitCircle(mouse, selectedPoints[i])) {
-                addHistory("move", { ...selectedPoints[i] }, selectedPoints, i);
+        for (let i = 0; i < currentPoints.length; i++) {
+            if (hitCircle(mouse, currentPoints[i])) {
+                addHistory("move", { ...currentPoints[i] }, currentPoints, i);
                 focusIndex = i;
-                canvas.onmousemove = (event) => panPoint(event, selectedPoints[i]);
+                canvas.onmousemove = (event) => panPoint(event, currentPoints[i]);
                 canvas.style.cursor = 'grabbing';
                 return;
             }
@@ -367,11 +403,11 @@ function panPoint(event, point) {
 }
 
 function createPoint(x, y) {
-    if (selectedPoints == markerPoints && selectedPoints.length == 4) {
+    if (currentPoints == markerPoints && currentPoints.length == 4) {
         return;
     }
 
-    if (selectedPoints === boxPoints && selectedPoints.length == 2) {
+    if (currentPoints === boxPoints && currentPoints.length == 2) {
         return;
     }
 
@@ -380,22 +416,22 @@ function createPoint(x, y) {
         y: (y - offset.y) / zoomLevel,
     };
 
-    if (selectedPoints.length < 3) {
-        addHistory("add", point, selectedPoints, selectedPoints.length);
-        focusIndex = selectedPoints.length;
-        selectedPoints.push(point);
+    if (currentPoints.length < 3) {
+        addHistory("add", point, currentPoints, currentPoints.length);
+        focusIndex = currentPoints.length;
+        currentPoints.push(point);
         render();
         return;
     }
 
 
     // varre todos os segmentos e acha o mais proximo, começa com o segmento formado pelo primeiro e ultimo ponto
-    let closer = point2Segment(point, selectedPoints[0], selectedPoints[selectedPoints.length - 1]);
-    let index = selectedPoints.length - 1;
+    let closer = point2Segment(point, currentPoints[0], currentPoints[currentPoints.length - 1]);
+    let index = currentPoints.length - 1;
     let distance;
 
-    for (let i = 0; i < selectedPoints.length - 1; i++) {
-        distance = point2Segment(point, selectedPoints[i], selectedPoints[i + 1])
+    for (let i = 0; i < currentPoints.length - 1; i++) {
+        distance = point2Segment(point, currentPoints[i], currentPoints[i + 1])
 
         if (distance < closer) {
             closer = distance;
@@ -403,8 +439,8 @@ function createPoint(x, y) {
         }
     }
 
-    selectedPoints.splice(index + 1, 0, point);
-    addHistory("add", point, selectedPoints, index + 1);
+    currentPoints.splice(index + 1, 0, point);
+    addHistory("add", point, currentPoints, index + 1);
     focusIndex = index + 1;
     render();
 }
@@ -438,13 +474,11 @@ function point2Segment(target, p1, p2) {
 }
 
 function removePoint() {
-    for (let i = 0; i < selectedPoints.length; i++) {
-        if (hitCircle(mousePos, selectedPoints[i])) {
-            addHistory("remove", selectedPoints[i], selectedPoints, i);
-            selectedPoints.splice(i, 1);
-            render();
-            return;
-        }
+    if (hoverIndex >= 0) {
+        addHistory("remove", currentPoints[hoverIndex], currentPoints, hoverIndex);
+        currentPoints.splice(hoverIndex, 1);
+        hoverIndex = -1;
+        render();
     }
 }
 
@@ -466,13 +500,13 @@ function keyDownHandler(event) {
     }
     else if (event.key == 'v') {
         focusIndex += 1;
-        focusIndex %= selectedPoints.length;
+        focusIndex %= currentPoints.length;
         centerPoint();
     }
     else if (event.key == 'x') {
         focusIndex -= 1;
         if (focusIndex < 0) {
-            focusIndex = selectedPoints.length - 1;
+            focusIndex = currentPoints.length - 1;
         }
         centerPoint();
     }
@@ -484,7 +518,7 @@ function keyDownHandler(event) {
             drawImage();
         }
     }
-    else if (selectedPoints === markerPoints) {
+    else if (currentPoints === markerPoints) {
         if (event.key == 'ArrowLeft' && markerPoints.length > 1) {
             markerPoints.unshift(markerPoints.pop())
             render();
@@ -546,6 +580,20 @@ function exchangeKeydown(event) {
 function trackMouse(event) {
     mousePos.x = event.offsetX;
     mousePos.y = event.offsetY;
+
+    for (let i = 0; i < currentPoints.length; i++) {
+        if (hitCircle(mousePos, currentPoints[i])) {
+            hoverIndex = i;
+            canvas.style.cursor = 'pointer';
+            render();
+            return;
+        }
+    }
+    if (hoverIndex > -1) {
+        hoverIndex = -1;
+        canvas.style.cursor = 'crosshair';
+        render();
+    }
 }
 
 function addHistory(type, point, selectedPoints, index) {
