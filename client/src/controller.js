@@ -13,7 +13,7 @@ import {
 import JSZip from 'jszip';
 import saveAs from 'file-saver';
 
-const MAX_TIME = 99 * 60 + 59;
+const MAX_TIME = 5999 // 100 min - 1s
 
 // modal elements
 const dropZone = document.querySelector(".drop-zone");
