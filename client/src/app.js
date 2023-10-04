@@ -37,7 +37,7 @@ let leafPoints = [];
 let boxPoints = [];
 let currentPoints = markerPoints;
 let hoverIndex = -1;
-let focusIndex = -1;
+let selectionIndexes = [];
 let mousePos = { x: 0, y: 0 };
 let currentClass = CLASSES.MARKER;
 let showObjects = true;
@@ -77,6 +77,7 @@ export function getCurrentClass() {
 }
 
 export function setSelectedPoints(option) {
+    selectionIndexes.length = 0;
     if (option == CLASSES.MARKER) {
         currentPoints = markerPoints;
         currentClass = CLASSES.MARKER;
@@ -167,7 +168,7 @@ export async function loadImage(fileEntry, marker, leaf, cb = () => { }) {
         };
         reader.readAsDataURL(file);
     });
-    focusIndex = -1;
+    selectionIndexes.length = 0;
 }
 
 image.addEventListener('load', setCanvas);
@@ -212,10 +213,12 @@ function centerObject() {
 }
 
 function centerPoint() {
-    setZoomLevel(zoomLevel = pointZoom);
-    offset.x = -currentPoints[focusIndex].x * zoomLevel + canvas.width * 0.5;
-    offset.y = -currentPoints[focusIndex].y * zoomLevel + canvas.height * 0.5;
-    render();
+    if (selectionIndexes.length > 0) {
+        setZoomLevel(zoomLevel = pointZoom);
+        offset.x = -currentPoints[selectionIndexes[0]].x * zoomLevel + canvas.width * 0.5;
+        offset.y = -currentPoints[selectionIndexes[0]].y * zoomLevel + canvas.height * 0.5;
+        render();
+    }
 }
 
 document.getElementById('reset-button').onclick = setCanvas;
@@ -248,9 +251,11 @@ function drawMarker() {
         let ctxPoint;
         ctx.font = "20px sans";
 
-        if (focusIndex >= 0) {
-            ctx.fillStyle = MARKER_COLORS_SELECTION[focusIndex];
-            ctxPoint = toCanvasCoords(markerPoints[focusIndex]);
+        let idx;
+        for (let i = 0; i < selectionIndexes.length; i++) {
+            idx = selectionIndexes[i];
+            ctx.fillStyle = MARKER_COLORS_SELECTION[idx];
+            ctxPoint = toCanvasCoords(markerPoints[idx]);
             ctx.beginPath();
             ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
             ctx.fill();
@@ -287,9 +292,11 @@ function drawLeaf() {
     if (currentPoints == leafPoints) {
         let ctxPoint;
 
-        if (focusIndex >= 0) {
+        let idx;
+        for (let i = 0; i < selectionIndexes.length; i++) {
+            idx = selectionIndexes[i];
             ctx.fillStyle = SELECTION_COLOR;
-            ctxPoint = toCanvasCoords(leafPoints[focusIndex]);
+            ctxPoint = toCanvasCoords(leafPoints[idx]);
             ctx.beginPath();
             ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
             ctx.fill();
@@ -366,16 +373,48 @@ function handleZoom(event) {
 }
 
 function handleMouseDown(event) {
-    const mouse = { x: event.offsetX, y: event.offsetY };
     if (event.button == 0) {
-        for (let i = 0; i < currentPoints.length; i++) {
-            if (hitCircle(mouse, currentPoints[i])) {
-                addHistory("move", { ...currentPoints[i] }, currentPoints, i);
-                focusIndex = i;
-                canvas.onmousemove = (event) => panPoint(event, currentPoints[i]);
-                canvas.style.cursor = 'grabbing';
+        if (hoverIndex > -1) {
+            if (event.ctrlKey) {
+                if (selectionIndexes.includes(hoverIndex)) {
+                    selectionIndexes.splice(selectionIndexes.indexOf(hoverIndex), 1);
+                } else {
+                    selectionIndexes.push(hoverIndex);
+                }
+                render();
                 return;
             }
+
+            if (event.shiftKey && selectionIndexes.length > 0) {
+                let idx1 = Math.max(selectionIndexes[0], hoverIndex);
+                let idx2 = Math.min(selectionIndexes[0], hoverIndex);
+
+                let distance1 = idx1 - idx2;
+                let distance2 = currentPoints.length - distance1;
+
+                selectionIndexes.length = 0;
+                if (distance1 <= distance2) {
+                    for (let i = idx2; i <= idx1; i++) {
+                        selectionIndexes.push(i);
+                    }
+                } else {
+                    for (let i = idx1; i < currentPoints.length; i++) {
+                        selectionIndexes.push(i);
+                    }
+                    for (let i = 0; i <= idx2; i++) {
+                        selectionIndexes.push(i);
+                    }
+                }
+                render();
+                return;
+            }
+
+            selectionIndexes.length = 0;
+            addHistory("move", { ...currentPoints[hoverIndex] }, currentPoints, hoverIndex);
+            selectionIndexes.push(hoverIndex);
+            canvas.onmousemove = (event) => panPoint(event, currentPoints[hoverIndex]);
+            canvas.style.cursor = 'grabbing';
+            return;
         }
 
         createPoint(event.offsetX, event.offsetY);
@@ -418,12 +457,12 @@ function createPoint(x, y) {
 
     if (currentPoints.length < 3) {
         addHistory("add", point, currentPoints, currentPoints.length);
-        focusIndex = currentPoints.length;
+        selectionIndexes.length = 0;
+        selectionIndexes.push(currentPoints.length);
         currentPoints.push(point);
         render();
         return;
     }
-
 
     // varre todos os segmentos e acha o mais proximo, começa com o segmento formado pelo primeiro e ultimo ponto
     let closer = point2Segment(point, currentPoints[0], currentPoints[currentPoints.length - 1]);
@@ -441,7 +480,8 @@ function createPoint(x, y) {
 
     currentPoints.splice(index + 1, 0, point);
     addHistory("add", point, currentPoints, index + 1);
-    focusIndex = index + 1;
+    selectionIndexes.length = 0;
+    selectionIndexes.push(index + 1);
     render();
 }
 
@@ -479,6 +519,22 @@ function removePoint() {
         currentPoints.splice(hoverIndex, 1);
         hoverIndex = -1;
         render();
+        return;
+    }
+    // nao esta do jeito ideal, assim tem que aptertar ctrl + z varias vezes para desfazer 1 acao de deletar selecionados
+    // mas por equanto vai ficar assim
+    if (selectionIndexes.length > 0) {
+        let pointsToRemove = [];
+        for (let i = selectionIndexes.length - 1; i >= 0; i--) {
+            pointsToRemove.push(currentPoints[selectionIndexes[i]])
+            addHistory("remove", currentPoints[selectionIndexes[i]], currentPoints, selectionIndexes[i]);
+        }
+        for (let i = selectionIndexes.length - 1; i >= 0; i--) {
+            let idx = currentPoints.indexOf(pointsToRemove[i]);
+            currentPoints.splice(idx, 1);
+        }
+        selectionIndexes.length = 0;
+        render();
     }
 }
 
@@ -499,15 +555,18 @@ function keyDownHandler(event) {
         centerObject();
     }
     else if (event.key == 'v') {
-        focusIndex += 1;
-        focusIndex %= currentPoints.length;
+        let idx = (selectionIndexes[0] + 1) % currentPoints.length;
+        idx = idx || 0;
+        selectionIndexes.length = 0;
+        selectionIndexes.push(idx);
         centerPoint();
     }
     else if (event.key == 'x') {
-        focusIndex -= 1;
-        if (focusIndex < 0) {
-            focusIndex = currentPoints.length - 1;
-        }
+        let idx = selectionIndexes[0] > 0 ? selectionIndexes[0] - 1 : currentPoints.length - 1;
+        idx = idx || 0;
+        selectionIndexes.length = 0;
+        selectionIndexes.push(idx);
+
         centerPoint();
     }
     else if (event.key == 'b') {
