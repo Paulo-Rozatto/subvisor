@@ -13,7 +13,7 @@ import lombok.val;
 
 @SpringBootApplication
 public class App implements WebMvcConfigurer {
-	private static String DATA_DIR_PATH;
+	public static String DATA_DIR_PATH;
 
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
