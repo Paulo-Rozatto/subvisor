@@ -11,9 +11,9 @@ import com.subvisor.server.models.Contour;
 
 @RestController
 @RequestMapping("/api/nn")
+@CrossOrigin(origins = "http://localhost:1234")
 public class NNApi {
 
-    @CrossOrigin(origins = "http://localhost:1234")
     @GetMapping("/test")
     public Contour test(String path, String points) {
         String result = runNetwork(path, points);
