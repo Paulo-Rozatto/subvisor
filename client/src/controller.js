@@ -6,10 +6,8 @@ import {
     getConfigs,
     setConfigs,
     getObjectLength,
-    setLeaftPoints,
-    getImagePath,
-    getCurrentClass
 } from './app.js';
+import * as API from './api-consumer.js';
 import JSZip from 'jszip';
 import saveAs from 'file-saver';
 
@@ -56,7 +54,7 @@ canvas.onclick = updateLengthStats;
 
 markerButton.onclick = () => { markerRadio.checked = true; setSelectedPoints(CLASSES.MARKER); updateLengthStats(); };
 leafButton.onclick = () => { leafRadio.checked = true; setSelectedPoints(CLASSES.LEAF); updateLengthStats(); };
-boxButton.onclick = boxbuttonHandler;
+boxButton.onclick = API.boxbuttonHandler;
 infoButton.onclick = () => modalToggle(info)
 configsButton.onclick = () => modalToggle(configs);
 themeButton.onclick = toggleTheme;
@@ -324,22 +322,4 @@ ${coordinates.trimEnd()}
     </${tag}>
   </object>
 </annotation>`.trimStart();
-}
-
-async function boxbuttonHandler() {
-    if (getCurrentClass() !== CLASSES.BOX) {
-        setSelectedPoints(CLASSES.BOX);
-        return;
-    }
-
-    const { imagePath, points } = getImagePath();
-    const params = new URLSearchParams({ path: imagePath, points });
-    const response = await fetch(
-        `http://localhost:8080/api/nn/test?${params}`,
-        { method: "GET", mode: "cors" }
-    );
-    const json = await response.json();
-    const pointsArray = JSON.parse(json.points) || [];
-    const resultPoints = pointsArray.map((point) => ({ x: point[0], y: point[1] }));
-    setLeaftPoints(resultPoints);
 }
