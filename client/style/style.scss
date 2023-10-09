@@ -1,6 +1,7 @@
 @import "../node_modules/bootstrap-icons/font/bootstrap-icons.css";
 @import "colors";
 @import "stats-bar";
+@import "datasets-list";
 
 * {
     box-sizing: border-box;
@@ -190,11 +191,12 @@ aside {
 }
 
 .hide {
-    display: none;
+    display: none !important;
 }
 
 @mixin dark-mode {
     @include dark-stats-bar;
+    @include dark-datasets-list;
 
     body {
         color: $dark-accent;
