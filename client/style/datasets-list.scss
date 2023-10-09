@@ -1,0 +1,51 @@
+#datasets-modal {
+    display: flex;
+    flex-direction: column;
+
+    div {
+        height: 60px;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+    }
+}
+
+#datasets-list {
+    list-style: none;
+    list-style-position: inside;
+    padding: 5px;
+    border: 1px dotted $base-light;
+    overflow-y: auto;
+    flex: 1;
+
+    li {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        border-bottom: 1px solid $accent;
+        font-family: monospace;
+        padding: 0.5rem;
+        cursor: pointer;
+
+    }
+
+    li:hover {
+        background-color: $hover;
+        color: $base;
+    }
+
+    li::before {
+        content: "\F3D7";
+        font-family: "bootstrap-icons";
+        padding-right: 0.5rem;
+    }
+}
+
+@mixin dark-datasets-list {
+    #datasets-list {
+        li:hover {
+            background-color: $dark-hover;
+            color: $dark-base;
+        }
+    }
+}

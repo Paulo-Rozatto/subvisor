@@ -17,7 +17,9 @@ const MAX_TIME = 5999 // 100 min - 1s
 const dropZone = document.querySelector(".drop-zone");
 const configsForm = document.querySelector("#configs-form");
 const configs = document.querySelector("#configs");
-const info = document.querySelector("#info")
+const info = document.querySelector("#info");
+const datasetsModal = document.querySelector("#datasets-modal")
+const datasetsList = document.querySelector("#datasets-list")
 
 // side bar elements
 const imageList = document.querySelector(".image-list");
@@ -30,6 +32,7 @@ const leafButton = document.querySelector("#leaf-button")
 const markerRadio = document.querySelector("#marker-radio");
 const leafRadio = document.querySelector("#leaf-radio");
 const boxButton = document.querySelector("#box-button");
+const datasetsButton = document.querySelector("#datasets-list-button");
 /* TODO: mover o reset button para aqui */
 
 // right header
@@ -55,6 +58,7 @@ canvas.onclick = updateLengthStats;
 markerButton.onclick = () => { markerRadio.checked = true; setSelectedPoints(CLASSES.MARKER); updateLengthStats(); };
 leafButton.onclick = () => { leafRadio.checked = true; setSelectedPoints(CLASSES.LEAF); updateLengthStats(); };
 boxButton.onclick = API.boxbuttonHandler;
+datasetsButton.onclick = showDatasets;
 infoButton.onclick = () => modalToggle(info)
 configsButton.onclick = () => modalToggle(configs);
 themeButton.onclick = toggleTheme;
@@ -283,6 +287,7 @@ function dragLeaveHandler() {
     dropZone.classList.add("hide");
     info.classList.add("hide");
     configs.classList.add("hide");
+    datasetsModal.classList.add("hide");
 }
 
 async function download() {
@@ -322,4 +327,20 @@ ${coordinates.trimEnd()}
     </${tag}>
   </object>
 </annotation>`.trimStart();
+}
+
+async function showDatasets() {
+    datasetsList.innerHTML = "";
+    modalToggle(datasetsModal);
+
+    const fragment = new DocumentFragment();
+    const dirs = await API.fetchDatasetList() || [];
+
+    dirs.forEach((dir) => {
+        const element = document.createElement("li");
+        element.innerText = dir;
+        fragment.append(element)
+    });
+
+    datasetsList.append(fragment);
 }
