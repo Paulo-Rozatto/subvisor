@@ -31,6 +31,12 @@ export async function fetchDatasetList() {
         `${API_URL}/datasets/list`,
         { method: 'GET', mode: 'cors' }
     );
-    const json = await response.json();
-    return json;
+    return await response.json();
+}
+
+export async function fetchPath(path) {
+    const reponse = await fetch(
+        `${API_URL}/datasets/dir?path=${path}`
+    );
+    return  await reponse.json();
 }
