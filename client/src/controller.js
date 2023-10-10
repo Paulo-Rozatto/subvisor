@@ -329,18 +329,48 @@ ${coordinates.trimEnd()}
 </annotation>`.trimStart();
 }
 
-async function showDatasets() {
-    datasetsList.innerHTML = "";
-    modalToggle(datasetsModal);
-
+function appendToDirList(dirs, parent) {
     const fragment = new DocumentFragment();
-    const dirs = await API.fetchDatasetList() || [];
+
+    if (Boolean(parent)) {
+        const element = document.createElement("li");
+        element.innerText = "..";
+        element.setAttribute("path", parent);
+        element.onclick = enterDir;
+        fragment.append(element);
+    }
 
     dirs.forEach((dir) => {
         const element = document.createElement("li");
         element.innerText = dir;
+        element.onclick = enterDir;
         fragment.append(element)
     });
 
     datasetsList.append(fragment);
+}
+
+async function enterDir(event) {
+    const path = event.target.getAttribute("path") || event.target.innerText;
+    const dirs = await API.fetchPath(path);
+
+    if (!dirs) {
+        return;
+    }
+
+    let parentPath;
+    if (path !== "/") {
+        // parent = path.match(/([\w-].+)\//)?.[1] || "/";
+        parentPath = path.substring(0, path.lastIndexOf("/")) || "/";
+    }
+    datasetsList.innerHTML = "";
+    appendToDirList(dirs, parentPath);
+}
+
+async function showDatasets() {
+    datasetsList.innerHTML = "";
+    modalToggle(datasetsModal);
+
+    const dirs = await API.fetchDatasetList() || [];
+    appendToDirList(dirs);
 }
