@@ -206,6 +206,7 @@ async function loadXml(path, tagName) {
 export async function loadBackendImage(path, imageName, cb = () => { }) {
     const img = IMAGE_MAP[imageName];
     const src = `${serverUrl}/datasets/${path}/${imageName}`;
+    currentImage = imageName;
     selectionIndexes.length = 0;
 
     if (img) {
@@ -225,7 +226,7 @@ export async function loadBackendImage(path, imageName, cb = () => { }) {
         image.src = src;
         markerPoints = await loadXml(markerPath, "corners");
         leafPoints = await loadXml(leafPath, "points");
-        IMAGE_MAP[imageName] = { src, markerPoints, leafPoints, filePath: src }
+        IMAGE_MAP[imageName] = { src, markerPoints, leafPoints, filePath: src.split("datasets")[1] }
         setSelectedPoints();
         cb();
     }
@@ -385,6 +386,7 @@ function drawBox() {
     }
 
     ctx.strokeStyle = '#AA2';
+    let ctxPoint;
     for (let point of boxPoints) {
         ctxPoint = toCanvasCoords(point);
         ctx.beginPath();
