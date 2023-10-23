@@ -354,6 +354,20 @@ function drawPolygon(points) {
     }
 }
 
+function handleBoxPan(e) {
+    const [p1, p2] = boxPoints.map((point) => toCanvasCoords(point));
+    if (mousePos.x > p1.x &&
+        mousePos.x < p2.x &&
+        mousePos.y > p1.y &&
+        mousePos.y < p2.y) {
+        canvas.onmousemove = (event) => {
+            panPoint(event, boxPoints[0]);
+            panPoint(event, boxPoints[1]);
+        }
+        canvas.style.cursor = 'grabbing';
+    }
+}
+
 function handleZoom(event) {
     let scale = event.deltaY > 0 ? 1 - stepZoom : 1 + stepZoom;
     let oldLevel = zoomLevel;
@@ -374,50 +388,56 @@ function handleZoom(event) {
 
 function handleMouseDown(event) {
     if (event.button == 0) {
-        if (hoverIndex > -1) {
-            if (event.ctrlKey) {
-                if (selectionIndexes.includes(hoverIndex)) {
-                    selectionIndexes.splice(selectionIndexes.indexOf(hoverIndex), 1);
-                } else {
-                    selectionIndexes.push(hoverIndex);
-                }
-                render();
+        if (hoverIndex < 0) {
+            if (currentClass === CLASSES.BOX && boxPoints.length == 2) {
+                handleBoxPan();
                 return;
             }
 
-            if (event.shiftKey && selectionIndexes.length > 0) {
-                let idx1 = Math.max(selectionIndexes[0], hoverIndex);
-                let idx2 = Math.min(selectionIndexes[0], hoverIndex);
-
-                let distance1 = idx1 - idx2;
-                let distance2 = currentPoints.length - distance1;
-
-                selectionIndexes.length = 0;
-                if (distance1 <= distance2) {
-                    for (let i = idx2; i <= idx1; i++) {
-                        selectionIndexes.push(i);
-                    }
-                } else {
-                    for (let i = idx1; i < currentPoints.length; i++) {
-                        selectionIndexes.push(i);
-                    }
-                    for (let i = 0; i <= idx2; i++) {
-                        selectionIndexes.push(i);
-                    }
-                }
-                render();
-                return;
-            }
-
-            selectionIndexes.length = 0;
-            addHistory("move", { ...currentPoints[hoverIndex] }, currentPoints, hoverIndex);
-            selectionIndexes.push(hoverIndex);
-            canvas.onmousemove = (event) => panPoint(event, currentPoints[hoverIndex]);
-            canvas.style.cursor = 'grabbing';
+            createPoint(event.offsetX, event.offsetY);
             return;
         }
 
-        createPoint(event.offsetX, event.offsetY);
+        if (event.ctrlKey) {
+            if (selectionIndexes.includes(hoverIndex)) {
+                selectionIndexes.splice(selectionIndexes.indexOf(hoverIndex), 1);
+            } else {
+                selectionIndexes.push(hoverIndex);
+            }
+            render();
+            return;
+        }
+
+        if (event.shiftKey && selectionIndexes.length > 0) {
+            let idx1 = Math.max(selectionIndexes[0], hoverIndex);
+            let idx2 = Math.min(selectionIndexes[0], hoverIndex);
+
+            let distance1 = idx1 - idx2;
+            let distance2 = currentPoints.length - distance1;
+
+            selectionIndexes.length = 0;
+            if (distance1 <= distance2) {
+                for (let i = idx2; i <= idx1; i++) {
+                    selectionIndexes.push(i);
+                }
+            } else {
+                for (let i = idx1; i < currentPoints.length; i++) {
+                    selectionIndexes.push(i);
+                }
+                for (let i = 0; i <= idx2; i++) {
+                    selectionIndexes.push(i);
+                }
+            }
+            render();
+            return;
+        }
+
+        selectionIndexes.length = 0;
+        addHistory("move", { ...currentPoints[hoverIndex] }, currentPoints, hoverIndex);
+        selectionIndexes.push(hoverIndex);
+        canvas.onmousemove = (event) => panPoint(event, currentPoints[hoverIndex]);
+        canvas.style.cursor = 'grabbing';
+        return;
     }
     else if (event.button == 2) {
         canvas.onmousemove = pan;
