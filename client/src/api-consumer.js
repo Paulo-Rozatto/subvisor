@@ -17,8 +17,7 @@ export async function boxbuttonHandler() {
     const { imagePath, points } = getImagePath();
     const params = new URLSearchParams({ path: imagePath, points });
     const response = await fetch(
-        `${API_URL}/nn/test?${params}`,
-        { method: 'GET', mode: 'cors' }
+        `${API_URL}/nn/predict?${params}`
     );
     const json = await response.json();
     const pointsArray = JSON.parse(json.points) || [];
@@ -28,8 +27,7 @@ export async function boxbuttonHandler() {
 
 export async function fetchDatasetList() {
     const response = await fetch(
-        `${API_URL}/datasets/list`,
-        { method: 'GET', mode: 'cors' }
+        `${API_URL}/datasets/list`
     );
     return await response.json();
 }
@@ -42,7 +40,6 @@ export async function fetchPath(path) {
 }
 
 export async function fetchImageList(path) {
-    console.log(path)
     const reponse = await fetch(
         `${API_URL}/datasets/image-list?path=${path}`
     );

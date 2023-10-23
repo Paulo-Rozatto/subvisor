@@ -362,7 +362,6 @@ async function showDatasets() {
 async function pickDataset() {
     const path = currentPath || "";
     const imageNames = await API.fetchImageList(path) || [];
-    // console.log(imageList);
 
     const fragment = new DocumentFragment();
     for (const imageName of imageNames) {

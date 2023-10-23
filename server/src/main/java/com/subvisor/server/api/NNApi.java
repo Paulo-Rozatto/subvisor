@@ -14,8 +14,8 @@ import com.subvisor.server.models.Contour;
 @CrossOrigin(origins = "http://localhost:1234")
 public class NNApi {
 
-    @GetMapping("/test")
-    public Contour test(String path, String points) {
+    @GetMapping("/predict")
+    public Contour predict(String path, String points) {
         String result = runNetwork(path, points);
         result = result != null ? result.trim() : "null";
         return new Contour(result);
