@@ -6,6 +6,7 @@ import {
     getConfigs,
     setConfigs,
     getObjectLength,
+    loadBackendImage,
 } from './app.js';
 import * as API from './api-consumer.js';
 import JSZip from 'jszip';
@@ -18,8 +19,9 @@ const dropZone = document.querySelector(".drop-zone");
 const configsForm = document.querySelector("#configs-form");
 const configs = document.querySelector("#configs");
 const info = document.querySelector("#info");
-const datasetsModal = document.querySelector("#datasets-modal")
-const datasetsList = document.querySelector("#datasets-list")
+const datasetsModal = document.querySelector("#datasets-modal");
+const datasetsList = document.querySelector("#datasets-list");
+const datasetsPick = document.querySelector("#datasets-pick");
 
 // side bar elements
 const imageList = document.querySelector(".image-list");
@@ -44,26 +46,6 @@ const downloadButton = document.querySelector("#export-button");
 // canvas
 const canvas = document.getElementById('canvas');
 
-// window events
-addEventListener('DOMContentLoaded', setDefaultPreferences, false);
-addEventListener('dragover', dragOverHandler, false);
-addEventListener('drop', dropHandler, false);
-addEventListener('dragend', dragLeaveHandler, false);
-
-// other events
-dropZone.onclick = dragLeaveHandler;
-configsForm.onsubmit = setConfigsHandler;
-canvas.onclick = updateLengthStats;
-
-markerButton.onclick = () => { markerRadio.checked = true; setSelectedPoints(CLASSES.MARKER); updateLengthStats(); };
-leafButton.onclick = () => { leafRadio.checked = true; setSelectedPoints(CLASSES.LEAF); updateLengthStats(); };
-boxButton.onclick = API.boxbuttonHandler;
-datasetsButton.onclick = showDatasets;
-infoButton.onclick = () => modalToggle(info)
-configsButton.onclick = () => modalToggle(configs);
-themeButton.onclick = toggleTheme;
-downloadButton.onclick = download;
-
 let leafName;
 let markerDir, leafDir;
 let images = [];
@@ -72,6 +54,7 @@ let leafs = [];
 let selected;
 let time = 0;
 let interval;
+let currentPath;
 
 function toggleTheme() {
     const current = localStorage.getItem("isDarkMode") === "true";
@@ -364,6 +347,7 @@ async function enterDir(event) {
         parentPath = path.substring(0, path.lastIndexOf("/")) || "/";
     }
     datasetsList.innerHTML = "";
+    currentPath = path;
     appendToDirList(dirs, parentPath);
 }
 
@@ -374,3 +358,55 @@ async function showDatasets() {
     const dirs = await API.fetchDatasetList() || [];
     appendToDirList(dirs);
 }
+
+async function pickDataset() {
+    const path = currentPath || "";
+    const imageNames = await API.fetchImageList(path) || [];
+    // console.log(imageList);
+
+    const fragment = new DocumentFragment();
+    for (const imageName of imageNames) {
+        const button = document.createElement("button");
+        button.classList.add("btn");
+        button.tabIndex = -1;
+        button.innerText = imageName.replace(".jpg", "")
+
+        button.onclick = () => {
+            loadBackendImage(path, imageName, updateLengthStats);
+            selected.classList.remove("selected");
+            selected.classList.add("checked");
+            button.classList.add("selected");
+            selected = button;
+        };
+
+        fragment.appendChild(button);
+    }
+    selected = fragment.children[0];
+    selected.classList.add("selected");
+    imageList.innerHTML = "";
+    imageList.append(fragment);
+
+    loadBackendImage(path, imageNames[0], updateLengthStats);
+    modalToggle(datasetsModal);
+}
+
+// window events
+addEventListener('DOMContentLoaded', setDefaultPreferences, false);
+addEventListener('dragover', dragOverHandler, false);
+addEventListener('drop', dropHandler, false);
+addEventListener('dragend', dragLeaveHandler, false);
+
+// other events
+dropZone.onclick = dragLeaveHandler;
+configsForm.onsubmit = setConfigsHandler;
+canvas.onclick = updateLengthStats;
+
+markerButton.onclick = () => { markerRadio.checked = true; setSelectedPoints(CLASSES.MARKER); updateLengthStats(); };
+leafButton.onclick = () => { leafRadio.checked = true; setSelectedPoints(CLASSES.LEAF); updateLengthStats(); };
+boxButton.onclick = API.boxbuttonHandler;
+datasetsButton.onclick = showDatasets;
+infoButton.onclick = () => modalToggle(info)
+configsButton.onclick = () => modalToggle(configs);
+themeButton.onclick = toggleTheme;
+downloadButton.onclick = download;
+datasetsPick.onclick = pickDataset;

@@ -7,6 +7,7 @@ const image = new Image();
 const offset = { x: 0, y: 0 };
 const undoStack = [];
 const redoStack = [];
+const serverUrl = "http://localhost:8080";
 
 // constants padroes
 const START_ARC = 0;
@@ -169,6 +170,65 @@ export async function loadImage(fileEntry, marker, leaf, cb = () => { }) {
         reader.readAsDataURL(file);
     });
     selectionIndexes.length = 0;
+}
+
+async function loadXml(path, tagName) {
+    const response = await fetch(path);
+
+    if (!response.ok) {
+        console.error(`ERROR ${response.status}: ${response.statusText}, request: ${response.url}`);
+        return [];
+    }
+
+    const fileText = await response.text();
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(fileText, 'text/xml');
+    const tag = xml.getElementsByTagName(tagName)[0];
+
+    if (!tag) {
+        alert(`ERRO: ${path} não tem tag <${tagName}>`)
+        return [];
+    }
+
+    const children = tag.children;
+    const points = [];
+    for (let i = 0; i < children.length; i += 2) {
+        const point = {
+            x: parseFloat(children[i].textContent) * NORMALIZER,
+            y: parseFloat(children[i + 1].textContent) * NORMALIZER,
+        }
+        points.push(point);
+    }
+
+    return points;
+}
+
+export async function loadBackendImage(path, imageName, cb = () => { }) {
+    const img = IMAGE_MAP[imageName];
+    const src = `${serverUrl}/datasets/${path}/${imageName}`;
+    selectionIndexes.length = 0;
+
+    if (img) {
+        image.src = src;
+        markerPoints = img.markerPoints;
+        leafPoints = img.leafPoints;
+        setSelectedPoints();
+        cb();
+        return;
+    }
+
+    const xmlName = imageName.replace(".jpg", ".xml");
+    const leafPath = `${serverUrl}/datasets/${path}/leaf/${xmlName}`;
+    const markerPath = `${serverUrl}/datasets/${path}/marker/${xmlName}`;
+
+    if (path && imageName) {
+        image.src = src;
+        markerPoints = await loadXml(markerPath, "corners");
+        leafPoints = await loadXml(leafPath, "points");
+        IMAGE_MAP[imageName] = { src, markerPoints, leafPoints, filePath: src }
+        setSelectedPoints();
+        cb();
+    }
 }
 
 image.addEventListener('load', setCanvas);

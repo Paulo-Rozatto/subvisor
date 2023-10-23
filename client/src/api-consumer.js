@@ -38,5 +38,13 @@ export async function fetchPath(path) {
     const reponse = await fetch(
         `${API_URL}/datasets/dir?path=${path}`
     );
-    return  await reponse.json();
+    return await reponse.json();
+}
+
+export async function fetchImageList(path) {
+    console.log(path)
+    const reponse = await fetch(
+        `${API_URL}/datasets/image-list?path=${path}`
+    );
+    return await reponse.json();
 }

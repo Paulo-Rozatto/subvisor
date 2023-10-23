@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -23,6 +24,12 @@ public class App implements WebMvcConfigurer {
 		registry.addResourceHandler("/datasets/**")
 				.addResourceLocations("file:" + datasetPath + "/")
 				.setCachePeriod(0);
+	}
+
+	@Override
+	public void addCorsMappings(CorsRegistry registry) {
+		registry.addMapping("/**")
+				.allowedOrigins("http://localhost:1234");
 	}
 
 	private static String getOrCreateDataDirs() {
