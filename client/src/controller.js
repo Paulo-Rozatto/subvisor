@@ -363,6 +363,9 @@ async function pickDataset() {
     const path = currentPath || "";
     const imageNames = await API.fetchImageList(path) || [];
 
+    leafName = path.split("/").reverse()[0];
+    document.querySelector("#title").innerHTML = leafName;
+
     const fragment = new DocumentFragment();
     for (const imageName of imageNames) {
         const button = document.createElement("button");
