@@ -1,19 +1,11 @@
 import {
-    setSelectedPoints,
-    CLASSES,
     setLeaftPoints,
     getImageInfo,
-    getCurrentClass
 } from './app.js';
 
 const API_URL = 'http://localhost:8080/api';
 
-export async function boxbuttonHandler() {
-    if (getCurrentClass() !== CLASSES.BOX) {
-        setSelectedPoints(CLASSES.BOX);
-        return;
-    }
-
+export async function annotateLeaf() {
     const { name, path, points } = getImageInfo();
     const params = new URLSearchParams({ path: path, points });
     const response = await fetch(
@@ -44,4 +36,19 @@ export async function fetchImageList(path) {
         `${API_URL}/datasets/image-list?path=${path}`
     );
     return await reponse.json();
+}
+
+export async function saveXml(path, className, fileName, fileContent) {
+    // todo: treat exceptions
+    await fetch(
+        `${API_URL}/datasets/save-annotation`,
+        {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ path, className, fileName, fileContent })
+        }
+    )
 }

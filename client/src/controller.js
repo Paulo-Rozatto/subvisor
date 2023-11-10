@@ -7,9 +7,12 @@ import {
     setConfigs,
     getObjectLength,
     loadBackendImage,
+    getCurrentClass,
+    setSelectedPoints,
+    CLASSES
 } from './app.js';
 import * as API from './api-consumer.js';
-import JSZip from 'jszip';
+import JSZip, { file } from 'jszip';
 import saveAs from 'file-saver';
 
 const MAX_TIME = 5999 // 100 min - 1s
@@ -164,6 +167,7 @@ async function setList() {
 
         button.innerText = imageName;
         button.onclick = () => {
+            saveAnnotations();
             loadImage(images[i], marker, leaf, updateLengthStats);
             selected.classList.remove("selected");
             selected.classList.add("checked");
@@ -290,6 +294,27 @@ async function download() {
     saveAs(content, `${leafName}.zip`);
 }
 
+function saveAnnotations() {
+    if (!selected) {
+        return;
+    }
+
+    const fileName = selected.innerText;
+    const imgName = fileName + ".jpg";
+    const img = IMAGE_MAP[imgName];
+
+    if (img.markerPoints.length > 0) {
+        const markerXml = pointsToXml(img.markerPoints, imgName, "corners");
+        API.saveXml(currentPath, "marker", fileName + ".xml", markerXml);
+
+    }
+
+    if (img.leafPoints.length > 0) {
+        const leafXml = pointsToXml(img.leafPoints, imgName, "points");
+        API.saveXml(currentPath, "leaf", fileName + ".xml", leafXml);
+    }
+}
+
 function pointsToXml(points, imgName, tag) {
     const space1 = " ".repeat(6);
     const space2 = " ".repeat(8);
@@ -378,6 +403,7 @@ async function pickDataset() {
         button.innerText = imageName.replace(".jpg", "")
 
         button.onclick = () => {
+            saveAnnotations();
             loadBackendImage(path, imageName, updateLengthStats);
             selected.classList.remove("selected");
             selected.classList.add("checked");
@@ -400,6 +426,22 @@ async function pickDataset() {
     interval = setInterval(updateTimer, 1000);
 }
 
+async function generateLeaf() {
+    if (getCurrentClass() !== CLASSES.BOX) {
+        setSelectedPoints(CLASSES.BOX);
+        return;
+    }
+
+    const path = currentPath;
+    const fileName = selected.innerText;
+
+    await API.annotateLeaf();
+
+    const points = IMAGE_MAP[fileName + ".jpg"].leafPoints;
+    const xml = pointsToXml(points, fileName + ".jpg", "points");
+    API.saveXml(path, "leaf", fileName + ".xml", xml);
+}
+
 // window events
 addEventListener('DOMContentLoaded', setDefaultPreferences, false);
 addEventListener('dragover', dragOverHandler, false);
@@ -413,7 +455,7 @@ canvas.onclick = updateLengthStats;
 
 markerButton.onclick = () => { markerRadio.checked = true; setSelectedPoints(CLASSES.MARKER); updateLengthStats(); };
 leafButton.onclick = () => { leafRadio.checked = true; setSelectedPoints(CLASSES.LEAF); updateLengthStats(); };
-boxButton.onclick = API.boxbuttonHandler;
+boxButton.onclick = generateLeaf;
 datasetsButton.onclick = showDatasets;
 infoButton.onclick = () => modalToggle(info)
 configsButton.onclick = () => modalToggle(configs);
