@@ -366,6 +366,10 @@ async function pickDataset() {
     leafName = path.split("/").reverse()[0];
     document.querySelector("#title").innerHTML = leafName;
 
+    for (const key in IMAGE_MAP) {
+        delete IMAGE_MAP[key];
+    }
+
     const fragment = new DocumentFragment();
     for (const imageName of imageNames) {
         const button = document.createElement("button");
@@ -390,6 +394,10 @@ async function pickDataset() {
 
     loadBackendImage(path, imageNames[0], updateLengthStats);
     modalToggle(datasetsModal);
+
+    clearInterval(interval);
+    time = 0;
+    interval = setInterval(updateTimer, 1000);
 }
 
 // window events
