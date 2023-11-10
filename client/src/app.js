@@ -61,10 +61,11 @@ export function setConfigs(configs) {
     render();
 }
 
-export function getImagePath() {
+export function getImageInfo() {
     const points = currentPoints.map(p => `${parseInt(p.x)},${parseInt(p.y)}`).join(",");
     return {
-        imagePath: IMAGE_MAP[currentImage].filePath,
+        name: currentImage,
+        path: IMAGE_MAP[currentImage].filePath,
         points,
     };
 }
@@ -131,11 +132,15 @@ function pointsFromEntry(entry, tagName) {
     });
 }
 
-export function setLeaftPoints(points) {
-    const img = IMAGE_MAP[currentImage];
+export function setLeaftPoints(points, imageName = currentImage) {
+    const img = IMAGE_MAP[imageName];
 
-    if (img) {
-        img.leafPoints = points;
+    if (!img) {
+        return;
+    }
+
+    img.leafPoints = points;
+    if (imageName === currentImage) {
         leafPoints = points;
         render();
     }
