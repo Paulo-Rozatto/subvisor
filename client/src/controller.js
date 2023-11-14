@@ -380,8 +380,25 @@ async function showDatasets() {
     datasetsList.innerHTML = "";
     modalToggle(datasetsModal);
 
-    const dirs = await API.fetchDatasetList() || [];
-    appendToDirList(dirs);
+    if (!currentPath) {
+        const dirs = await API.fetchDatasetList() || [];
+        appendToDirList(dirs);
+        return;
+    }
+
+    //todo: de-duplicate code
+    const dirs = await API.fetchPath(currentPath);
+
+    if (!dirs) {
+        return;
+    }
+
+    let parentPath;
+    if (currentPath !== "/") {
+        parentPath = currentPath.substring(0, currentPath.lastIndexOf("/")) || "/";
+    }
+    datasetsList.innerHTML = "";
+    appendToDirList(dirs, parentPath);
 }
 
 async function pickDataset() {
