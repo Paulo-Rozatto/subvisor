@@ -1,3 +1,5 @@
+import { KeyboardMover } from "./keyboard-mover";
+
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const display = document.querySelector('.display');
@@ -635,6 +637,23 @@ function keyDownHandler(event) {
         return;
     }
 
+    // let step = 20;
+    // if (event.key === 's') {
+    //     offset.y -= step;
+    //     render();
+    // } else if (event.key === 'w') {
+    //     offset.y += step;
+    //     render();
+    // }
+
+    // if (event.key === 'd') {
+    //     offset.x -= step;
+    //     render();
+    // } else if (event.key === 'a') {
+    //     offset.x += step;
+    //     render();
+    // }
+
     if (event.key == 'Delete' || event.key == 'z') {
         removePoint();
     }
@@ -800,6 +819,7 @@ function redo() {
     }
 }
 
+KeyboardMover.init(offset, render);
 
 canvas.onmousemove = trackMouse;
 canvas.addEventListener('wheel', handleZoom);
