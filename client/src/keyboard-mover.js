@@ -6,14 +6,6 @@ let moveInterval;
 
 let render, offset;
 
-function init(_offset, _render) {
-    render = _render;
-    offset = _offset;
-
-    window.addEventListener('keydown', keydownHandler);
-    window.addEventListener('keyup', keyupHandler);
-}
-
 function move() {
     console.log(1);
     offset.x += speed.x;
@@ -23,18 +15,18 @@ function move() {
 
 function keydownHandler(event) {
     switch (event.key) {
-        case 'w':
+        case "w":
             speed.y = VELOCITY;
             break;
-        case 's':
+        case "s":
             speed.y = -VELOCITY;
             break;
-        case 'a':
+        case "a":
             speed.x = VELOCITY;
-            break
-        case 'd':
+            break;
+        case "d":
             speed.x = -VELOCITY;
-            break
+            break;
     }
 
     if (speed.x !== 0 || speed.y !== 0) {
@@ -45,19 +37,26 @@ function keydownHandler(event) {
 
 function keyupHandler(event) {
     switch (event.key) {
-        case 'w':
-        case 's':
+        case "w":
+        case "s":
             speed.y = 0;
             break;
-        case 'a':
-        case 'd':
+        case "a":
+        case "d":
             speed.x = 0;
-
     }
 
     if (speed.x === 0 && speed.y === 0) {
         clearInterval(moveInterval);
     }
+}
+
+function init(_offset, _render) {
+    render = _render;
+    offset = _offset;
+
+    window.addEventListener("keydown", keydownHandler);
+    window.addEventListener("keyup", keyupHandler);
 }
 
 export const KeyboardMover = { init };

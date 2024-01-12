@@ -1,149 +1,173 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Subvisor - Anotações</title>
+        <link rel="shortcut icon" href="img/markinho16.png" type="image/png" />
+        <link rel="stylesheet" href="style/style.scss" />
+    </head>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subvisor - Anotações</title>
-    <link rel="shortcut icon" href="img/markinho16.png" type="image/png">
-    <link rel="stylesheet" href="style/style.scss">
-</head>
-
-<body>
-    <header>
-        <section>
-            <a class="btn" id="datasets-list-button">
-                Datasets
-            </a>
-            <a class="btn" id="marker-button">
-                <input type="radio" name="mode" id="marker-radio" checked>
-                Marker
-            </a>
-            <a class="btn" id="leaf-button">
-                <input type="radio" name="mode" id="leaf-radio">
-                Leaf
-            </a>
-            <a class="btn" id="box-button">
-                Box
-            </a>
-        </section>
-        <section>
-        </section>
-        <section>
-            <button class="btn" id="theme-button">Tema</button>
-            <button class="btn" id="configs-button">Configs</button>
-            <a class="btn" id="export-button">Exportar</a>
-        </section>
-    </header>
-
-    <article class="drop-zone hide">
-        <h3>Drop files here...</h3>
-        <h5>(click to dimiss)</h5>
-    </article>
-
-    <article class="modal hide" id="info">
-        <h2>Info</h2>
-        <b>Fazer upload:</b>
-        <p>Arraste a pasta que contém as imagens e xmls para qualquer lugar da janela. </p>
-
-        <b>Salvar xmls:</b>
-        <p>Clique em <u>Exportar</u>.</p>
-
-        <b>Girar pontos:</b>
-        <p>Cilque na seta esquerda ou seta direita.</p>
-
-        <b>Adicionar pontos:</b>
-        <p>Clique em qualquer lugar da imagem.</p>
-
-        <b>Remover pontos:</b>
-        <p>Deixe o mouse em cima de um ponto e aperte <u>DELETE</u> ou <u>Z</u>.</p>
-
-        <b>Trocar pontos:</b>
-        <p>Digite 2 números no intervalo [1,4] e aperte <u>ENTER</u> para trocá-los de posição (só para
-            marcadores).</p>
-
-        <b>Centralizar:</b>
-        <p>As teclas adjacentes <u>X</u>, <u>C</u> e <u>V</u> centralizam respectivamente no ponto anterior, centro
-            do objeto, proximo ponto.</p>
-
-        <b>Esconder:</b>
-        <p>Aperte <u>B</u> para esconder as anotações.</p>
-    </article>
-
-    <article class="modal hide" id="configs">
-        <h2>Configs</h2>
-        <form id="configs-form" class="form">
-            <div>
-                <input type="text" class="text-input" id="max-zoom" />
-                <label for="exchange"><small>Zoom máximo</small></label>
-            </div>
-            <div>
-                <input type="text" class="text-input" id="step-zoom" />
-                <label for="exchange"><small>Zoom (taxa de incremento)</small></label>
-            </div>
-            <div>
-                <input type="text" class="text-input" id="point-zoom" />
-                <label for="exchange"><small>Zoom de ponto (quando se usa 'x' ou 'v')</small></label>
-            </div>
-            <div>
-                <input type="text" class="text-input" id="opacity" />
-                <label for="exchange"><small>Opacidade dos polígonos</small></label>
-            </div>
-            <button class="btn" id="save-configs">Salvar</button>
-        </form>
-    </article>
-
-    <article class="modal hide" id="datasets-modal">
-        <h2>Datasets</h2>
-        <ul id="datasets-list">
-        </ul>
-        <div>
-            <button class="btn" id="datasets-pick">Selecionar</button>
-        </div>
-    </article>
-
-    <main>
-        <article class="display">
-            <section class="float-input">
-                <input type="text" name="exchange" class="text-input" id="exchange" placeholder="ex: 1;3">
-                <label for="exchange"></label><small>Trocar pontos</small>
+    <body>
+        <header>
+            <section>
+                <a class="btn" id="datasets-list-button"> Datasets </a>
+                <a class="btn" id="marker-button">
+                    <input type="radio" name="mode" id="marker-radio" checked />
+                    Marker
+                </a>
+                <a class="btn" id="leaf-button">
+                    <input type="radio" name="mode" id="leaf-radio" />
+                    Leaf
+                </a>
+                <a class="btn" id="box-button"> Box </a>
             </section>
-            <canvas id="canvas"></canvas>
+            <section></section>
+            <section>
+                <button class="btn" id="theme-button">Tema</button>
+                <button class="btn" id="configs-button">Configs</button>
+                <a class="btn" id="export-button">Exportar</a>
+            </section>
+        </header>
+
+        <article class="drop-zone hide">
+            <h3>Drop files here...</h3>
+            <h5>(click to dimiss)</h5>
         </article>
-        <aside>
-            <section class="image-list"></section>
-            <!-- TODO: possivelmente usar shadow root -->
-        </aside>
-    </main>
 
-    <footer>
-        <article class="stats-bar">
-            <section class="group left">
-                <span class="item text-highlight" title="Pasta atual">
-                    <i class="bi bi-house"></i>
-                    <span id="title">000</span>
-                </span>
-            </section>
-            <section class="group right">
-                <span id="reset-button" class="item" title="Zoom atual. Clique para resetar">
-                    <i class="bi bi-search"></i>
-                    <span id="current-zoom">100%</span>
-                </span>
-                <span class="item" title="Quantidade de pontos do objeto selecionado">
-                    <i class="bi bi-bounding-box-circles"></i>
-                    <span id="obj-length">000</span>
-                </span>
-                <span class="item" title="Tempo desde upload">
-                    <i class="bi-alarm"></i>
-                    <span id="timer">00:00</span>
-                </span>
-                <span id="info-button" class="item">
-                    <i class="bi bi-info-circle"></i>
-                </span>
-            </section>
+        <article class="modal hide" id="info">
+            <h2>Info</h2>
+            <b>Fazer upload:</b>
+            <p>
+                Arraste a pasta que contém as imagens e xmls para qualquer lugar
+                da janela.
+            </p>
+
+            <b>Salvar xmls:</b>
+            <p>Clique em <u>Exportar</u>.</p>
+
+            <b>Girar pontos:</b>
+            <p>Cilque na seta esquerda ou seta direita.</p>
+
+            <b>Adicionar pontos:</b>
+            <p>Clique em qualquer lugar da imagem.</p>
+
+            <b>Remover pontos:</b>
+            <p>
+                Deixe o mouse em cima de um ponto e aperte <u>DELETE</u> ou
+                <u>Z</u>.
+            </p>
+
+            <b>Trocar pontos:</b>
+            <p>
+                Digite 2 números no intervalo [1,4] e aperte <u>ENTER</u> para
+                trocá-los de posição (só para marcadores).
+            </p>
+
+            <b>Centralizar:</b>
+            <p>
+                As teclas adjacentes <u>X</u>, <u>C</u> e <u>V</u> centralizam
+                respectivamente no ponto anterior, centro do objeto, proximo
+                ponto.
+            </p>
+
+            <b>Esconder:</b>
+            <p>Aperte <u>B</u> para esconder as anotações.</p>
         </article>
-    </footer>
-    <script type="module" src="src/controller.js"></script>
-</body>
 
+        <article class="modal hide" id="configs">
+            <h2>Configs</h2>
+            <form id="configs-form" class="form">
+                <div>
+                    <input type="text" class="text-input" id="max-zoom" />
+                    <label for="exchange"><small>Zoom máximo</small></label>
+                </div>
+                <div>
+                    <input type="text" class="text-input" id="step-zoom" />
+                    <label for="exchange"
+                        ><small>Zoom (taxa de incremento)</small></label
+                    >
+                </div>
+                <div>
+                    <input type="text" class="text-input" id="point-zoom" />
+                    <label for="exchange"
+                        ><small
+                            >Zoom de ponto (quando se usa 'x' ou 'v')</small
+                        ></label
+                    >
+                </div>
+                <div>
+                    <input type="text" class="text-input" id="opacity" />
+                    <label for="exchange"
+                        ><small>Opacidade dos polígonos</small></label
+                    >
+                </div>
+                <button class="btn" id="save-configs">Salvar</button>
+            </form>
+        </article>
+
+        <article class="modal hide" id="datasets-modal">
+            <h2>Datasets</h2>
+            <ul id="datasets-list"></ul>
+            <div>
+                <button class="btn" id="datasets-pick">Selecionar</button>
+            </div>
+        </article>
+
+        <main>
+            <article class="display">
+                <section class="float-input">
+                    <input
+                        type="text"
+                        name="exchange"
+                        class="text-input"
+                        id="exchange"
+                        placeholder="ex: 1;3"
+                    />
+                    <label for="exchange"></label><small>Trocar pontos</small>
+                </section>
+                <canvas id="canvas"></canvas>
+            </article>
+            <aside>
+                <section class="image-list"></section>
+                <!-- TODO: possivelmente usar shadow root -->
+            </aside>
+        </main>
+
+        <footer>
+            <article class="stats-bar">
+                <section class="group left">
+                    <span class="item text-highlight" title="Pasta atual">
+                        <i class="bi bi-house"></i>
+                        <span id="title">000</span>
+                    </span>
+                </section>
+                <section class="group right">
+                    <span
+                        id="reset-button"
+                        class="item"
+                        title="Zoom atual. Clique para resetar"
+                    >
+                        <i class="bi bi-search"></i>
+                        <span id="current-zoom">100%</span>
+                    </span>
+                    <span
+                        class="item"
+                        title="Quantidade de pontos do objeto selecionado"
+                    >
+                        <i class="bi bi-bounding-box-circles"></i>
+                        <span id="obj-length">000</span>
+                    </span>
+                    <span class="item" title="Tempo desde upload">
+                        <i class="bi-alarm"></i>
+                        <span id="timer">00:00</span>
+                    </span>
+                    <span id="info-button" class="item">
+                        <i class="bi bi-info-circle"></i>
+                    </span>
+                </section>
+            </article>
+        </footer>
+        <script type="module" src="src/controller.js"></script>
+    </body>
 </html>
