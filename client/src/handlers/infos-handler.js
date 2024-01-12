@@ -1,4 +1,4 @@
-import { getObjectLength } from "../app";
+import { getObjectLength } from "../app/app";
 import { modalToggle } from "../utils";
 
 const MAX_TIME = 5999; // 100 min - 1s

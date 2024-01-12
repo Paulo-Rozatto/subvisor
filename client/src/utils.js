@@ -14,3 +14,15 @@ export function modalToggle(modal) {
 }
 
 dropZone.addEventListener("click", () => modalToggle(currentModal));
+
+export const MOUSE = {
+    get left() {
+        return 1;
+    },
+    get right() {
+        return 2;
+    },
+    get middle() {
+        return 4;
+    },
+};

@@ -1,7 +1,6 @@
-import { getConfigs, setConfigs } from "../app";
 import { modalToggle } from "../utils";
 
-const settings = document.querySelector("#settings");
+const settingsModal = document.querySelector("#settings");
 const settingsForm = document.querySelector("#settings-form");
 const settingsButton = document.querySelector("#settings-button");
 
@@ -10,59 +9,79 @@ const stepZoomInput = document.querySelector("#step-zoom");
 const pointZoomInput = document.querySelector("#point-zoom");
 const opacityInput = document.querySelector("#opacity");
 
-function setDefault() {
-    let { maxZoom, stepZoom, pointZoom, opacity } = getConfigs();
+const DEFAULT = {
+    maxZoom: 8,
+    stepZoom: 0.1,
+    pointZoom: 8,
+    opacity: 0.4,
+};
+
+const settings = { ...DEFAULT };
+
+// let maxZoom, stepZoom, pointZoom, opacity;
+
+function load() {
+    // let { maxZoom, stepZoom, pointZoom, opacity } = getConfigs();
+    // settings = {...DEFAULT};
     const maxZoomStorage = localStorage.getItem("max-zoom");
     if (maxZoomStorage) {
-        maxZoom = parseFloat(maxZoomStorage);
+        settings.maxZoom = parseFloat(maxZoomStorage);
     }
 
     const stepZoomStorage = localStorage.getItem("step-zoom");
     if (stepZoomStorage) {
-        stepZoom = parseFloat(stepZoomStorage);
+        settings.stepZoom = parseFloat(stepZoomStorage);
     }
 
     const pointZoomStorage = localStorage.getItem("point-zoom");
     if (pointZoomStorage) {
-        pointZoom = parseFloat(pointZoomStorage);
+        settings.pointZoom = parseFloat(pointZoomStorage);
     }
 
     const opacityStorage = localStorage.getItem("opacity");
     if (opacityStorage) {
-        opacity = parseFloat(opacityStorage);
+        settings.opacity = parseFloat(opacityStorage);
     }
 
-    setConfigs({ maxZoom, stepZoom, pointZoom, opacity });
-    maxZoomInput.value = maxZoom;
-    stepZoomInput.value = stepZoom;
-    pointZoomInput.value = pointZoom;
-    opacityInput.value = opacity;
+    maxZoomInput.value = settings.maxZoom;
+    stepZoomInput.value = settings.stepZoom;
+    pointZoomInput.value = settings.pointZoom;
+    opacityInput.value = settings.opacity;
 }
 
 function set(event) {
     event.preventDefault();
 
-    const confs = getConfigs();
-    const maxZoom = maxZoomInput.value;
-    const stepZoom = stepZoomInput.value;
-    const pointZoom = pointZoomInput.value;
-    const opacity = opacityInput.value;
+    // const confs = getConfigs();
+    settings.maxZoom = parseFloat(maxZoomInput.value) || settings.maxZoom;
+    settings.stepZoom = parseFloat(stepZoomInput.value) || settings.stepZoom;
+    settings.pointZoom = parseFloat(pointZoomInput.value) || settings.pointZoom;
+    settings.opacity = parseFloat(opacityInput.value) || settings.opacity;
 
-    confs.maxZoom = parseFloat(maxZoom);
-    confs.stepZoom = parseFloat(stepZoom);
-    confs.pointZoom = parseFloat(pointZoom);
-    confs.opacity = parseFloat(opacity);
+    localStorage.setItem("max-zoom", maxZoomInput.value);
+    localStorage.setItem("step-zoom", stepZoomInput.value);
+    localStorage.setItem("point-zoom", pointZoomInput.value);
+    localStorage.setItem("opacity", opacityInput.value);
 
-    localStorage.setItem("max-zoom", maxZoom);
-    localStorage.setItem("step-zoom", stepZoom);
-    localStorage.setItem("point-zoom", pointZoom);
-    localStorage.setItem("opacity", opacity);
-
-    setConfigs(confs);
-    modalToggle(settings);
+    // setConfigs(confs);
+    modalToggle(settingsModal);
 }
 
-settingsButton.addEventListener("click", () => modalToggle(settings));
+settingsButton.addEventListener("click", () => modalToggle(settingsModal));
 settingsForm.addEventListener("submit", set);
 
-export const SettingsHandler = { setDefault };
+export const SettingsHandler = {
+    load,
+    get maxZoom() {
+        return settings.maxZoom;
+    },
+    get stepZoom() {
+        return settings.stepZoom;
+    },
+    get pointZoom() {
+        return settings.pointZoom;
+    },
+    get opacity() {
+        return settings.opacity;
+    },
+};
