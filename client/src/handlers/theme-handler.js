@@ -1,4 +1,4 @@
-function setDefault() {
+function load() {
     const isDark = localStorage.getItem("isDarkMode") === "true";
     if (isDark) {
         document.querySelector("body").classList.add("dark-mode");
@@ -13,4 +13,4 @@ function toggle() {
 
 document.querySelector("#theme-button").addEventListener("click", toggle);
 
-export const ThemeHandler = { setDefault };
+export const ThemeHandler = { load };

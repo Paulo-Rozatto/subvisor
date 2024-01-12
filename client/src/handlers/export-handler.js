@@ -1,5 +1,6 @@
-import { IMAGE_MAP, NORMALIZER } from "../app";
+import { IMAGE_MAP } from "../app/app";
 import JSZip from "jszip";
+import { NORMALIZER } from "./classes-handler";
 import saveAs from "file-saver";
 
 const exportButton = document.querySelector("#export-button");

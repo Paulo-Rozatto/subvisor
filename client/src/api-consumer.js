@@ -1,18 +1,18 @@
-import { getImageInfo, setLeaftPoints } from "./app.js";
+// import { getImageInfo, setLeaftPoints } from "./app.js";
 
 const API_URL = "http://localhost:8080/api";
 
 export async function annotateLeaf() {
-    const { name, path, points } = getImageInfo();
-    const params = new URLSearchParams({ path: path, points });
-    const response = await fetch(`${API_URL}/nn/predict?${params}`);
-    const json = await response.json();
-    const pointsArray = JSON.parse(json.points) || [];
-    const resultPoints = pointsArray.map((point) => ({
-        x: point[0],
-        y: point[1],
-    }));
-    setLeaftPoints(resultPoints, name);
+    // const { name, path, points } = getImageInfo();
+    // const params = new URLSearchParams({ path: path, points });
+    // const response = await fetch(`${API_URL}/nn/predict?${params}`);
+    // const json = await response.json();
+    // const pointsArray = JSON.parse(json.points) || [];
+    // const resultPoints = pointsArray.map((point) => ({
+    //     x: point[0],
+    //     y: point[1],
+    // }));
+    // setLeaftPoints(resultPoints, name);
 }
 
 export async function fetchDatasetList() {

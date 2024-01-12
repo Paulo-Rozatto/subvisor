@@ -1,6 +1,6 @@
-import { CLASSES, IMAGE_MAP, getCurrentClass, setSelectedPoints } from "../app";
 import { annotateLeaf, saveXml } from "../api-consumer";
 import { currentPath, selected } from "./dataset-load-handler";
+import { IMAGE_MAP } from "../app/app";
 import { pointsToXml } from "./export-handler";
 import { updateLengthInfo } from "./infos-handler";
 
@@ -10,23 +10,28 @@ const markerRadio = document.querySelector("#marker-radio");
 const leafRadio = document.querySelector("#leaf-radio");
 const boxButton = document.querySelector("#box-button");
 
+const CLASSES = { LEAF: 0, MARKER: 1, BOX: 2 };
+export const NORMALIZER = 4624;
+
+let currentClass = null;
+
 function setMarker() {
     markerRadio.checked = true;
-    setSelectedPoints(CLASSES.MARKER);
+    currentClass = CLASSES.MARKER;
     updateLengthInfo();
 }
 
 function setLeaf() {
     leafRadio.checked = true;
-    setSelectedPoints(CLASSES.LEAF);
+    currentClass = CLASSES.LEAF;
     updateLengthInfo();
 }
 
 async function generateLeaf() {
-    if (getCurrentClass() !== CLASSES.BOX) {
+    if (currentClass !== CLASSES.BOX) {
         markerRadio.checked = false;
         leafRadio.checked = false;
-        setSelectedPoints(CLASSES.BOX);
+        currentClass = CLASSES.BOX;
         return;
     }
 
@@ -44,3 +49,18 @@ async function generateLeaf() {
 markerButton.addEventListener("click", setMarker);
 leafButton.addEventListener("click", setLeaf);
 boxButton.addEventListener("click", generateLeaf);
+
+export const ClassesHandler = {
+    get LEAF() {
+        return CLASSES.LEAF;
+    },
+    get MARKER() {
+        return CLASSES.MARKER;
+    },
+    get BOX() {
+        return CLASSES.BOX;
+    },
+    get current() {
+        return currentClass;
+    },
+};
