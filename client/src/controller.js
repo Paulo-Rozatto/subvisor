@@ -1,21 +1,20 @@
+import * as API from "./api-consumer.js";
 import {
-    loadImage,
-    setSelectedPoints,
-    CLASSES, IMAGE_MAP,
+    CLASSES,
+    IMAGE_MAP,
     NORMALIZER,
     getConfigs,
-    setConfigs,
+    getCurrentClass,
     getObjectLength,
     loadBackendImage,
-    getCurrentClass,
+    loadImage,
+    setConfigs,
     setSelectedPoints,
-    CLASSES
-} from './app.js';
-import * as API from './api-consumer.js';
-import JSZip, { file } from 'jszip';
-import saveAs from 'file-saver';
+} from "./app.js";
+import JSZip from "jszip";
+import saveAs from "file-saver";
 
-const MAX_TIME = 5999 // 100 min - 1s
+const MAX_TIME = 5999; // 100 min - 1s
 
 // modal elements
 const dropZone = document.querySelector(".drop-zone");
@@ -33,7 +32,7 @@ const timer = document.querySelector("#timer");
 
 // left header
 const markerButton = document.querySelector("#marker-button");
-const leafButton = document.querySelector("#leaf-button")
+const leafButton = document.querySelector("#leaf-button");
 const markerRadio = document.querySelector("#marker-radio");
 const leafRadio = document.querySelector("#leaf-radio");
 const boxButton = document.querySelector("#box-button");
@@ -41,13 +40,13 @@ const datasetsButton = document.querySelector("#datasets-list-button");
 /* TODO: mover o reset button para aqui */
 
 // right header
-const themeButton = document.querySelector("#theme-button")
+const themeButton = document.querySelector("#theme-button");
 const configsButton = document.querySelector("#configs-button");
-const infoButton = document.querySelector("#info-button")
+const infoButton = document.querySelector("#info-button");
 const downloadButton = document.querySelector("#export-button");
 
 // canvas
-const canvas = document.getElementById('canvas');
+const canvas = document.getElementById("canvas");
 
 let leafName;
 let markerDir, leafDir;
@@ -142,7 +141,55 @@ function updateTimer() {
 
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
-    timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    timer.textContent = `${minutes.toString().padStart(2, "0")}:${seconds
+        .toString()
+        .padStart(2, "0")}`;
+}
+
+function pointsToXml(points, imgName, tag) {
+    const space1 = " ".repeat(6);
+    const space2 = " ".repeat(8);
+    let coordinates = "";
+
+    for (let i = 0; i < points.length; i++) {
+        const x = `${space1}<x${i + 1}>${points[i].x / NORMALIZER}</x${
+            i + 1
+        }>\n`;
+        const y = `${space2}<y${i + 1}>${points[i].y / NORMALIZER}</y${
+            i + 1
+        }>\n`;
+        coordinates += x + y;
+    }
+
+    return `<annotation>
+  <filename>${imgName}</filename>
+  <object>
+    <leaf> ${leafName} </leaf>
+    <${tag}>
+${coordinates.trimEnd()}
+    </${tag}>
+  </object>
+</annotation>`.trimStart();
+}
+
+function saveAnnotations() {
+    if (!selected) {
+        return;
+    }
+
+    const fileName = selected.innerText;
+    const imgName = fileName + ".jpg";
+    const img = IMAGE_MAP[imgName];
+
+    if (img.markerPoints.length > 0) {
+        const markerXml = pointsToXml(img.markerPoints, imgName, "corners");
+        API.saveXml(currentPath, "marker", fileName + ".xml", markerXml);
+    }
+
+    if (img.leafPoints.length > 0) {
+        const leafXml = pointsToXml(img.leafPoints, imgName, "points");
+        API.saveXml(currentPath, "leaf", fileName + ".xml", leafXml);
+    }
 }
 
 async function setList() {
@@ -151,8 +198,10 @@ async function setList() {
     leafs.sort((a, b) => a.name.localeCompare(b.name));
 
     if (images.length !== markers.length || images.length !== leafs.length) {
-        alert("Quantidade de imagens, marcadores e folhas não são iguais.\n" +
-            `- Imagens: ${images.length}\n- Marcadores: ${markers.length}\n- Folhas: ${leafs.length}`);
+        alert(
+            "Quantidade de imagens, marcadores e folhas não são iguais.\n" +
+                `- Imagens: ${images.length}\n- Marcadores: ${markers.length}\n- Folhas: ${leafs.length}`
+        );
     }
 
     imageList.innerHTML = "";
@@ -162,8 +211,12 @@ async function setList() {
         button.tabIndex = -1;
 
         const imageName = images[i].name.replace(".jpg", "");
-        const marker = markers.find((marker) => marker.name.replace(".xml", "") === imageName);
-        const leaf = leafs.find((leaf) => leaf.name.replace(".xml", "") === imageName);
+        const marker = markers.find(
+            (marker) => marker.name.replace(".xml", "") === imageName
+        );
+        const leaf = leafs.find(
+            (leaf) => leaf.name.replace(".xml", "") === imageName
+        );
 
         button.innerText = imageName;
         button.onclick = () => {
@@ -175,7 +228,7 @@ async function setList() {
             selected = button;
         };
         imageList.appendChild(button);
-        if (i == 0) {
+        if (i === 0) {
             selected = button;
             button.classList.add("selected");
         }
@@ -186,21 +239,21 @@ async function setList() {
 function dropHandler(event) {
     event.preventDefault();
     leafName = "";
-    markerDir = null, leafDir = null, selected = null;
-    images = [], markers = [], leafs = [];
+    (markerDir = null), (leafDir = null), (selected = null);
+    (images = []), (markers = []), (leafs = []);
     for (const key in IMAGE_MAP) {
         delete IMAGE_MAP[key];
     }
 
     if (!event.dataTransfer.items) {
-        console.error("No items in dataTransfer.items")
+        console.error("No items in dataTransfer.items");
         return;
     }
 
     const root = [...event.dataTransfer.items][0]?.webkitGetAsEntry();
     leafName = root.name;
     if (!root.isDirectory) {
-        console.error("Expected directory in dataTransfer.items, got: ", root)
+        console.error("Expected directory in dataTransfer.items, got: ", root);
         return;
     }
     document.querySelector("#title").innerHTML = leafName;
@@ -232,26 +285,30 @@ function dropHandler(event) {
     // ele esta dentro de uma funcao auto-executavel, ou seja, a funcao executa assim que e declarada sem precisar chmar
     // isson foi feito pq o await so pode ser usado dentro de uma funcao async
     (async () => {
-        const findDir = (entries, name) => entries.find((entry) => entry.isDirectory && entry.name === name);
-        const filterFiles = (entries, ext) => entries.filter((entry) => entry.isFile && entry.name.endsWith(ext));
+        const findDir = (entries, name) =>
+            entries.find((entry) => entry.isDirectory && entry.name === name);
+        const filterFiles = (entries, ext) =>
+            entries.filter((entry) => entry.isFile && entry.name.endsWith(ext));
 
         const rootReader = root.createReader();
         const rootCallback = (entries) => {
             images = filterFiles(entries, ".jpg");
             markerDir = findDir(entries, "marker");
             leafDir = findDir(entries, "leaf");
-        }
+        };
         await asyncRead(rootReader, rootCallback);
 
-        if (!!markerDir) {
+        if (markerDir) {
             const markerReader = markerDir.createReader();
-            const markerCallback = (entries) => markers = filterFiles(entries, ".xml");
+            const markerCallback = (entries) =>
+                (markers = filterFiles(entries, ".xml"));
             await asyncRead(markerReader, markerCallback);
         }
 
-        if (!!leafDir) {
+        if (leafDir) {
             const leafReader = leafDir.createReader();
-            const leafCallback = (entries) => leafs = filterFiles(entries, ".xml");
+            const leafCallback = (entries) =>
+                (leafs = filterFiles(entries, ".xml"));
             await asyncRead(leafReader, leafCallback);
         }
 
@@ -264,17 +321,17 @@ function dropHandler(event) {
     dropZone.classList.add("hide");
 }
 
-function dragOverHandler(event) {
-    event.preventDefault();
-    dropZone.classList.remove("hide");
-    dropZone.onmouseup = dragLeaveHandler;
-}
-
 function dragLeaveHandler() {
     dropZone.classList.add("hide");
     info.classList.add("hide");
     configs.classList.add("hide");
     datasetsModal.classList.add("hide");
+}
+
+function dragOverHandler(event) {
+    event.preventDefault();
+    dropZone.classList.remove("hide");
+    dropZone.onmouseup = dragLeaveHandler;
 }
 
 async function download() {
@@ -290,72 +347,8 @@ async function download() {
         leafFolder.file(imgName.replace(".jpg", ".xml"), leafXml);
     }
 
-    const content = await zip.generateAsync({ type: "blob" })
+    const content = await zip.generateAsync({ type: "blob" });
     saveAs(content, `${leafName}.zip`);
-}
-
-function saveAnnotations() {
-    if (!selected) {
-        return;
-    }
-
-    const fileName = selected.innerText;
-    const imgName = fileName + ".jpg";
-    const img = IMAGE_MAP[imgName];
-
-    if (img.markerPoints.length > 0) {
-        const markerXml = pointsToXml(img.markerPoints, imgName, "corners");
-        API.saveXml(currentPath, "marker", fileName + ".xml", markerXml);
-
-    }
-
-    if (img.leafPoints.length > 0) {
-        const leafXml = pointsToXml(img.leafPoints, imgName, "points");
-        API.saveXml(currentPath, "leaf", fileName + ".xml", leafXml);
-    }
-}
-
-function pointsToXml(points, imgName, tag) {
-    const space1 = " ".repeat(6);
-    const space2 = " ".repeat(8);
-    let coordinates = "";
-
-    for (let i = 0; i < points.length; i++) {
-        const x = `${space1}<x${i + 1}>${points[i].x / NORMALIZER}</x${i + 1}>\n`;
-        const y = `${space2}<y${i + 1}>${points[i].y / NORMALIZER}</y${i + 1}>\n`;
-        coordinates += x + y;
-    }
-
-    return `<annotation>
-  <filename>${imgName}</filename>
-  <object>
-    <leaf> ${leafName} </leaf>
-    <${tag}>
-${coordinates.trimEnd()}
-    </${tag}>
-  </object>
-</annotation>`.trimStart();
-}
-
-function appendToDirList(dirs, parent) {
-    const fragment = new DocumentFragment();
-
-    if (Boolean(parent)) {
-        const element = document.createElement("li");
-        element.innerText = "..";
-        element.setAttribute("path", parent);
-        element.onclick = enterDir;
-        fragment.append(element);
-    }
-
-    dirs.forEach((dir) => {
-        const element = document.createElement("li");
-        element.innerText = dir;
-        element.onclick = enterDir;
-        fragment.append(element)
-    });
-
-    datasetsList.append(fragment);
 }
 
 async function enterDir(event) {
@@ -373,7 +366,29 @@ async function enterDir(event) {
     }
     datasetsList.innerHTML = "";
     currentPath = path;
+    // eslint-disable-next-line no-use-before-define
     appendToDirList(dirs, parentPath);
+}
+
+function appendToDirList(dirs, parent) {
+    const fragment = new DocumentFragment();
+
+    if (parent) {
+        const element = document.createElement("li");
+        element.innerText = "..";
+        element.setAttribute("path", parent);
+        element.onclick = enterDir;
+        fragment.append(element);
+    }
+
+    dirs.forEach((dir) => {
+        const element = document.createElement("li");
+        element.innerText = dir;
+        element.onclick = enterDir;
+        fragment.append(element);
+    });
+
+    datasetsList.append(fragment);
 }
 
 async function showDatasets() {
@@ -381,7 +396,7 @@ async function showDatasets() {
     modalToggle(datasetsModal);
 
     if (!currentPath) {
-        const dirs = await API.fetchDatasetList() || [];
+        const dirs = (await API.fetchDatasetList()) || [];
         appendToDirList(dirs);
         return;
     }
@@ -395,7 +410,8 @@ async function showDatasets() {
 
     let parentPath;
     if (currentPath !== "/") {
-        parentPath = currentPath.substring(0, currentPath.lastIndexOf("/")) || "/";
+        parentPath =
+            currentPath.substring(0, currentPath.lastIndexOf("/")) || "/";
     }
     datasetsList.innerHTML = "";
     appendToDirList(dirs, parentPath);
@@ -403,7 +419,7 @@ async function showDatasets() {
 
 async function pickDataset() {
     const path = currentPath || "";
-    const imageNames = await API.fetchImageList(path) || [];
+    const imageNames = (await API.fetchImageList(path)) || [];
 
     leafName = path.split("/").reverse()[0];
     document.querySelector("#title").innerHTML = leafName;
@@ -417,7 +433,7 @@ async function pickDataset() {
         const button = document.createElement("button");
         button.classList.add("btn");
         button.tabIndex = -1;
-        button.innerText = imageName.replace(".jpg", "")
+        button.innerText = imageName.replace(".jpg", "");
 
         button.onclick = () => {
             saveAnnotations();
@@ -460,21 +476,29 @@ async function generateLeaf() {
 }
 
 // window events
-addEventListener('DOMContentLoaded', setDefaultPreferences, false);
-addEventListener('dragover', dragOverHandler, false);
-addEventListener('drop', dropHandler, false);
-addEventListener('dragend', dragLeaveHandler, false);
+addEventListener("DOMContentLoaded", setDefaultPreferences, false);
+addEventListener("dragover", dragOverHandler, false);
+addEventListener("drop", dropHandler, false);
+addEventListener("dragend", dragLeaveHandler, false);
 
 // other events
 dropZone.onclick = dragLeaveHandler;
 configsForm.onsubmit = setConfigsHandler;
 canvas.onclick = updateLengthStats;
 
-markerButton.onclick = () => { markerRadio.checked = true; setSelectedPoints(CLASSES.MARKER); updateLengthStats(); };
-leafButton.onclick = () => { leafRadio.checked = true; setSelectedPoints(CLASSES.LEAF); updateLengthStats(); };
+markerButton.onclick = () => {
+    markerRadio.checked = true;
+    setSelectedPoints(CLASSES.MARKER);
+    updateLengthStats();
+};
+leafButton.onclick = () => {
+    leafRadio.checked = true;
+    setSelectedPoints(CLASSES.LEAF);
+    updateLengthStats();
+};
 boxButton.onclick = generateLeaf;
 datasetsButton.onclick = showDatasets;
-infoButton.onclick = () => modalToggle(info)
+infoButton.onclick = () => modalToggle(info);
 configsButton.onclick = () => modalToggle(configs);
 themeButton.onclick = toggleTheme;
 downloadButton.onclick = download;

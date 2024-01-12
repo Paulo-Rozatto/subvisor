@@ -35,7 +35,6 @@ header section {
     align-items: center;
     padding: 10px;
     gap: 10px;
-
 }
 
 header section:nth-child(2) {
@@ -138,7 +137,6 @@ aside {
     width: 4rem;
 }
 
-
 // components
 .btn {
     font-size: 0.9rem;
@@ -236,7 +234,7 @@ aside {
 
     .drop-zone {
         color: $dark-hover;
-        background-color: rgba($color: $dark-primary, $alpha: 0.90);
+        background-color: rgba($color: $dark-primary, $alpha: 0.9);
         backdrop-filter: blur(5px);
     }
 
@@ -267,7 +265,6 @@ aside {
         color: $dark-hover;
     }
 }
-
 
 .dark-mode {
     @include dark-mode;
