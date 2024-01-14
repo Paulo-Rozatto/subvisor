@@ -1,4 +1,5 @@
 import { modalToggle } from "../utils";
+import { Renderer as renderer } from "../app/renderer";
 
 const settingsModal = document.querySelector("#settings");
 const settingsForm = document.querySelector("#settings-form");
@@ -14,11 +15,16 @@ const DEFAULT = {
     stepZoom: 0.1,
     pointZoom: 8,
     opacity: 0.4,
+    opacityHex: "80",
 };
 
 const settings = { ...DEFAULT };
 
 // let maxZoom, stepZoom, pointZoom, opacity;
+
+function opacityToHex(opacity) {
+    return Math.round(255 * opacity).toString(16);
+}
 
 function load() {
     // let { maxZoom, stepZoom, pointZoom, opacity } = getConfigs();
@@ -41,6 +47,7 @@ function load() {
     const opacityStorage = localStorage.getItem("opacity");
     if (opacityStorage) {
         settings.opacity = parseFloat(opacityStorage);
+        settings.opacityHex = opacityToHex(settings.opacity);
     }
 
     maxZoomInput.value = settings.maxZoom;
@@ -52,19 +59,19 @@ function load() {
 function set(event) {
     event.preventDefault();
 
-    // const confs = getConfigs();
     settings.maxZoom = parseFloat(maxZoomInput.value) || settings.maxZoom;
     settings.stepZoom = parseFloat(stepZoomInput.value) || settings.stepZoom;
     settings.pointZoom = parseFloat(pointZoomInput.value) || settings.pointZoom;
     settings.opacity = parseFloat(opacityInput.value) || settings.opacity;
+    settings.opacityHex = opacityToHex(settings.opacity);
 
     localStorage.setItem("max-zoom", maxZoomInput.value);
     localStorage.setItem("step-zoom", stepZoomInput.value);
     localStorage.setItem("point-zoom", pointZoomInput.value);
     localStorage.setItem("opacity", opacityInput.value);
 
-    // setConfigs(confs);
     modalToggle(settingsModal);
+    renderer.render();
 }
 
 settingsButton.addEventListener("click", () => modalToggle(settingsModal));
@@ -83,5 +90,8 @@ export const SettingsHandler = {
     },
     get opacity() {
         return settings.opacity;
+    },
+    get opacityHex() {
+        return settings.opacityHex;
     },
 };

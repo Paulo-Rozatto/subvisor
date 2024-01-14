@@ -1,6 +1,6 @@
 // import { getImageInfo, setLeaftPoints } from "./app.js";
-
-const API_URL = "http://localhost:8080/api";
+export const SERVER_URL = "http://localhost:8080";
+const API_URL = `${SERVER_URL}/api`;
 
 export async function annotateLeaf() {
     // const { name, path, points } = getImageInfo();
