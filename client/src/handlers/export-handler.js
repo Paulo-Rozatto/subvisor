@@ -1,6 +1,6 @@
+import { BEAN_LEAF_NORMALIZER } from "../app/default-parser";
 import { IMAGE_MAP } from "../app/app";
 import JSZip from "jszip";
-import { NORMALIZER } from "./classes-handler";
 import saveAs from "file-saver";
 
 const exportButton = document.querySelector("#export-button");
@@ -11,12 +11,12 @@ export function pointsToXml(leafName, points, imgName, tag) {
     let coordinates = "";
 
     for (let i = 0; i < points.length; i++) {
-        const x = `${space1}<x${i + 1}>${points[i].x / NORMALIZER}</x${
-            i + 1
-        }>\n`;
-        const y = `${space2}<y${i + 1}>${points[i].y / NORMALIZER}</y${
-            i + 1
-        }>\n`;
+        const x = `${space1}<x${i + 1}>${
+            points[i].x / BEAN_LEAF_NORMALIZER
+        }</x${i + 1}>\n`;
+        const y = `${space2}<y${i + 1}>${
+            points[i].y / BEAN_LEAF_NORMALIZER
+        }</y${i + 1}>\n`;
         coordinates += x + y;
     }
 
