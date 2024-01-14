@@ -19,10 +19,17 @@ let annotations = [];
 let focused = null;
 focused = null; // temp so prettier dont change it automatically to const
 
-function toCanvasCoords(point) {
+function toCanvasCoords(x, y) {
     return {
-        x: point.x * zoomLevel + offset.x,
-        y: point.y * zoomLevel + offset.y,
+        x: x * zoomLevel + offset.x,
+        y: y * zoomLevel + offset.y,
+    };
+}
+
+function fromCanvasCoords(x, y) {
+    return {
+        x: (x - offset.x) / zoomLevel,
+        y: (y - offset.y) / zoomLevel,
     };
 }
 
@@ -37,41 +44,47 @@ function draw() {
         image.height * zoomLevel
     );
 
-    let className, points, ctxPoint;
+    let annClass, points, ctxPoint;
     for (let i = 0; i < annotations.length; i++) {
-        className = annotations[i].class;
+        annClass = classes[annotations[i].class];
         points = annotations[i].points;
-        ctx.fillStyle = classes[className].color + settings.opacityHex;
+        ctx.fillStyle = annClass.color + settings.opacityHex;
 
         // draw polygon
-        if (points.length > 2) {
-            ctx.beginPath();
-            ctxPoint = toCanvasCoords(points[0]);
-            ctx.moveTo(ctxPoint.x, ctxPoint.y);
+        if (points.length < 3) {
+            annotations[i].path = null;
+        } else {
+            const path = new Path2D();
+            annotations[i].path = path;
+
+            ctxPoint = toCanvasCoords(points[0].x, points[0].y);
+            path.moveTo(ctxPoint.x, ctxPoint.y);
+
             for (let i = 1; i < points.length; i++) {
-                ctxPoint = toCanvasCoords(points[i]);
-                ctx.lineTo(ctxPoint.x, ctxPoint.y);
+                ctxPoint = toCanvasCoords(points[i].x, points[i].y);
+                path.lineTo(ctxPoint.x, ctxPoint.y);
             }
-            ctx.closePath();
-            ctx.fill();
+            path.closePath();
+            ctx.fill(path);
         }
 
+        // only show points from focused annotation
         if (focused !== annotations[i]) {
             continue;
         }
 
         // draw points and text
         ctx.font = "20px sans";
-        const pcolors = classes[className].points?.colors || [classes.color];
+        const pcolors = annClass.points?.colors || annClass.color;
         for (let i = 0; i < points.length; i++) {
             ctx.strokeStyle = pcolors[i % pcolors.length];
             ctx.lineWidth = 3;
-            ctxPoint = toCanvasCoords(points[i]);
+            ctxPoint = toCanvasCoords(points[i].x, points[i].y);
             ctx.beginPath();
             ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
             ctx.stroke();
 
-            if (classes[className].points?.showNumber) {
+            if (annClass.points?.showNumber) {
                 ctx.fillStyle = ctx.strokeStyle;
                 ctx.fillText(`${i + 1}`, ctxPoint.x + 15, ctxPoint.y + 10);
             }
@@ -136,6 +149,7 @@ function setImage(_image) {
     }
     image.src = _image.src;
     annotations = _image.annotations;
+    focused = null;
 }
 
 function addEventListener(eventName, callback) {
@@ -151,7 +165,20 @@ export const Renderer = {
     render,
     setImage,
     setZoomLevel,
+    toCanvasCoords,
+    fromCanvasCoords,
     resetCanvas,
     pan,
     addEventListener,
+
+    get context() {
+        return ctx;
+    },
+
+    get focused() {
+        return focused;
+    },
+    set focused(annotation) {
+        focused = annotation;
+    },
 };
