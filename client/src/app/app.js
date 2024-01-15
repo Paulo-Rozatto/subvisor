@@ -1,4 +1,4 @@
-import { MOUSE, pointToSegment } from "../utils";
+import { MOUSE, l1Distance, pointToSegment } from "../utils";
 import { ClassesHandler as classes } from "../handlers/classes-handler";
 import { DefaultParser as parser } from "./default-parser";
 import { Renderer as renderer } from "./renderer";
@@ -11,6 +11,7 @@ export async function loadBackendImage(path, imageName) {
     const img = IMAGE_MAP[imageName];
 
     if (img) {
+        currentImage = img;
         renderer.setImage(img);
         return;
     }
@@ -74,6 +75,32 @@ function addPoint(annotation, x, y) {
     renderer.render();
 }
 
+function highlightHover(mouse) {
+    const annotation = renderer.focused;
+    if (!annotation) {
+        return;
+    }
+
+    let point;
+    for (let i = 0; i < annotation.points.length; i++) {
+        point = renderer.toCanvasCoords(
+            annotation.points[i].x,
+            annotation.points[i].y
+        );
+
+        if (l1Distance(mouse, point) < 10) {
+            renderer.setCursor("pointer");
+            renderer.hovered = annotation.points[i];
+            return;
+        }
+    }
+
+    renderer.setCursor("default");
+    renderer.hovered = null;
+}
+
+/* -- EVENTS CALLBACKS -- */
+
 function onClick(event) {
     const ctx = renderer.context;
 
@@ -99,10 +126,21 @@ function onClick(event) {
 }
 
 function onMouseMove(event) {
+    // pan image if right button is clicked
     if (event.buttons === MOUSE.right) {
         renderer.pan(event.movementX, event.movementY);
         return;
     }
+
+    // if there's a point clicked it's hovered and should be moved, otherwise check hovering
+    if (event.buttons === MOUSE.left && renderer.hovered) {
+        renderer.hovered.x += event.movementX / renderer.zoomLevel;
+        renderer.hovered.y += event.movementY / renderer.zoomLevel;
+    } else {
+        highlightHover({ x: event.offsetX, y: event.offsetY });
+    }
+
+    renderer.render();
 }
 
 renderer.addEventListener("click", onClick);

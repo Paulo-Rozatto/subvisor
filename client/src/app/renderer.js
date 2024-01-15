@@ -10,14 +10,15 @@ const currentZoom = document.querySelector("#current-zoom");
 const START_ARC = 0;
 const END_ARC = 2 * Math.PI;
 const RADIUS = 5;
+const HOVER_COLOR = "#00ffff";
 
 const image = new Image();
 const offset = { x: 0, y: 0 };
 
 let zoomLevel = 1;
 let annotations = [];
-let focused = null;
-focused = null; // temp so prettier dont change it automatically to const
+let focused = null; // annotation
+let hovered = null; // point
 
 function toCanvasCoords(x, y) {
     return {
@@ -34,6 +35,7 @@ function fromCanvasCoords(x, y) {
 }
 
 function draw() {
+    // draw image
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(
@@ -44,6 +46,7 @@ function draw() {
         image.height * zoomLevel
     );
 
+    // draw annotations
     let annClass, points, ctxPoint;
     for (let i = 0; i < annotations.length; i++) {
         annClass = classes[annotations[i].class];
@@ -89,6 +92,15 @@ function draw() {
                 ctx.fillText(`${i + 1}`, ctxPoint.x + 15, ctxPoint.y + 10);
             }
         }
+    }
+
+    // draw hovered point
+    if (hovered) {
+        ctx.strokeStyle = HOVER_COLOR;
+        ctxPoint = toCanvasCoords(hovered.x, hovered.y);
+        ctx.beginPath();
+        ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
+        ctx.stroke();
     }
 }
 
@@ -150,6 +162,11 @@ function setImage(_image) {
     image.src = _image.src;
     annotations = _image.annotations;
     focused = null;
+    hovered = null;
+}
+
+function setCursor(cursorStyle) {
+    canvas.style.cursor = cursorStyle;
 }
 
 function addEventListener(eventName, callback) {
@@ -163,8 +180,8 @@ canvas.addEventListener("wheel", zoomOnWheel);
 
 export const Renderer = {
     render,
+    setCursor,
     setImage,
-    setZoomLevel,
     toCanvasCoords,
     fromCanvasCoords,
     resetCanvas,
@@ -175,10 +192,22 @@ export const Renderer = {
         return ctx;
     },
 
+    get zoomLevel() {
+        return zoomLevel;
+    },
+    set zoomLevel(level) {
+        setZoomLevel(level);
+    },
     get focused() {
         return focused;
     },
     set focused(annotation) {
         focused = annotation;
+    },
+    get hovered() {
+        return hovered;
+    },
+    set hovered(point) {
+        hovered = point;
     },
 };
