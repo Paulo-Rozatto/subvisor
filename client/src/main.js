@@ -10,6 +10,7 @@ import "./handlers/infos-handler";
 // import { DragDropHandler } from "./handlers/drag-drop-handler";
 import { SettingsHandler } from "./handlers/settings-handler";
 import { ThemeHandler } from "./handlers/theme-handler";
+import { onKeyDown } from "./app/app";
 
 function loadSettings() {
     ThemeHandler.load();
@@ -21,3 +22,4 @@ function loadSettings() {
 addEventListener("DOMContentLoaded", loadSettings);
 // addEventListener("drop", DragDropHandler.drop);
 // addEventListener("dragover", DragDropHandler.dragOver);
+addEventListener("keydown", onKeyDown);

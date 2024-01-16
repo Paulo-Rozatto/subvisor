@@ -75,6 +75,17 @@ function addPoint(annotation, x, y) {
     renderer.render();
 }
 
+function rmPoint() {
+    if (!renderer.hovered) {
+        return;
+    }
+
+    const index = renderer.focused.points.indexOf(renderer.hovered);
+    renderer.focused.points.splice(index, 1);
+    renderer.hovered = null;
+    renderer.render();
+}
+
 function highlightHover(mouse) {
     const annotation = renderer.focused;
     if (!annotation) {
@@ -108,6 +119,7 @@ function onClick(event) {
     for (const ann of currentImage.annotations) {
         if (
             Boolean(ann.path) &&
+            renderer.focused !== ann &&
             ctx.isPointInPath(ann.path, event.offsetX, event.offsetY)
         ) {
             renderer.focused = ann;
@@ -143,7 +155,24 @@ function onMouseMove(event) {
     renderer.render();
 }
 
+export function onKeyDown(event) {
+    const key = event.key.toLowerCase();
+
+    if (event.ctrlKey) {
+        return;
+    }
+
+    switch (key) {
+        case "backspace":
+        case "delete": {
+            rmPoint();
+            break;
+        }
+    }
+}
+
 renderer.addEventListener("click", onClick);
 renderer.addEventListener("mousemove", onMouseMove);
+renderer.addEventListener("keydown", onKeyDown);
 
 renderer.resetCanvas();
