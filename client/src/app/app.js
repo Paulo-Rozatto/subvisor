@@ -13,8 +13,17 @@ const moveStart = { x: 0, y: 0 };
 let canMove = false;
 let hasMoved = false;
 
+// prediction auxiliar
+let usingRoi = false;
+let clickedRoi = false;
+let canMoveRoi = false;
+
 export async function loadBackendImage(path, imageName) {
     const img = IMAGE_MAP[imageName];
+
+    renderer.focused = null;
+    renderer.showRoi = false;
+    usingRoi = false;
 
     if (img) {
         currentImage = img;
@@ -115,21 +124,24 @@ function rmPoint() {
 }
 
 function highlightHover(mouse) {
-    const annotation = renderer.focused;
-    if (!annotation) {
+    // hover over the annoataion points or over the roi box
+    const points = renderer.focused
+        ? renderer.focused.points
+        : renderer.showRoi
+          ? renderer.roi.points
+          : null;
+
+    if (!points) {
         return;
     }
 
     let point;
-    for (let i = 0; i < annotation.points.length; i++) {
-        point = renderer.toCanvasCoords(
-            annotation.points[i].x,
-            annotation.points[i].y
-        );
+    for (let i = 0; i < points.length; i++) {
+        point = renderer.toCanvasCoords(points[i].x, points[i].y);
 
         if (l1Distance(mouse, point) < 10) {
             renderer.setCursor("pointer");
-            renderer.hovered = annotation.points[i];
+            renderer.hovered = points[i];
             return;
         }
     }
@@ -144,6 +156,8 @@ function onPointerDown(event) {
     if (event.buttons !== MOUSE.left) {
         return;
     }
+
+    clickedRoi = false;
 
     // if clicked hovered,
     if (renderer.hovered) {
@@ -165,6 +179,21 @@ function onPointerDown(event) {
         return;
     }
 
+    // check if clicked on roi, that info is used in double clicked event
+    if (
+        renderer.showRoi &&
+        renderer.roi.path &&
+        renderer.context.isPointInPath(
+            renderer.roi.path,
+            event.offsetX,
+            event.offsetY
+        )
+    ) {
+        clickedRoi = true;
+        canMoveRoi = true;
+        return;
+    }
+
     // select an annotation
     for (const ann of currentImage.annotations) {
         if (
@@ -177,18 +206,31 @@ function onPointerDown(event) {
             )
         ) {
             renderer.focused = ann;
+            renderer.showRoi = false;
+            usingRoi = false;
             renderer.render();
             return;
         }
     }
 
-    // nothing to do if there is no focused annotation
-    if (!renderer.focused) {
+    // if some anotation is focused, add point
+    if (renderer.focused) {
+        // add point if allowed
+        addPoint(renderer.focused, event.offsetX, event.offsetY);
         return;
     }
 
-    // add point if allowed
-    addPoint(renderer.focused, event.offsetX, event.offsetY);
+    // otherwise start roi
+    const point = renderer.fromCanvasCoords(event.offsetX, event.offsetY);
+    renderer.roi.points[0].x = point.x;
+    renderer.roi.points[0].y = point.y;
+    renderer.roi.points[1].x = point.x;
+    renderer.roi.points[1].y = point.y;
+    renderer.showRoi = true;
+    renderer.hovered = renderer.roi.points[1];
+    canMove = true;
+    usingRoi = true;
+    renderer.render();
 }
 
 function onPointerMove(event) {
@@ -200,9 +242,15 @@ function onPointerMove(event) {
 
     // if there's a point clicked it's hovered and should be moved, otherwise check hovering
     if (canMove && renderer.hovered) {
-        renderer.hovered.x += event.movementX / renderer.zoomLevel;
-        renderer.hovered.y += event.movementY / renderer.zoomLevel;
+        const point = renderer.fromCanvasCoords(event.offsetX, event.offsetY);
+        renderer.hovered.x = point.x;
+        renderer.hovered.y = point.y;
         hasMoved = true;
+    } else if (canMoveRoi) {
+        renderer.roi.points[0].x += event.movementX / renderer.zoomLevel;
+        renderer.roi.points[0].y += event.movementY / renderer.zoomLevel;
+        renderer.roi.points[1].x += event.movementX / renderer.zoomLevel;
+        renderer.roi.points[1].y += event.movementY / renderer.zoomLevel;
     } else {
         highlightHover({ x: event.offsetX, y: event.offsetY });
     }
@@ -215,7 +263,18 @@ function onPointerUp() {
         hist.push("mv", renderer.focused, renderer.hovered, { ...moveStart });
     }
 
-    canMove = hasMoved = false;
+    if (usingRoi) {
+        usingRoi = false;
+    }
+
+    canMove = hasMoved = canMoveRoi = false;
+}
+
+function onDoubleClick() {
+    if (clickedRoi) {
+        clickedRoi = false;
+        classes.predictAnnotation(renderer.roi.points);
+    }
 }
 
 export function onKeyDown(event) {
@@ -242,6 +301,14 @@ export function onKeyDown(event) {
             rmPoint(renderer.hovered);
             break;
         }
+
+        case "escape": {
+            renderer.focused = null;
+            renderer.showRoi = false;
+            usingRoi = false;
+            renderer.render();
+            break;
+        }
     }
 }
 
@@ -250,6 +317,7 @@ export function onKeyDown(event) {
 renderer.addEventListener("pointerdown", onPointerDown);
 renderer.addEventListener("pointermove", onPointerMove);
 renderer.addEventListener("pointerup", onPointerUp);
+renderer.addEventListener("dblclick", onDoubleClick);
 renderer.addEventListener("keydown", onKeyDown);
 
 renderer.resetCanvas();

@@ -1,18 +1,26 @@
-// import { getImageInfo, setLeaftPoints } from "./app.js";
 export const SERVER_URL = "http://localhost:8080";
 const API_URL = `${SERVER_URL}/api`;
 
-export async function annotateLeaf() {
-    // const { name, path, points } = getImageInfo();
-    // const params = new URLSearchParams({ path: path, points });
-    // const response = await fetch(`${API_URL}/nn/predict?${params}`);
-    // const json = await response.json();
-    // const pointsArray = JSON.parse(json.points) || [];
-    // const resultPoints = pointsArray.map((point) => ({
-    //     x: point[0],
-    //     y: point[1],
-    // }));
-    // setLeaftPoints(resultPoints, name);
+export async function annotateLeaf(path, topLeft, bottomRight) {
+    const points = [topLeft, bottomRight]
+        .map((p) => `${parseInt(p.x)},${parseInt(p.y)}`)
+        .join(",");
+
+    const params = new URLSearchParams({ path, points });
+    const response = await fetch(`${API_URL}/nn/predict?${params}`);
+
+    if (!response.headers.get("content-type").includes("json")) {
+        const text = await response.text();
+        console.error(`ERRO: Resposta não está em formato JSON.`, text);
+        return;
+    }
+    const json = await response.json();
+    const pointsArray = JSON.parse(json.points) || [];
+    const resultPoints = pointsArray.map((point) => ({
+        x: point[0],
+        y: point[1],
+    }));
+    return resultPoints;
 }
 
 export async function fetchDatasetList() {

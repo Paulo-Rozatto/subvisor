@@ -13,15 +13,23 @@ const END_ARC = 2 * Math.PI;
 const RADIUS = 5;
 const HOVER_COLOR = "#a5db94";
 const SELECTION_COLOR = "#38cb0b";
+const ROI_COLOR = "#0f0f99";
 
 const image = new Image();
 const offset = { x: 0, y: 0 };
 const selection = new SelectionList();
+const roi = {
+    points: [
+        { x: 0, y: 0 },
+        { x: 0, y: 0 },
+    ],
+};
 
 let zoomLevel = 1;
 let annotations = [];
 let focused = null; // annotation
 let hovered = null; // point
+let showRoi = false;
 
 function toCanvasCoords(x, y) {
     return {
@@ -106,6 +114,34 @@ function draw() {
                 ctx.fillText(`${i + 1}`, ctxPoint.x + 15, ctxPoint.y + 10);
             }
         }
+    }
+
+    if (showRoi) {
+        ctx.strokeStyle = ROI_COLOR;
+        ctx.fillStyle = ROI_COLOR + "33";
+        ctx.lineWidth = 3;
+        const corner1 = toCanvasCoords(roi.points[0].x, roi.points[0].y);
+        const corner2 = toCanvasCoords(roi.points[1].x, roi.points[1].y);
+
+        ctx.beginPath();
+        const path = new Path2D();
+        path.rect(
+            corner1.x,
+            corner1.y,
+            corner2.x - corner1.x,
+            corner2.y - corner1.y
+        );
+        roi.path = path;
+        ctx.stroke(path);
+        ctx.fill(path);
+
+        ctx.beginPath();
+        ctx.arc(corner1.x, corner1.y, RADIUS, START_ARC, END_ARC);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(corner2.x, corner2.y, RADIUS, START_ARC, END_ARC);
+        ctx.stroke();
     }
 
     // draw hovered point
@@ -225,5 +261,14 @@ export const Renderer = {
     },
     set hovered(point) {
         hovered = point;
+    },
+    get roi() {
+        return roi;
+    },
+    get showRoi() {
+        return showRoi;
+    },
+    set showRoi(flag) {
+        showRoi = flag;
     },
 };
