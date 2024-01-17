@@ -3,55 +3,45 @@ import { currentPath, selected } from "./dataset-load-handler";
 import CLASSES from "../classes.json";
 import { IMAGE_MAP } from "../app/app";
 import { DefaultParser as parser } from "../app/default-parser";
-import { updateLengthInfo } from "./infos-handler";
+import { Renderer as renderer } from "../app/renderer";
 
-const markerButton = document.querySelector("#marker-button");
-const leafButton = document.querySelector("#leaf-button");
-const markerRadio = document.querySelector("#marker-radio");
-const leafRadio = document.querySelector("#leaf-radio");
-const boxButton = document.querySelector("#box-button");
+async function predictAnnotation(points) {
+    const fileName = selected.innerText + ".jpg";
+    const path = currentPath + "/" + fileName;
+    const leafName = document.querySelector("#title").innerText;
 
-const Classes = { LEAF: 0, MARKER: 1, BOX: 2 };
+    const topLeft = {
+        x: Math.min(points[0].x, points[1].x),
+        y: Math.min(points[0].y, points[1].y),
+    };
 
-let currentClass = null;
+    const botttomRight = {
+        x: Math.max(points[0].x, points[1].x),
+        y: Math.max(points[0].y, points[1].y),
+    };
 
-function setMarker() {
-    markerRadio.checked = true;
-    currentClass = Classes.MARKER;
-    updateLengthInfo();
-}
+    const newPoints = await annotateLeaf(path, topLeft, botttomRight);
 
-function setLeaf() {
-    leafRadio.checked = true;
-    currentClass = Classes.LEAF;
-    updateLengthInfo();
-}
-
-async function generateLeaf() {
-    if (currentClass !== Classes.BOX) {
-        markerRadio.checked = false;
-        leafRadio.checked = false;
-        currentClass = Classes.BOX;
+    if (!newPoints) {
         return;
     }
 
-    const path = currentPath;
-    const fileName = selected.innerText;
-    const leafName = document.querySelector("#title").innerText;
-
-    await annotateLeaf();
-
-    const ann = IMAGE_MAP[fileName + ".jpg"].annotations.find(
+    const ann = IMAGE_MAP[fileName].annotations.find(
         (ann) => ann.class === "leaf"
     );
-    const xml = parser.pointsToXml(leafName, fileName + ".jpg", ann);
-    saveXml(path, "leaf", fileName + ".xml", xml);
+    ann.points = newPoints;
+    const xml = parser.pointsToXml(leafName, fileName, ann);
+    renderer.render();
+    saveXml(path, "leaf", fileName.replace(".jpg", ".xml"), xml);
 }
 
-markerButton.addEventListener("click", setMarker);
-leafButton.addEventListener("click", setLeaf);
-boxButton.addEventListener("click", generateLeaf);
+document.querySelector("#predict-button").addEventListener("click", () => {
+    if (renderer.showRoi) {
+        predictAnnotation(renderer.roi.points);
+    }
+});
 
 export const ClassesHandler = {
     ...CLASSES,
+    predictAnnotation,
 };
