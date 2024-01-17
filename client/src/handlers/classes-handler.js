@@ -2,7 +2,7 @@ import { annotateLeaf, saveXml } from "../api-consumer";
 import { currentPath, selected } from "./dataset-load-handler";
 import CLASSES from "../classes.json";
 import { IMAGE_MAP } from "../app/app";
-import { pointsToXml } from "./export-handler";
+import { DefaultParser as parser } from "../app/default-parser";
 import { updateLengthInfo } from "./infos-handler";
 
 const markerButton = document.querySelector("#marker-button");
@@ -41,8 +41,10 @@ async function generateLeaf() {
 
     await annotateLeaf();
 
-    const points = IMAGE_MAP[fileName + ".jpg"].leafPoints;
-    const xml = pointsToXml(leafName, points, fileName + ".jpg", "points");
+    const ann = IMAGE_MAP[fileName + ".jpg"].annotations.find(
+        (ann) => ann.class === "leaf"
+    );
+    const xml = parser.pointsToXml(leafName, fileName + ".jpg", ann);
     saveXml(path, "leaf", fileName + ".xml", xml);
 }
 

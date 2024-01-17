@@ -1,6 +1,6 @@
 import { SERVER_URL } from "../api-consumer";
 
-export const BEAN_LEAF_NORMALIZER = 4624;
+const BEAN_LEAF_NORMALIZER = 4624;
 
 async function loadXml(path, tagName) {
     const response = await fetch(path);
@@ -62,4 +62,33 @@ async function parseBeanLeaf(path, imageName) {
     };
 }
 
-export const DefaultParser = { parseBeanLeaf };
+export function pointsToXml(leafName, imgName, annotation) {
+    const points = annotation.points;
+    const tag = annotation.class === "marker" ? "corners" : "points";
+
+    const space1 = " ".repeat(6);
+    const space2 = " ".repeat(8);
+    let coordinates = "";
+
+    for (let i = 0; i < points.length; i++) {
+        const x = `${space1}<x${i + 1}>${
+            points[i].x / BEAN_LEAF_NORMALIZER
+        }</x${i + 1}>\n`;
+        const y = `${space2}<y${i + 1}>${
+            points[i].y / BEAN_LEAF_NORMALIZER
+        }</y${i + 1}>\n`;
+        coordinates += x + y;
+    }
+
+    return `<annotation>
+  <filename>${imgName}</filename>
+  <object>
+    <leaf> ${leafName} </leaf>
+    <${tag}>
+${coordinates.trimEnd()}
+    </${tag}>
+  </object>
+</annotation>`.trimStart();
+}
+
+export const DefaultParser = { parseBeanLeaf, pointsToXml };

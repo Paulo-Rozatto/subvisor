@@ -2,7 +2,7 @@ import * as API from "../api-consumer.js";
 import { IMAGE_MAP, loadBackendImage } from "../app/app.js";
 // import { resetTimer, updateLengthInfo } from "./infos-handler.js";
 import { modalToggle } from "../utils.js";
-// import { pointsToXml } from "./export-handler.js";
+import { DefaultParser as parser } from "../app/default-parser.js";
 
 const datasetsButton = document.querySelector("#datasets-list-button");
 const datasetsModal = document.querySelector("#datasets-modal");
@@ -18,30 +18,15 @@ function saveAnnotations() {
         return;
     }
 
-    // const fileName = selected.innerText;
-    // const imgName = fileName + ".jpg";
-    // const img = IMAGE_MAP[imgName];
-    // const leafName = document.querySelector("#title").innerText;
+    const fileName = selected.innerText;
+    const imgName = fileName + ".jpg";
+    const img = IMAGE_MAP[imgName];
+    const leafName = document.querySelector("#title").innerText;
 
-    // if (img.markerPoints.length > 0) {
-    //     const markerXml = pointsToXml(
-    //         leafName,
-    //         img.markerPoints,
-    //         imgName,
-    //         "corners"
-    //     );
-    //     API.saveXml(currentPath, "marker", fileName + ".xml", markerXml);
-    // }
-
-    // if (img.leafPoints.length > 0) {
-    //     const leafXml = pointsToXml(
-    //         leafName,
-    //         img.leafPoints,
-    //         imgName,
-    //         "points"
-    //     );
-    //     API.saveXml(currentPath, "leaf", fileName + ".xml", leafXml);
-    // }
+    for (const annotation of img.annotations) {
+        const xml = parser.pointsToXml(leafName, imgName, annotation);
+        API.saveXml(currentPath, annotation.class, fileName + ".xml", xml);
+    }
 }
 
 async function enterDir(event) {

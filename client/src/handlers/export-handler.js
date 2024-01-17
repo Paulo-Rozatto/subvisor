@@ -1,35 +1,9 @@
-import { BEAN_LEAF_NORMALIZER } from "../app/default-parser";
 import { IMAGE_MAP } from "../app/app";
 import JSZip from "jszip";
+import { DefaultParser as parser } from "../app/default-parser";
 import saveAs from "file-saver";
 
 const exportButton = document.querySelector("#export-button");
-
-export function pointsToXml(leafName, points, imgName, tag) {
-    const space1 = " ".repeat(6);
-    const space2 = " ".repeat(8);
-    let coordinates = "";
-
-    for (let i = 0; i < points.length; i++) {
-        const x = `${space1}<x${i + 1}>${
-            points[i].x / BEAN_LEAF_NORMALIZER
-        }</x${i + 1}>\n`;
-        const y = `${space2}<y${i + 1}>${
-            points[i].y / BEAN_LEAF_NORMALIZER
-        }</y${i + 1}>\n`;
-        coordinates += x + y;
-    }
-
-    return `<annotation>
-  <filename>${imgName}</filename>
-  <object>
-    <leaf> ${leafName} </leaf>
-    <${tag}>
-${coordinates.trimEnd()}
-    </${tag}>
-  </object>
-</annotation>`.trimStart();
-}
 
 async function download() {
     const zip = new JSZip();
@@ -37,23 +11,14 @@ async function download() {
     const leafName = document.querySelector("#title").innerText;
 
     for (const imgName in IMAGE_MAP) {
-        const markerFolder = zip.folder("marker");
-        const leafFolder = zip.folder("leaf");
         const img = IMAGE_MAP[imgName];
-        const markerXml = pointsToXml(
-            leafName,
-            img.markerPoints,
-            imgName,
-            "corners"
-        );
-        const leafXml = pointsToXml(
-            leafName,
-            img.leafPoints,
-            imgName,
-            "points"
-        );
-        markerFolder.file(imgName.replace(".jpg", ".xml"), markerXml);
-        leafFolder.file(imgName.replace(".jpg", ".xml"), leafXml);
+        const xmlName = imgName.replace(".jpg", ".xml");
+
+        for (const annotation of img.annotations) {
+            const xml = parser.pointsToXml(leafName, imgName, annotation);
+            const folder = zip.folder(annotation.class);
+            folder.file(xmlName, xml);
+        }
     }
 
     const content = await zip.generateAsync({ type: "blob" });
