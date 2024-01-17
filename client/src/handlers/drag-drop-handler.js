@@ -1,4 +1,4 @@
-import { IMAGE_MAP, loadImage } from "../app";
+import { IMAGE_MAP, loadImage } from "../app/app";
 import { resetTimer, updateLengthInfo } from "./infos-handler";
 
 const dropZone = document.querySelector(".drop-zone");
@@ -11,7 +11,6 @@ let images = [];
 let markers = [];
 let leafs = [];
 let selected;
-// let interval;
 
 function dragOver(event) {
     event.preventDefault();
