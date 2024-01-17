@@ -39,6 +39,7 @@ const actionMap = {
 
         renderer.focused.points.splice(index, 0, point);
         renderer.render();
+        return true;
     },
     rm: (annotation, point) => {
         if (renderer.focused !== annotation) {
@@ -53,15 +54,21 @@ const actionMap = {
 
         renderer.focused.points.splice(index, 1);
         renderer.render();
+        return true;
     },
     mv: (annotation, point, startPoint) => {
         if (renderer.focused !== annotation) {
-            return;
+            return false;
         }
 
+        const x = point.x;
+        const y = point.y;
         point.x = startPoint.x;
         point.y = startPoint.y;
+        startPoint.x = x;
+        startPoint.y = y;
         renderer.render();
+        return true;
     },
 };
 
@@ -85,7 +92,24 @@ function undo() {
     }
 }
 
+function redo() {
+    const action = redoStack.pop();
+
+    if (!action) {
+        return;
+    }
+
+    const fn = actionMap[action.name];
+    const isSucess = fn(...action.args);
+
+    if (isSucess) {
+        action.name = inverse[action.name];
+        undoStack.push(action);
+    }
+}
+
 export const ActionHistory = {
     push,
     undo,
+    redo,
 };

@@ -180,7 +180,7 @@ function onPointerMove(event) {
 
 function onPointerUp() {
     if (hasMoved) {
-        hist.push("mv", renderer.focused, renderer.hovered, moveStart);
+        hist.push("mv", renderer.focused, renderer.hovered, { ...moveStart });
     }
 
     canMove = hasMoved = false;
@@ -193,6 +193,10 @@ export function onKeyDown(event) {
         switch (key) {
             case "z": {
                 hist.undo();
+                break;
+            }
+            case "y": {
+                hist.redo();
                 break;
             }
         }
