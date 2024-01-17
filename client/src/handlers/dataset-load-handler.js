@@ -1,6 +1,6 @@
 import * as API from "../api-consumer.js";
 import { IMAGE_MAP, loadBackendImage } from "../app/app.js";
-// import { resetTimer, updateLengthInfo } from "./infos-handler.js";
+import { resetTimer, updateLengthInfo } from "./infos-handler.js";
 import { modalToggle } from "../utils.js";
 import { DefaultParser as parser } from "../app/default-parser.js";
 
@@ -115,7 +115,7 @@ async function pickDataset() {
 
         button.onclick = () => {
             saveAnnotations(selected, currentPath);
-            loadBackendImage(path, imageName); //, updateLengthInfo);
+            loadBackendImage(path, imageName, updateLengthInfo);
             selected.classList.remove("selected");
             selected.classList.add("checked");
             button.classList.add("selected");
@@ -129,13 +129,9 @@ async function pickDataset() {
     imageList.innerHTML = "";
     imageList.append(fragment);
 
-    loadBackendImage(path, imageNames[0]); //, updateLengthInfo);
+    loadBackendImage(path, imageNames[0], updateLengthInfo);
     modalToggle(datasetsModal);
-    // resetTimer();
-
-    // clearInterval(interval);
-    // time = 0;
-    // interval = setInterval(updateTimer, 1000);
+    resetTimer();
 }
 
 datasetsButton.addEventListener("click", showDatasets);

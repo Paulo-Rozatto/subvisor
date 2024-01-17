@@ -18,7 +18,7 @@ let usingRoi = false;
 let clickedRoi = false;
 let canMoveRoi = false;
 
-export async function loadBackendImage(path, imageName) {
+export async function loadBackendImage(path, imageName, callback) {
     const img = IMAGE_MAP[imageName];
 
     renderer.focused = null;
@@ -28,6 +28,7 @@ export async function loadBackendImage(path, imageName) {
     if (img) {
         currentImage = img;
         renderer.setImage(img);
+        callback();
         return;
     }
 
@@ -49,9 +50,13 @@ export async function loadBackendImage(path, imageName) {
     currentImage = image;
     IMAGE_MAP[imageName] = image;
     renderer.setImage(image);
+    callback();
 }
 
 export function getObjectLength() {
+    if (renderer.focused) {
+        return renderer.focused.points.length;
+    }
     return 0;
 }
 
