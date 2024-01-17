@@ -8,6 +8,11 @@ export const IMAGE_MAP = {};
 
 let currentImage = null;
 
+// movement auxiliaries
+const moveStart = { x: 0, y: 0 };
+let canMove = false;
+let hasMoved = false;
+
 export async function loadBackendImage(path, imageName) {
     const img = IMAGE_MAP[imageName];
 
@@ -115,15 +120,29 @@ function highlightHover(mouse) {
 
 /* -- EVENTS CALLBACKS -- */
 
-function onClick(event) {
-    const ctx = renderer.context;
+function onPointerDown(event) {
+    if (event.buttons !== MOUSE.left) {
+        return;
+    }
+
+    // if clicked hovered,
+    if (renderer.hovered) {
+        moveStart.x = renderer.hovered.x;
+        moveStart.y = renderer.hovered.y;
+        canMove = true;
+        return;
+    }
 
     // select an annotation
     for (const ann of currentImage.annotations) {
         if (
-            Boolean(ann.path) &&
+            ann.path &&
             renderer.focused !== ann &&
-            ctx.isPointInPath(ann.path, event.offsetX, event.offsetY)
+            renderer.context.isPointInPath(
+                ann.path,
+                event.offsetX,
+                event.offsetY
+            )
         ) {
             renderer.focused = ann;
             renderer.render();
@@ -140,7 +159,7 @@ function onClick(event) {
     addPoint(renderer.focused, event.offsetX, event.offsetY);
 }
 
-function onMouseMove(event) {
+function onPointerMove(event) {
     // pan image if right button is clicked
     if (event.buttons === MOUSE.right) {
         renderer.pan(event.movementX, event.movementY);
@@ -148,14 +167,23 @@ function onMouseMove(event) {
     }
 
     // if there's a point clicked it's hovered and should be moved, otherwise check hovering
-    if (event.buttons === MOUSE.left && renderer.hovered) {
+    if (canMove && renderer.hovered) {
         renderer.hovered.x += event.movementX / renderer.zoomLevel;
         renderer.hovered.y += event.movementY / renderer.zoomLevel;
+        hasMoved = true;
     } else {
         highlightHover({ x: event.offsetX, y: event.offsetY });
     }
 
     renderer.render();
+}
+
+function onPointerUp() {
+    if (hasMoved) {
+        hist.push("mv", renderer.focused, renderer.hovered, moveStart);
+    }
+
+    canMove = hasMoved = false;
 }
 
 export function onKeyDown(event) {
@@ -180,8 +208,9 @@ export function onKeyDown(event) {
     }
 }
 
-renderer.addEventListener("click", onClick);
-renderer.addEventListener("mousemove", onMouseMove);
+renderer.addEventListener("pointerdown", onPointerDown);
+renderer.addEventListener("pointermove", onPointerMove);
+renderer.addEventListener("pointerup", onPointerUp);
 renderer.addEventListener("keydown", onKeyDown);
 
 renderer.resetCanvas();
