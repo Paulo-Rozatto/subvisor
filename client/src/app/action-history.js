@@ -54,13 +54,13 @@ const actionMap = {
         renderer.focused.points.splice(index, 1);
         renderer.render();
     },
-    mv: (annotation, point, x, y) => {
+    mv: (annotation, point, startPoint) => {
         if (renderer.focused !== annotation) {
             return;
         }
 
-        point.x = x;
-        point.y = y;
+        point.x = startPoint.x;
+        point.y = startPoint.y;
         renderer.render();
     },
 };
