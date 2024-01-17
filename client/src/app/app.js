@@ -13,10 +13,54 @@ const moveStart = { x: 0, y: 0 };
 let canMove = false;
 let hasMoved = false;
 
-// prediction auxiliar
+// prediction auxiliaries
 let usingRoi = false;
 let clickedRoi = false;
 let canMoveRoi = false;
+
+export async function loadImage(fileEntry, marker, leaf, callback) {
+    const img = IMAGE_MAP[fileEntry.name];
+    currentImage = fileEntry.name;
+
+    renderer.focused = null;
+    renderer.showRoi = false;
+    usingRoi = false;
+
+    if (img) {
+        currentImage = img;
+        renderer.setImage(img);
+        callback();
+        return;
+    }
+
+    // todo: that mess below should be revised and probably replaced in default-parser.js
+    const markerPoints = !marker
+        ? []
+        : await parser.pointsFromEntry(marker, "corners");
+    const leafPoints = !leaf
+        ? []
+        : await parser.pointsFromEntry(leaf, "points");
+
+    const filePath = fileEntry.fullPath;
+    fileEntry.file((file) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const image = {
+                src: event.target.result,
+                annotations: [
+                    { class: "marker", points: markerPoints },
+                    { class: "leaf", points: leafPoints },
+                ],
+                filePath,
+            };
+            IMAGE_MAP[fileEntry.name] = image;
+            renderer.setImage(image);
+            currentImage = image;
+            callback();
+        };
+        reader.readAsDataURL(file);
+    });
+}
 
 export async function loadBackendImage(path, imageName, callback) {
     const img = IMAGE_MAP[imageName];

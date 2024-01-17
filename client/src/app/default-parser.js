@@ -62,6 +62,43 @@ async function parseBeanLeaf(path, imageName) {
     };
 }
 
+function pointsFromEntry(entry, tagName) {
+    return new Promise((resolve, reject) => {
+        entry.file((file) => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const src = event.target.result;
+                const parser = new DOMParser();
+                const xml = parser.parseFromString(src, "text/xml");
+                const tag = xml.getElementsByTagName(tagName)[0];
+
+                if (!tag) {
+                    alert(`ERRO: ${entry.name} não tem tag <${tagName}>`);
+                    reject([]);
+                    return;
+                }
+
+                const corners = tag.children;
+                const pts = [];
+                for (let i = 0; i < corners.length; i += 2) {
+                    const point = {
+                        x:
+                            parseFloat(corners[i].textContent) *
+                            BEAN_LEAF_NORMALIZER,
+                        y:
+                            parseFloat(corners[i + 1].textContent) *
+                            BEAN_LEAF_NORMALIZER,
+                    };
+                    pts.push(point);
+                }
+
+                resolve(pts);
+            };
+            reader.readAsText(file);
+        });
+    });
+}
+
 export function pointsToXml(leafName, imgName, annotation) {
     const points = annotation.points;
     const tag = annotation.class === "marker" ? "corners" : "points";
@@ -91,4 +128,4 @@ ${coordinates.trimEnd()}
 </annotation>`.trimStart();
 }
 
-export const DefaultParser = { parseBeanLeaf, pointsToXml };
+export const DefaultParser = { parseBeanLeaf, pointsToXml, pointsFromEntry };
