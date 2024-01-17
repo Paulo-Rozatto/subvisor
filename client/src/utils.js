@@ -44,3 +44,22 @@ export function pointToSegment(target, p1, p2) {
     const closerPt = { x: p1.x + lambda * vec1.x, y: p1.y + lambda * vec1.y };
     return l1Distance(target, closerPt);
 }
+
+// i'm not really using this now, maybe remove?
+export function debounce(callback, time) {
+    let timeoutCallback, timeoutClear;
+    let args;
+    const clear = () => (timeoutCallback = null);
+
+    return (...params) => {
+        if (timeoutCallback) {
+            clearTimeout(timeoutCallback);
+            clearTimeout(timeoutClear);
+        } else {
+            args = params;
+        }
+
+        timeoutClear = setTimeout(clear, time);
+        timeoutCallback = setTimeout(callback.bind(null, ...args), time);
+    };
+}
