@@ -1,3 +1,4 @@
+import { SelectionList } from "./selection-list";
 import { ClassesHandler as classes } from "../handlers/classes-handler";
 import { SettingsHandler as settings } from "../handlers/settings-handler";
 
@@ -10,10 +11,12 @@ const currentZoom = document.querySelector("#current-zoom");
 const START_ARC = 0;
 const END_ARC = 2 * Math.PI;
 const RADIUS = 5;
-const HOVER_COLOR = "#00ffff";
+const HOVER_COLOR = "#a5db94";
+const SELECTION_COLOR = "#38cb0b";
 
 const image = new Image();
 const offset = { x: 0, y: 0 };
+const selection = new SelectionList();
 
 let zoomLevel = 1;
 let annotations = [];
@@ -74,6 +77,17 @@ function draw() {
         // only show points from focused annotation
         if (focused !== annotations[i]) {
             continue;
+        }
+
+        // draw selection
+        ctx.fillStyle = SELECTION_COLOR;
+        for (let i = 0; i < selection.length; i++) {
+            ctxPoint = selection.get(i);
+            ctxPoint = toCanvasCoords(ctxPoint.x, ctxPoint.y);
+
+            ctx.beginPath();
+            ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
+            ctx.fill();
         }
 
         // draw points and text
@@ -191,7 +205,9 @@ export const Renderer = {
     get context() {
         return ctx;
     },
-
+    get selection() {
+        return selection;
+    },
     get zoomLevel() {
         return zoomLevel;
     },

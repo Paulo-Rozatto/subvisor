@@ -46,6 +46,8 @@ export function getObjectLength() {
     return 0;
 }
 
+/* -- MAIN INTERACTION FUNCTIONS -- */
+
 function addPoint(annotation, x, y) {
     const limit = classes[annotation.class].points.limit;
     const points = annotation.points;
@@ -79,15 +81,33 @@ function addPoint(annotation, x, y) {
 
     points.splice(index + 1, 0, newPoint);
     hist.push("add", renderer.focused, newPoint, index + 1);
+    renderer.selection.toggle(newPoint);
     renderer.render();
 }
 
-function rmPoint(point) {
-    if (!point || !renderer.focused) {
+function rmPoint() {
+    if (!renderer.focused) {
         return;
     }
 
-    const index = renderer.focused.points.indexOf(point);
+    // remove selection
+    if (renderer.selection.length > 0) {
+        for (const point of renderer.selection) {
+            const index = renderer.focused.points.indexOf(point);
+            const points = renderer.focused.points.splice(index, 1);
+            hist.push("rm", renderer.focused, points[0], index);
+        }
+        renderer.selection.unselect();
+        renderer.render();
+        return;
+    }
+
+    // if there's no selection, remove hover
+    if (!renderer.hovered) {
+        return;
+    }
+
+    const index = renderer.focused.points.indexOf(renderer.hovered);
     const points = renderer.focused.points.splice(index, 1);
     renderer.hovered = null;
     hist.push("rm", renderer.focused, points[0], index);
@@ -130,6 +150,18 @@ function onPointerDown(event) {
         moveStart.x = renderer.hovered.x;
         moveStart.y = renderer.hovered.y;
         canMove = true;
+
+        if (event.shiftKey) {
+            renderer.selection.pathTo(
+                renderer.hovered,
+                renderer.focused.points
+            );
+            renderer.render();
+            return;
+        }
+
+        renderer.selection.toggle(renderer.hovered);
+        renderer.render();
         return;
     }
 
@@ -192,6 +224,7 @@ export function onKeyDown(event) {
     if (event.ctrlKey) {
         switch (key) {
             case "z": {
+                renderer.selection.unselect();
                 hist.undo();
                 break;
             }
@@ -211,6 +244,8 @@ export function onKeyDown(event) {
         }
     }
 }
+
+/* -- RENDERER EVENTS ASSIGNEMENT -- */
 
 renderer.addEventListener("pointerdown", onPointerDown);
 renderer.addEventListener("pointermove", onPointerMove);
