@@ -1,5 +1,6 @@
 import { MOUSE, l1Distance, pointToSegment } from "../utils";
 import { ClassesHandler as classes } from "../handlers/classes-handler";
+import { ActionHistory as hist } from "./action-history";
 import { DefaultParser as parser } from "./default-parser";
 import { Renderer as renderer } from "./renderer";
 
@@ -72,17 +73,19 @@ function addPoint(annotation, x, y) {
     }
 
     points.splice(index + 1, 0, newPoint);
+    hist.push("add", renderer.focused, newPoint, index + 1);
     renderer.render();
 }
 
-function rmPoint() {
-    if (!renderer.hovered) {
+function rmPoint(point) {
+    if (!point || !renderer.focused) {
         return;
     }
 
-    const index = renderer.focused.points.indexOf(renderer.hovered);
-    renderer.focused.points.splice(index, 1);
+    const index = renderer.focused.points.indexOf(point);
+    const points = renderer.focused.points.splice(index, 1);
     renderer.hovered = null;
+    hist.push("rm", renderer.focused, points[0], index);
     renderer.render();
 }
 
@@ -159,13 +162,19 @@ export function onKeyDown(event) {
     const key = event.key.toLowerCase();
 
     if (event.ctrlKey) {
+        switch (key) {
+            case "z": {
+                hist.undo();
+                break;
+            }
+        }
         return;
     }
 
     switch (key) {
         case "backspace":
         case "delete": {
-            rmPoint();
+            rmPoint(renderer.hovered);
             break;
         }
     }
