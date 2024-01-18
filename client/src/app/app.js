@@ -199,6 +199,23 @@ function highlightHover(mouse) {
     renderer.hovered = null;
 }
 
+function changeSelect(step) {
+    if (!renderer.focused) {
+        return;
+    }
+    const points = renderer.focused.points;
+    let index = points.indexOf(renderer.selection.get(0)) + step;
+
+    if (index < 0) {
+        index = points.length - 1;
+    } else if (index >= points.length) {
+        index = 0;
+    }
+
+    renderer.selection.toggle(points[index]);
+    renderer.centerSelection();
+}
+
 /* -- EVENTS CALLBACKS -- */
 
 function onPointerDown(event) {
@@ -357,6 +374,29 @@ export function onKeyDown(event) {
             usingRoi = false;
             renderer.render();
             break;
+        }
+
+        case "c": {
+            renderer.centerFocus();
+            break;
+        }
+
+        case "v": {
+            changeSelect(1);
+            break;
+        }
+
+        case "x": {
+            changeSelect(-1);
+            break;
+        }
+
+        case "b": {
+            renderer.showAnnotations = !renderer.showAnnotations;
+            renderer.selection.unselect();
+            renderer.focused = null;
+            renderer.hovered = null;
+            renderer.render();
         }
     }
 }

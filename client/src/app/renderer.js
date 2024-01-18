@@ -29,6 +29,7 @@ let zoomLevel = 1;
 let annotations = [];
 let focused = null; // annotation
 let hovered = null; // point
+let showAnnotations = true;
 let showRoi = false;
 
 function toCanvasCoords(x, y) {
@@ -59,59 +60,62 @@ function draw() {
 
     // draw annotations
     let annClass, points, ctxPoint;
-    for (let i = 0; i < annotations.length; i++) {
-        annClass = classes[annotations[i].class];
-        points = annotations[i].points;
-        ctx.fillStyle = annClass.color + settings.opacityHex;
 
-        // draw polygon
-        if (points.length < 3) {
-            annotations[i].path = null;
-        } else {
-            const path = new Path2D();
-            annotations[i].path = path;
+    if (showAnnotations) {
+        for (let i = 0; i < annotations.length; i++) {
+            annClass = classes[annotations[i].class];
+            points = annotations[i].points;
+            ctx.fillStyle = annClass.color + settings.opacityHex;
 
-            ctxPoint = toCanvasCoords(points[0].x, points[0].y);
-            path.moveTo(ctxPoint.x, ctxPoint.y);
+            // draw polygon
+            if (points.length < 3) {
+                annotations[i].path = null;
+            } else {
+                const path = new Path2D();
+                annotations[i].path = path;
 
-            for (let i = 1; i < points.length; i++) {
-                ctxPoint = toCanvasCoords(points[i].x, points[i].y);
-                path.lineTo(ctxPoint.x, ctxPoint.y);
+                ctxPoint = toCanvasCoords(points[0].x, points[0].y);
+                path.moveTo(ctxPoint.x, ctxPoint.y);
+
+                for (let i = 1; i < points.length; i++) {
+                    ctxPoint = toCanvasCoords(points[i].x, points[i].y);
+                    path.lineTo(ctxPoint.x, ctxPoint.y);
+                }
+                path.closePath();
+                ctx.fill(path);
             }
-            path.closePath();
-            ctx.fill(path);
-        }
 
-        // only show points from focused annotation
-        if (focused !== annotations[i]) {
-            continue;
-        }
+            // only show points from focused annotation
+            if (focused !== annotations[i]) {
+                continue;
+            }
 
-        // draw selection
-        ctx.fillStyle = SELECTION_COLOR;
-        for (let i = 0; i < selection.length; i++) {
-            ctxPoint = selection.get(i);
-            ctxPoint = toCanvasCoords(ctxPoint.x, ctxPoint.y);
+            // draw selection
+            ctx.fillStyle = SELECTION_COLOR;
+            for (let i = 0; i < selection.length; i++) {
+                ctxPoint = selection.get(i);
+                ctxPoint = toCanvasCoords(ctxPoint.x, ctxPoint.y);
 
-            ctx.beginPath();
-            ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
-            ctx.fill();
-        }
+                ctx.beginPath();
+                ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
+                ctx.fill();
+            }
 
-        // draw points and text
-        ctx.font = "20px sans";
-        const pcolors = annClass.points?.colors || annClass.color;
-        for (let i = 0; i < points.length; i++) {
-            ctx.strokeStyle = pcolors[i % pcolors.length];
-            ctx.lineWidth = 3;
-            ctxPoint = toCanvasCoords(points[i].x, points[i].y);
-            ctx.beginPath();
-            ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
-            ctx.stroke();
+            // draw points and text
+            ctx.font = "20px sans";
+            const pcolors = annClass.points?.colors || annClass.color;
+            for (let i = 0; i < points.length; i++) {
+                ctx.strokeStyle = pcolors[i % pcolors.length];
+                ctx.lineWidth = 3;
+                ctxPoint = toCanvasCoords(points[i].x, points[i].y);
+                ctx.beginPath();
+                ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
+                ctx.stroke();
 
-            if (annClass.points?.showNumber) {
-                ctx.fillStyle = ctx.strokeStyle;
-                ctx.fillText(`${i + 1}`, ctxPoint.x + 15, ctxPoint.y + 10);
+                if (annClass.points?.showNumber) {
+                    ctx.fillStyle = ctx.strokeStyle;
+                    ctx.fillText(`${i + 1}`, ctxPoint.x + 15, ctxPoint.y + 10);
+                }
             }
         }
     }
@@ -188,6 +192,39 @@ function pan(dx, dy) {
     render();
 }
 
+function centerFocus() {
+    if (!focused) {
+        return;
+    }
+
+    const x0 = Math.min(...focused.points.map((p) => p.x));
+    const x1 = Math.max(...focused.points.map((p) => p.x));
+    const y0 = Math.min(...focused.points.map((p) => p.y));
+    const y1 = Math.max(...focused.points.map((p) => p.y));
+    const width = x1 - x0;
+    const height = y1 - y0;
+    const aspectRation = width / height;
+    const screenHeight = display.clientHeight * 0.8;
+    const screenWidth = screenHeight * aspectRation;
+    canvas.width = display.clientWidth;
+    canvas.height = display.clientHeight;
+    setZoomLevel(screenHeight / height);
+    offset.x = (canvas.width - screenWidth) * 0.5 - x0 * zoomLevel;
+    offset.y = (canvas.height - screenHeight) * 0.5 - y0 * zoomLevel;
+    render();
+}
+
+function centerSelection() {
+    if (selection.length === 0) {
+        return;
+    }
+    setZoomLevel(settings.pointZoom);
+    offset.x = canvas.width * 0.5 - selection.get(0).x * zoomLevel;
+    offset.y = canvas.height * 0.5 - selection.get(0).y * zoomLevel;
+    console.log(offset);
+    render();
+}
+
 function resetCanvas() {
     if (!image.src) {
         return;
@@ -234,8 +271,10 @@ export const Renderer = {
     setImage,
     toCanvasCoords,
     fromCanvasCoords,
-    resetCanvas,
     pan,
+    centerFocus,
+    centerSelection,
+    resetCanvas,
     addEventListener,
 
     get context() {
@@ -264,6 +303,12 @@ export const Renderer = {
     },
     get roi() {
         return roi;
+    },
+    get showAnnotations() {
+        return showAnnotations;
+    },
+    set showAnnotations(value) {
+        showAnnotations = value;
     },
     get showRoi() {
         return showRoi;
