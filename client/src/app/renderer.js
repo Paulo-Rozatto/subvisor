@@ -221,14 +221,22 @@ function centerSelection() {
     setZoomLevel(settings.pointZoom);
     offset.x = canvas.width * 0.5 - selection.get(0).x * zoomLevel;
     offset.y = canvas.height * 0.5 - selection.get(0).y * zoomLevel;
-    console.log(offset);
     render();
 }
 
-function resetCanvas() {
+function resetState() {
+    focused = null; // annotation
+    hovered = null; // point
+    showAnnotations = true;
+    showRoi = false;
+    selection.clear();
+}
+
+function reset() {
     if (!image.src) {
         return;
     }
+
     const imageAspectRatio = image.width / image.height;
     const screenHeight = display.clientHeight * 0.8;
     const screenWidth = screenHeight * imageAspectRatio;
@@ -238,6 +246,8 @@ function resetCanvas() {
     setZoomLevel(screenHeight / image.height);
     offset.x = (canvas.width - screenWidth) * 0.5;
     offset.y = (canvas.height - screenHeight) * 0.5;
+
+    resetState();
     render();
 }
 
@@ -260,7 +270,7 @@ function addEventListener(eventName, callback) {
     canvas.addEventListener(eventName, callback);
 }
 
-image.addEventListener("load", resetCanvas);
+image.addEventListener("load", reset);
 
 canvas.addEventListener("contextmenu", (event) => event.preventDefault());
 canvas.addEventListener("wheel", zoomOnWheel);
@@ -274,7 +284,8 @@ export const Renderer = {
     pan,
     centerFocus,
     centerSelection,
-    resetCanvas,
+    reset,
+    resetState,
     addEventListener,
 
     get context() {

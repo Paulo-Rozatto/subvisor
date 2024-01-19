@@ -9,6 +9,11 @@ export class SelectionList {
         return this.#list[index];
     }
 
+    set(value) {
+        this.#list.length = 0;
+        this.#list.push(value);
+    }
+
     toggle(value) {
         const index = this.#list.indexOf(value);
         this.#list.length = 0;
@@ -18,7 +23,7 @@ export class SelectionList {
         }
     }
 
-    unselect() {
+    clear() {
         this.#list.length = 0;
     }
 

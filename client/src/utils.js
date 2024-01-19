@@ -63,3 +63,20 @@ export function debounce(callback, time) {
         timeoutCallback = setTimeout(callback.bind(null, ...args), time);
     };
 }
+
+export function throttle(callback, time, ...params) {
+    let isPaused = false;
+
+    const togglePause = () => {
+        isPaused = !isPaused;
+    };
+
+    return (...args) => {
+        if (isPaused) {
+            return;
+        }
+        togglePause();
+        callback(...args, ...params);
+        setTimeout(togglePause, time);
+    };
+}

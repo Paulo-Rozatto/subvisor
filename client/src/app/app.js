@@ -1,4 +1,4 @@
-import { MOUSE, l1Distance, pointToSegment } from "../utils";
+import { MOUSE, l1Distance, pointToSegment, throttle } from "../utils";
 import { ClassesHandler as classes } from "../handlers/classes-handler";
 import { ActionHistory as hist } from "./action-history";
 import { DefaultParser as parser } from "./default-parser";
@@ -18,13 +18,12 @@ let usingRoi = false;
 let clickedRoi = false;
 let canMoveRoi = false;
 
+// selection auxiliaries
+let isNewPoint = false; // help with selection
+
 export async function loadImage(fileEntry, marker, leaf, callback) {
     const img = IMAGE_MAP[fileEntry.name];
     currentImage = fileEntry.name;
-
-    renderer.focused = null;
-    renderer.showRoi = false;
-    usingRoi = false;
 
     if (img) {
         currentImage = img;
@@ -65,10 +64,6 @@ export async function loadImage(fileEntry, marker, leaf, callback) {
 export async function loadBackendImage(path, imageName, callback) {
     const img = IMAGE_MAP[imageName];
 
-    renderer.focused = null;
-    renderer.showRoi = false;
-    usingRoi = false;
-
     if (img) {
         currentImage = img;
         renderer.setImage(img);
@@ -107,6 +102,10 @@ export function getObjectLength() {
 /* -- MAIN INTERACTION FUNCTIONS -- */
 
 function addPoint(annotation, x, y) {
+    if (!renderer.focused || !renderer.showAnnotations) {
+        return;
+    }
+
     const limit = classes[annotation.class].points.limit;
     const points = annotation.points;
 
@@ -138,13 +137,14 @@ function addPoint(annotation, x, y) {
     }
 
     points.splice(index + 1, 0, newPoint);
+    renderer.selection.set(newPoint);
     hist.push("add", renderer.focused, newPoint, index + 1);
-    renderer.selection.toggle(newPoint);
+    isNewPoint = true;
     renderer.render();
 }
 
 function rmPoint() {
-    if (!renderer.focused) {
+    if (!renderer.focused || !renderer.showAnnotations) {
         return;
     }
 
@@ -155,7 +155,7 @@ function rmPoint() {
             const points = renderer.focused.points.splice(index, 1);
             hist.push("rm", renderer.focused, points[0], index);
         }
-        renderer.selection.unselect();
+        renderer.selection.clear();
         renderer.render();
         return;
     }
@@ -212,14 +212,17 @@ function changeSelect(step) {
         index = 0;
     }
 
-    renderer.selection.toggle(points[index]);
+    renderer.selection.set(points[index]);
     renderer.centerSelection();
 }
+
+const throttleNext = throttle(changeSelect, 100, 1);
+const throttleBack = throttle(changeSelect, 100, -1);
 
 /* -- EVENTS CALLBACKS -- */
 
 function onPointerDown(event) {
-    if (event.buttons !== MOUSE.left) {
+    if (event.buttons !== MOUSE.left || !renderer.showAnnotations) {
         return;
     }
 
@@ -240,7 +243,6 @@ function onPointerDown(event) {
             return;
         }
 
-        renderer.selection.toggle(renderer.hovered);
         renderer.render();
         return;
     }
@@ -271,6 +273,7 @@ function onPointerDown(event) {
                 event.offsetY
             )
         ) {
+            renderer.selection.clear();
             renderer.focused = ann;
             renderer.showRoi = false;
             usingRoi = false;
@@ -281,7 +284,6 @@ function onPointerDown(event) {
 
     // if some anotation is focused, add point
     if (renderer.focused) {
-        // add point if allowed
         addPoint(renderer.focused, event.offsetX, event.offsetY);
         return;
     }
@@ -306,6 +308,10 @@ function onPointerMove(event) {
         return;
     }
 
+    if (!renderer.showAnnotations) {
+        return;
+    }
+
     // if there's a point clicked it's hovered and should be moved, otherwise check hovering
     if (canMove && renderer.hovered) {
         const point = renderer.fromCanvasCoords(event.offsetX, event.offsetY);
@@ -324,16 +330,23 @@ function onPointerMove(event) {
     renderer.render();
 }
 
+// todo: maybe use pointer up as primary function instead of pointer down
 function onPointerUp() {
     if (hasMoved) {
-        hist.push("mv", renderer.focused, renderer.hovered, { ...moveStart });
+        renderer.selection.set(renderer.hovered);
+        hist.push("mv", renderer.focused, renderer.hovered, {
+            ...moveStart,
+        });
+    } else if (renderer.hovered && !isNewPoint) {
+        renderer.selection.toggle(renderer.hovered);
     }
 
     if (usingRoi) {
         usingRoi = false;
     }
 
-    canMove = hasMoved = canMoveRoi = false;
+    isNewPoint = canMove = hasMoved = canMoveRoi = false;
+    renderer.render();
 }
 
 function onDoubleClick() {
@@ -349,7 +362,7 @@ export function onKeyDown(event) {
     if (event.ctrlKey) {
         switch (key) {
             case "z": {
-                renderer.selection.unselect();
+                renderer.selection.clear();
                 hist.undo();
                 break;
             }
@@ -382,20 +395,19 @@ export function onKeyDown(event) {
         }
 
         case "v": {
-            changeSelect(1);
+            // changeSelect(1);
+            throttleNext();
             break;
         }
 
         case "x": {
-            changeSelect(-1);
+            // changeSelect(-1);
+            throttleBack();
             break;
         }
 
         case "b": {
             renderer.showAnnotations = !renderer.showAnnotations;
-            renderer.selection.unselect();
-            renderer.focused = null;
-            renderer.hovered = null;
             renderer.render();
         }
     }
@@ -409,4 +421,4 @@ renderer.addEventListener("pointerup", onPointerUp);
 renderer.addEventListener("dblclick", onDoubleClick);
 renderer.addEventListener("keydown", onKeyDown);
 
-renderer.resetCanvas();
+renderer.reset();
