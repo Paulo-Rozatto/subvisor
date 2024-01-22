@@ -239,6 +239,7 @@ function onPointerDown(event) {
                 renderer.hovered,
                 renderer.focused.points
             );
+            isNewPoint = true;
             renderer.render();
             return;
         }

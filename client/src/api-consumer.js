@@ -15,12 +15,18 @@ export async function annotateLeaf(path, topLeft, bottomRight) {
         return;
     }
     const json = await response.json();
-    const pointsArray = JSON.parse(json.points) || [];
-    const resultPoints = pointsArray.map((point) => ({
-        x: point[0],
-        y: point[1],
-    }));
-    return resultPoints;
+
+    try {
+        const pointsArray = JSON.parse(json.points) || [];
+        const resultPoints = pointsArray.map((point) => ({
+            x: point[0],
+            y: point[1],
+        }));
+
+        return resultPoints;
+    } catch {
+        console.error(`ERRO: Pontos inválidos.`, json);
+    }
 }
 
 export async function fetchDatasetList() {

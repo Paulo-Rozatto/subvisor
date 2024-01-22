@@ -7,7 +7,7 @@ import { Renderer as renderer } from "../app/renderer";
 
 async function predictAnnotation(points) {
     const fileName = selected.innerText + ".jpg";
-    const path = currentPath + "/" + fileName;
+    const filePath = currentPath + "/" + fileName;
     const leafName = document.querySelector("#title").innerText;
 
     const topLeft = {
@@ -20,7 +20,7 @@ async function predictAnnotation(points) {
         y: Math.max(points[0].y, points[1].y),
     };
 
-    const newPoints = await annotateLeaf(path, topLeft, botttomRight);
+    const newPoints = await annotateLeaf(filePath, topLeft, botttomRight);
 
     if (!newPoints) {
         return;
@@ -32,7 +32,7 @@ async function predictAnnotation(points) {
     ann.points = newPoints;
     const xml = parser.pointsToXml(leafName, fileName, ann);
     renderer.render();
-    saveXml(path, "leaf", fileName.replace(".jpg", ".xml"), xml);
+    saveXml(currentPath, "leaf", fileName.replace(".jpg", ".xml"), xml);
 }
 
 document.querySelector("#predict-button").addEventListener("click", () => {
