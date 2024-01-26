@@ -1,3 +1,4 @@
+import { findMinMaxPoints, getCenterOfMass, l2Norm } from "../utils";
 import { SelectionList } from "./selection-list";
 import { ClassesHandler as classes } from "../handlers/classes-handler";
 import { SettingsHandler as settings } from "../handlers/settings-handler";
@@ -59,20 +60,28 @@ function draw() {
     );
 
     // draw annotations
-    let annClass, points, ctxPoint;
+    let ann, annClass, points, ctxPoint;
 
     if (showAnnotations) {
         for (let i = 0; i < annotations.length; i++) {
-            annClass = classes[annotations[i].class];
-            points = annotations[i].points;
+            ann = annotations[i];
+            // recauculate the center of the polygon if it has been changed
+            if (ann.dirty) {
+                ann.center = getCenterOfMass(ann.points);
+                console.log(ann.center);
+                ann.dirty = false;
+            }
+
+            annClass = classes[ann.class];
+            points = ann.points;
             ctx.fillStyle = annClass.color + settings.opacityHex;
 
             // draw polygon
             if (points.length < 3) {
-                annotations[i].path = null;
+                ann.path = null;
             } else {
                 const path = new Path2D();
-                annotations[i].path = path;
+                ann.path = path;
 
                 ctxPoint = toCanvasCoords(points[0].x, points[0].y);
                 path.moveTo(ctxPoint.x, ctxPoint.y);
@@ -85,36 +94,49 @@ function draw() {
                 ctx.fill(path);
             }
 
+            const pointColors = annClass.points?.colors || annClass.color;
             // only show points from focused annotation
-            if (focused !== annotations[i]) {
-                continue;
-            }
+            if (focused === ann) {
+                let dir;
 
-            // draw selection
-            ctx.fillStyle = SELECTION_COLOR;
-            for (let i = 0; i < selection.length; i++) {
-                ctxPoint = selection.get(i);
-                ctxPoint = toCanvasCoords(ctxPoint.x, ctxPoint.y);
+                // draw selection
+                ctx.fillStyle = SELECTION_COLOR;
+                for (let i = 0; i < selection.length; i++) {
+                    ctxPoint = selection.get(i);
+                    ctxPoint = toCanvasCoords(ctxPoint.x, ctxPoint.y);
 
-                ctx.beginPath();
-                ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
-                ctx.fill();
-            }
+                    ctx.beginPath();
+                    ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
+                    ctx.fill();
+                }
 
-            // draw points and text
-            ctx.font = "20px sans";
-            const pcolors = annClass.points?.colors || annClass.color;
-            for (let i = 0; i < points.length; i++) {
-                ctx.strokeStyle = pcolors[i % pcolors.length];
-                ctx.lineWidth = 3;
-                ctxPoint = toCanvasCoords(points[i].x, points[i].y);
-                ctx.beginPath();
-                ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
-                ctx.stroke();
+                // draw points
+                for (let i = 0; i < points.length; i++) {
+                    ctx.strokeStyle = pointColors[i % pointColors.length];
+                    ctx.lineWidth = 3;
+                    ctxPoint = toCanvasCoords(points[i].x, points[i].y);
+                    ctx.beginPath();
+                    ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
+                    ctx.stroke();
 
-                if (annClass.points?.showNumber) {
-                    ctx.fillStyle = ctx.strokeStyle;
-                    ctx.fillText(`${i + 1}`, ctxPoint.x + 15, ctxPoint.y + 10);
+                    if (annClass.points?.showNumber) {
+                        ctx.font = "20px sans";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "baseline";
+
+                        ctx.fillStyle = ctx.strokeStyle;
+                        ctxPoint = toCanvasCoords(points[i].x, points[i].y);
+                        dir = l2Norm(
+                            points[i].x - ann.center.x,
+                            points[i].y - ann.center.y
+                        );
+
+                        ctx.fillText(
+                            (i + 1).toString(),
+                            ctxPoint.x + dir.x * (RADIUS << 2),
+                            ctxPoint.y + dir.y * (RADIUS << 2)
+                        );
+                    }
                 }
             }
         }
@@ -197,20 +219,18 @@ function centerFocus() {
         return;
     }
 
-    const x0 = Math.min(...focused.points.map((p) => p.x));
-    const x1 = Math.max(...focused.points.map((p) => p.x));
-    const y0 = Math.min(...focused.points.map((p) => p.y));
-    const y1 = Math.max(...focused.points.map((p) => p.y));
-    const width = x1 - x0;
-    const height = y1 - y0;
-    const aspectRation = width / height;
-    const screenHeight = display.clientHeight * 0.8;
-    const screenWidth = screenHeight * aspectRation;
+    const { min, max } = findMinMaxPoints(focused.points);
+    const width = max.x - min.x;
+    const height = max.y - min.y;
+    const aspectRatio = width / height;
+    const newPolyHeight = display.clientHeight * 0.9;
+    const newPolyWidth = newPolyHeight * aspectRatio;
     canvas.width = display.clientWidth;
     canvas.height = display.clientHeight;
-    setZoomLevel(screenHeight / height);
-    offset.x = (canvas.width - screenWidth) * 0.5 - x0 * zoomLevel;
-    offset.y = (canvas.height - screenHeight) * 0.5 - y0 * zoomLevel;
+    setZoomLevel(newPolyHeight / height);
+
+    offset.x = (canvas.width - newPolyWidth) * 0.5 - min.x * zoomLevel;
+    offset.y = (canvas.height - newPolyHeight) * 0.5 - min.y * zoomLevel;
     render();
 }
 
@@ -258,6 +278,8 @@ function setImage(_image) {
     }
     image.src = _image.src;
     annotations = _image.annotations;
+    annotations.forEach((ann) => (ann.dirty = true));
+
     focused = null;
     hovered = null;
 }
