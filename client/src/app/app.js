@@ -240,8 +240,11 @@ function onPointerDown(event) {
                 renderer.focused.points
             );
             isNewPoint = true;
-            renderer.render();
-            return;
+        }
+
+        if (event.ctrlKey) {
+            renderer.selection.push(renderer.hovered);
+            isNewPoint = true;
         }
 
         renderer.render();
@@ -384,9 +387,43 @@ export function onKeyDown(event) {
 
         case "escape": {
             renderer.focused = null;
+            renderer.hovered = null;
             renderer.showRoi = false;
             usingRoi = false;
             renderer.render();
+            break;
+        }
+
+        case "arrowleft": {
+            const pt = renderer.focused.points.pop();
+            renderer.focused.points.unshift(pt);
+            renderer.render();
+            break;
+        }
+
+        case "arrowright": {
+            const pt = renderer.focused.points.shift();
+            renderer.focused.points.push(pt);
+            renderer.render();
+            break;
+        }
+
+        case "t": {
+            if (!(renderer.focused && renderer.selection.length === 2)) {
+                break;
+            }
+
+            const first = renderer.selection.get(0);
+            const second = renderer.selection.get(1);
+
+            const firstIndex = renderer.focused.points.indexOf(first);
+            const secondIndex = renderer.focused.points.indexOf(second);
+
+            renderer.focused.points[firstIndex] = second;
+            renderer.focused.points[secondIndex] = first;
+
+            renderer.render();
+
             break;
         }
 
@@ -396,13 +433,11 @@ export function onKeyDown(event) {
         }
 
         case "v": {
-            // changeSelect(1);
             throttleNext();
             break;
         }
 
         case "x": {
-            // changeSelect(-1);
             throttleBack();
             break;
         }
