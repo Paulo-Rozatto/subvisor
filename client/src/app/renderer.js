@@ -68,7 +68,6 @@ function draw() {
             // recauculate the center of the polygon if it has been changed
             if (ann.dirty) {
                 ann.center = getCenterOfMass(ann.points);
-                console.log(ann.center);
                 ann.dirty = false;
             }
 

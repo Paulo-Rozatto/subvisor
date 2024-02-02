@@ -14,6 +14,12 @@ export class SelectionList {
         this.#list.push(value);
     }
 
+    push(value) {
+        if (this.#list.indexOf(value) === -1) {
+            this.#list.push(value);
+        }
+    }
+
     toggle(value) {
         const index = this.#list.indexOf(value);
         this.#list.length = 0;
