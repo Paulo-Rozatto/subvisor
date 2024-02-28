@@ -47,6 +47,18 @@ function fromCanvasCoords(x, y) {
     };
 }
 
+// converte de coordenadas do canvas para coordenadas da janela
+function canvas2win(src, dst) {
+    dst.x = (src.x - offset.x) / zoomLevel;
+    dst.y = (src.y - offset.y) / zoomLevel;
+}
+
+// conventer de coordenadas da janela para coordenadas do canvas (imagem)
+function win2canvas(src, dst) {
+    dst.x = src.x * zoomLevel + offset.x;
+    dst.y = src.y * zoomLevel + offset.y;
+}
+
 function draw() {
     // draw image
     ctx.imageSmoothingEnabled = false;
@@ -60,12 +72,13 @@ function draw() {
     );
 
     // draw annotations
-    let ann, annClass, points, ctxPoint;
+    let ann, annClass, points;
+    const ctxPoint = { x: 0, y: 0 };
 
     if (showAnnotations) {
         for (let i = 0; i < annotations.length; i++) {
             ann = annotations[i];
-            // recauculate the center of the polygon if it has been changed
+            // recalculate the center of the polygon if it has been changed
             if (ann.dirty) {
                 ann.center = getCenterOfMass(ann.points);
                 ann.dirty = false;
@@ -82,11 +95,11 @@ function draw() {
                 const path = new Path2D();
                 ann.path = path;
 
-                ctxPoint = toCanvasCoords(points[0].x, points[0].y);
+                win2canvas(points[0], ctxPoint);
                 path.moveTo(ctxPoint.x, ctxPoint.y);
 
                 for (let i = 1; i < points.length; i++) {
-                    ctxPoint = toCanvasCoords(points[i].x, points[i].y);
+                    win2canvas(points[i], ctxPoint);
                     path.lineTo(ctxPoint.x, ctxPoint.y);
                 }
                 path.closePath();
@@ -101,8 +114,7 @@ function draw() {
                 // draw selection
                 ctx.fillStyle = SELECTION_COLOR;
                 for (let i = 0; i < selection.length; i++) {
-                    ctxPoint = selection.get(i);
-                    ctxPoint = toCanvasCoords(ctxPoint.x, ctxPoint.y);
+                    win2canvas(selection.get(i), ctxPoint);
 
                     ctx.beginPath();
                     ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
@@ -113,7 +125,7 @@ function draw() {
                 for (let i = 0; i < points.length; i++) {
                     ctx.strokeStyle = pointColors[i % pointColors.length];
                     ctx.lineWidth = 3;
-                    ctxPoint = toCanvasCoords(points[i].x, points[i].y);
+                    win2canvas(points[i], ctxPoint);
                     ctx.beginPath();
                     ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
                     ctx.stroke();
@@ -124,7 +136,7 @@ function draw() {
                         ctx.textBaseline = "baseline";
 
                         ctx.fillStyle = ctx.strokeStyle;
-                        ctxPoint = toCanvasCoords(points[i].x, points[i].y);
+                        win2canvas(points[i], ctxPoint);
                         dir = l2Norm(
                             points[i].x - ann.center.x,
                             points[i].y - ann.center.y
@@ -145,8 +157,11 @@ function draw() {
         ctx.strokeStyle = ROI_COLOR;
         ctx.fillStyle = ROI_COLOR + "33";
         ctx.lineWidth = 3;
-        const corner1 = toCanvasCoords(roi.points[0].x, roi.points[0].y);
-        const corner2 = toCanvasCoords(roi.points[1].x, roi.points[1].y);
+
+        const corner1 = { x: -1, y: -1 };
+        const corner2 = { x: -1, y: -1 };
+        win2canvas(roi.points[0], corner1);
+        win2canvas(roi.points[1], corner2);
 
         ctx.beginPath();
         const path = new Path2D();
@@ -172,7 +187,7 @@ function draw() {
     // draw hovered point
     if (hovered) {
         ctx.strokeStyle = HOVER_COLOR;
-        ctxPoint = toCanvasCoords(hovered.x, hovered.y);
+        win2canvas(hovered, ctxPoint);
         ctx.beginPath();
         ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
         ctx.stroke();
@@ -291,6 +306,10 @@ function addEventListener(eventName, callback) {
     canvas.addEventListener(eventName, callback);
 }
 
+function removeEventListener(eventName, callback) {
+    canvas.removeEventListener(eventName, callback);
+}
+
 image.addEventListener("load", reset);
 
 canvas.addEventListener("contextmenu", (event) => event.preventDefault());
@@ -302,13 +321,22 @@ export const Renderer = {
     setImage,
     toCanvasCoords,
     fromCanvasCoords,
+    canvas2win,
+    win2canvas,
     pan,
     centerFocus,
     centerSelection,
     reset,
     resetState,
     addEventListener,
+    removeEventListener,
 
+    get image() {
+        return image;
+    },
+    get annotations() {
+        return annotations;
+    },
     get context() {
         return ctx;
     },
