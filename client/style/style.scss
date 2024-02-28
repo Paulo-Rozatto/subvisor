@@ -159,6 +159,16 @@ aside {
     background-color: $selection;
 }
 
+.btn-icon {
+    border-radius: 50%;
+    min-width: 0;
+    width: auto;
+}
+
+.btn-selected {
+    color: $base;
+    background-color: $hover;
+}
 .float-input {
     position: absolute;
     top: 5;
@@ -227,6 +237,10 @@ aside {
         background-color: $dark-hover;
     }
 
+    .btn-selected {
+        color: $dark-base;
+        background-color: $dark-selection;
+    }
     .selected {
         color: $dark-base;
         background-color: $dark-selection;
