@@ -24,6 +24,10 @@ function loadSettings() {
 }
 
 function activateTool(tool, el) {
+    if (tool === activeTool) {
+        return;
+    }
+
     activeTool?.deactivate();
     activeTool = tool;
     tool.activate();

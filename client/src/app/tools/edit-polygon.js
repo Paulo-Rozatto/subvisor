@@ -195,6 +195,7 @@ export class EditPolygon extends AbstractTool {
                 this.renderer.selection.clear();
                 this.renderer.focused = annotation;
                 this.renderer.render();
+                classes.current = annotation.class;
                 return;
             }
         }

@@ -1,4 +1,5 @@
 import { MOUSE } from "../utils";
+import { ClassesHandler as classes } from "../handlers/classes-handler";
 import { ActionHistory as hist } from "./action-history";
 import { DefaultParser as parser } from "./default-parser";
 import { Renderer as renderer } from "./renderer";
@@ -117,6 +118,7 @@ export function onKeyDown(event) {
             renderer.focused = null;
             renderer.hovered = null;
             renderer.showRoi = false;
+            classes.current = "";
             renderer.render();
             break;
         }

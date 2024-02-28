@@ -12,7 +12,6 @@
         <header>
             <section>
                 <button class="btn" id="datasets-list-button">Datasets</button>
-                <button class="btn" id="predict-button">Predição</button>
                 <button
                     class="btn btn-icon btn-selected"
                     id="tool-edit-button"
@@ -123,6 +122,16 @@
             </div>
         </article>
 
+        <article class="modal hide" id="classes-modal">
+            <h2>Troca de Classe</h2>
+            <form class="form">
+                <div>
+                    <select id="classes-select"></select>
+                </div>
+                <button class="btn" id="save-classes">Salvar</button>
+            </form>
+        </article>
+
         <main>
             <article class="display">
                 <canvas id="canvas" tabindex="1"></canvas>
@@ -142,6 +151,10 @@
                     </span>
                 </section>
                 <section class="group right">
+                    <span class="item" title="Classe do objeto selecionado">
+                        <i class="bi bi-tag"></i>
+                        <span id="classes-display">-</span>
+                    </span>
                     <span
                         id="reset-button"
                         class="item"

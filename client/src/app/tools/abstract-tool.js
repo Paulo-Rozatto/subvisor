@@ -1,3 +1,4 @@
+import { ClassesHandler as classes } from "../../handlers/classes-handler";
 import { l1Distance } from "../../utils";
 
 export class AbstractTool {
@@ -26,6 +27,7 @@ export class AbstractTool {
         this.renderer.focused = null;
         this.renderer.hovered = null;
         this.renderer.showRoi = false;
+        classes.current = "";
 
         this.renderer.removeEventListener("pointerdown", this.onPointerDown);
         this.renderer.removeEventListener("pointermove", this.onPointerMove);
