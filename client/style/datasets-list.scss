@@ -1,6 +1,8 @@
 #datasets-modal {
     display: flex;
     flex-direction: column;
+    min-height: 50vh;
+    height: 50vh;
 
     div {
         height: 60px;
