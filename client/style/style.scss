@@ -184,6 +184,36 @@ aside {
     color: $base;
     background-color: $hover;
 }
+
+.btn-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+
+    .btn-small {
+        font-size: 0.8rem;
+        border: 0;
+        height: auto;
+        width: auto;
+        min-height: auto;
+        padding: 0.6rem;
+    }
+
+    .btn-offside {
+        overflow: visible;
+        padding: 2px;
+        padding-left: 1rem;
+        background: radial-gradient(
+            25% 100% at left,
+            transparent 50%,
+            $base-light 60%
+        );
+        border-top-right-radius: 20% 50%;
+        border-bottom-right-radius: 20% 50%;
+    }
+}
+
 .float-input {
     position: absolute;
     top: 5;
@@ -245,6 +275,7 @@ aside {
     .btn {
         color: $dark-accent;
         background-color: $dark-primary;
+        box-shadow: 1px 2px 3px $dark-base-light;
     }
 
     .btn:hover {
@@ -256,6 +287,17 @@ aside {
         color: $dark-base;
         background-color: $dark-selection;
     }
+
+    .btn-group {
+        .btn-offside {
+            background: radial-gradient(
+                25% 100% at left,
+                transparent 50%,
+                $dark-base-light 60%
+            );
+        }
+    }
+
     .selected {
         color: $dark-base;
         background-color: $dark-selection;
@@ -286,7 +328,7 @@ aside {
     .modal {
         color: $dark-accent;
         background-color: $dark-base;
-        box-shadow: 0 0 2px  $dark-selection;
+        box-shadow: 0 0 2px $dark-selection;
     }
 
     .modal h2 {

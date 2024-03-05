@@ -1,4 +1,6 @@
+import { EditPolygon } from "./tools/edit-polygon";
 import { MOUSE } from "../utils";
+import { PredictTool } from "./tools/predict-tool";
 import { ClassesHandler as classes } from "../handlers/classes-handler";
 import { ActionHistory as hist } from "./action-history";
 import { DefaultParser as parser } from "./default-parser";
@@ -78,6 +80,75 @@ export function getObjectLength() {
     }
     return 0;
 }
+
+const toolEditButton = document.querySelector("#tool-edit-button");
+const toolPredictButton = document.querySelector("#tool-predict-button");
+const subtoolPointsButton = document.querySelector("#subtool-points");
+const subtoolBoxButton = document.querySelector("#subtool-box");
+const subtoolGroup = document.querySelector("#subtools-group");
+
+const editPolyTool = new EditPolygon(renderer, hist);
+const predictTool = new PredictTool(renderer);
+
+let activeTool = null;
+let activeEl = null;
+
+let activeSubTool = predictTool.usePoints;
+let activeSubEl = subtoolPointsButton;
+
+function activateTool(tool, el) {
+    if (tool === activeTool) {
+        return;
+    }
+
+    activeTool?.deactivate();
+    activeTool = tool;
+    tool.activate();
+
+    el?.classList.add("btn-selected");
+    activeEl?.classList.remove("btn-selected");
+    activeEl = el;
+
+    if (tool === predictTool) {
+        subtoolGroup.classList.remove("hide");
+    } else {
+        subtoolGroup.classList.add("hide");
+    }
+}
+
+function activateSubTool(subTool, el) {
+    if (activeTool !== predictTool) {
+        return;
+    }
+
+    if (subTool === activeSubTool) {
+        return;
+    }
+
+    activeSubTool = subTool;
+    subTool();
+
+    el?.classList.add("btn-selected");
+    activeSubEl?.classList.remove("btn-selected");
+    activeSubEl = el;
+}
+
+toolEditButton.addEventListener("click", () =>
+    activateTool(editPolyTool, toolEditButton)
+);
+toolPredictButton.addEventListener("click", () =>
+    activateTool(predictTool, toolPredictButton)
+);
+
+subtoolPointsButton.addEventListener("click", () =>
+    activateSubTool(predictTool.usePoints, subtoolPointsButton)
+);
+
+subtoolBoxButton.addEventListener("click", () =>
+    activateSubTool(predictTool.useBox, subtoolBoxButton)
+);
+
+activateTool(editPolyTool, toolEditButton);
 
 /* -- EVENTS CALLBACKS -- */
 
