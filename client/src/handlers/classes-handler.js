@@ -57,23 +57,22 @@ async function predictAnnotation(points, isBox) {
     const fileName = selected.innerText + ".jpg";
     const filePath = currentPath + "/" + fileName;
     const leafName = document.querySelector("#title").innerText;
-    const topLeft = { x: 0, y: 0 };
-    const bottomRight = { x: 0, y: 0 };
 
     if (isBox) {
-        topLeft.x = Math.min(points[0].x, points[1].x);
-        topLeft.y = Math.min(points[0].y, points[1].y);
+        const topLeft = {
+            x: Math.min(points[0].x, points[1].x),
+            y: Math.min(points[0].y, points[1].y),
+        };
 
-        bottomRight.x = Math.max(points[0].x, points[1].x);
-        bottomRight.y = Math.max(points[0].y, points[1].y);
-    } else {
-        topLeft.x = points[0].x;
-        topLeft.y = points[0].y;
-        bottomRight.x = points[0].x;
-        bottomRight.y = points[0].y;
+        const bottomRight = {
+            x: Math.max(points[0].x, points[1].x),
+            y: Math.max(points[0].y, points[1].y),
+        };
+
+        points = [topLeft, bottomRight];
     }
 
-    const newPoints = await annotateLeaf(filePath, topLeft, bottomRight);
+    const newPoints = await annotateLeaf(filePath, points, isBox);
 
     if (!newPoints) {
         return;

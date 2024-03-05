@@ -15,8 +15,8 @@ import com.subvisor.server.models.Contour;
 public class NNApi {
 
     @GetMapping("/predict")
-    public Contour predict(String path, String points) {
-        String result = runNetwork(path, points);
+    public Contour predict(String path, String points, String labels) {
+        String result = runNetwork(path, points, labels);
         result = result != null ? result.trim() : "null";
         return new Contour(result);
     }

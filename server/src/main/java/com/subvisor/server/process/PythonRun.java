@@ -12,10 +12,10 @@ public class PythonRun {
   private static final String PYTHON_PATH = "/home/paulo/Desktop/tcc/sam-hq/sam_venv/bin/python";
   private static final String SCRIPT_PATH = "/home/paulo/Desktop/tcc/sam-hq/demo/java_test.py";
 
-  public static String runNetwork(String path, String points) {
+  public static String runNetwork(String path, String points, String labels) {
     try {
       val imagePath = Paths.get(DATA_DIR_PATH, "datasets", path).toString();
-      ProcessBuilder processBuilder = new ProcessBuilder(PYTHON_PATH, SCRIPT_PATH, imagePath, points);
+      ProcessBuilder processBuilder = new ProcessBuilder(PYTHON_PATH, SCRIPT_PATH, imagePath, points, labels);
       processBuilder.redirectErrorStream(true);
 
       Process process = processBuilder.start();
