@@ -14,7 +14,9 @@ const END_ARC = 2 * Math.PI;
 const RADIUS = 5;
 const HOVER_COLOR = "#a5db94";
 const SELECTION_COLOR = "#38cb0b";
-const ROI_COLOR = "#0f0f99";
+const PRED_COLOR = "#0f0f99";
+const INV_PRED_COLOR = "#99160F";
+const WHITE = "#ffffff";
 
 const image = new Image();
 const offset = { x: 0, y: 0 };
@@ -28,9 +30,11 @@ const roi = {
 
 let zoomLevel = 1;
 let annotations = [];
+let predPoints = [];
 let focused = null; // annotation
 let hovered = null; // point
 let showAnnotations = true;
+let showPoints = false;
 let showRoi = false;
 
 function toCanvasCoords(x, y) {
@@ -153,9 +157,36 @@ function draw() {
         }
     }
 
+    if (showPoints) {
+        ctx.strokeStyle = WHITE;
+        ctx.lineWidth = 1;
+        for (let i = 0; i < predPoints.length; i++) {
+            ctx.fillStyle = predPoints[i].isBackground
+                ? INV_PRED_COLOR
+                : PRED_COLOR;
+
+            win2canvas(predPoints[i], ctxPoint);
+            ctx.beginPath();
+            ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        // draw selection
+        ctx.strokeStyle = SELECTION_COLOR;
+        ctx.lineWidth = 2;
+        for (let i = 0; i < selection.length; i++) {
+            win2canvas(selection.get(i), ctxPoint);
+
+            ctx.beginPath();
+            ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
+            ctx.stroke();
+        }
+    }
+
     if (showRoi) {
-        ctx.strokeStyle = ROI_COLOR;
-        ctx.fillStyle = ROI_COLOR + "33";
+        ctx.strokeStyle = PRED_COLOR;
+        ctx.fillStyle = PRED_COLOR + "33";
         ctx.lineWidth = 3;
 
         const corner1 = { x: -1, y: -1 };
@@ -364,16 +395,28 @@ export const Renderer = {
     get roi() {
         return roi;
     },
+    get predPoints() {
+        return predPoints;
+    },
+    set predPoints(points) {
+        predPoints = points;
+    },
     get showAnnotations() {
         return showAnnotations;
     },
-    set showAnnotations(value) {
-        showAnnotations = value;
+    set showAnnotations(flag) {
+        showAnnotations = Boolean(flag);
+    },
+    get showPoints() {
+        return showPoints;
+    },
+    set showPoints(flag) {
+        showPoints = Boolean(flag);
     },
     get showRoi() {
         return showRoi;
     },
     set showRoi(flag) {
-        showRoi = flag;
+        showRoi = Boolean(flag);
     },
 };

@@ -27,6 +27,7 @@ export class AbstractTool {
         this.renderer.focused = null;
         this.renderer.hovered = null;
         this.renderer.showRoi = false;
+        this.renderer.showPoints = false;
         classes.current = "";
 
         this.renderer.removeEventListener("pointerdown", this.onPointerDown);
@@ -38,12 +39,16 @@ export class AbstractTool {
     }
 
     updateHover(x, y) {
-        if (!this.renderer.focused) {
+        if (!this.renderer.focused && !this.renderer.showPoints) {
             return;
         }
 
+        const points = this.renderer.showPoints
+            ? this.renderer.predPoints
+            : this.renderer.focused.points;
+
         const pt = { x: 0, y: 0 };
-        for (const point of this.renderer.focused.points) {
+        for (const point of points) {
             this.renderer.win2canvas(point, pt);
 
             if (l1Distance({ x, y }, pt) < 10) {

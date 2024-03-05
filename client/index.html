@@ -19,13 +19,31 @@
                 >
                     <i class="bi bi-arrows-move"></i>
                 </button>
-                <button
-                    class="btn btn-icon"
-                    id="tool-predict-button"
-                    title="Prever anotações"
-                >
-                    <i class="bi bi-bounding-box-circles"></i>
-                </button>
+                <div class="btn-group">
+                    <button
+                        class="btn btn-icon"
+                        id="tool-predict-button"
+                        title="Prever anotações"
+                    >
+                        <i class="bi bi-magic"></i>
+                    </button>
+                    <div id="subtools-group" class="btn-offside">
+                        <button
+                            class="btn btn-selected btn-small btn-icon"
+                            title="Prever anotações"
+                            id="subtool-points"
+                        >
+                            <i class="bi bi-crosshair"></i>
+                        </button>
+                        <button
+                            class="btn btn-small btn-icon"
+                            title="Prever anotações"
+                            id="subtool-box"
+                        >
+                            <i class="bi bi-bounding-box"></i>
+                        </button>
+                    </div>
+                </div>
             </section>
             <section></section>
             <section>
@@ -167,7 +185,7 @@
                         class="item"
                         title="Quantidade de pontos do objeto selecionado"
                     >
-                        <i class="bi bi-dice-3"></i>
+                        <i class="bi bi-bounding-box-circles"></i>
                         <span id="obj-length">000</span>
                     </span>
                     <span class="item" title="Tempo desde upload">
