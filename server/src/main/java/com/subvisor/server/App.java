@@ -1,53 +1,56 @@
 package com.subvisor.server;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
+import lombok.val;
+import nu.pattern.OpenCV;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import lombok.val;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 @SpringBootApplication
 public class App implements WebMvcConfigurer {
-	public static String DATA_DIR_PATH;
+    public static String DATA_DIR_PATH;
 
-	@Override
-	public void addResourceHandlers(ResourceHandlerRegistry registry) {
-		val datasetPath = Paths.get(DATA_DIR_PATH, "datasets").toString();
+    private static String getOrCreateDataDirs() {
+        val homePath = System.getProperty("user.home");
+        val rootDataDir = Paths.get(homePath, "subvisor").toString();
+        val datasetsDir = Paths.get(rootDataDir, "datasets");
 
-		System.out.println(datasetPath);
-		registry.addResourceHandler("/datasets/**")
-				.addResourceLocations("file:" + datasetPath + "/")
-				.setCachePeriod(0);
-	}
+        try {
+            Files.createDirectories(datasetsDir);
+            return rootDataDir;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	@Override
-	public void addCorsMappings(CorsRegistry registry) {
-		registry.addMapping("/**")
-				.allowedOrigins("http://localhost:1234");
-	}
+    public static void main(String[] args) {
+        OpenCV.loadLocally();
 
-	private static String getOrCreateDataDirs() {
-		val homePath = System.getProperty("user.home");
-		val rootDataDir = Paths.get(homePath, "subvisor").toString();
-		val datasetsDir = Paths.get(rootDataDir, "datasets");
+        DATA_DIR_PATH = getOrCreateDataDirs();
 
-		try {
-			Files.createDirectories(datasetsDir);
-			return rootDataDir;
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+        SpringApplication.run(App.class, args);
+    }
 
-	public static void main(String[] args) {
-		DATA_DIR_PATH = getOrCreateDataDirs();
-		SpringApplication.run(App.class, args);
-	}
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        val datasetPath = Paths.get(DATA_DIR_PATH, "datasets").toString();
+
+        System.out.println(datasetPath);
+        registry.addResourceHandler("/datasets/**")
+                .addResourceLocations("file:" + datasetPath + "/")
+                .setCachePeriod(0);
+    }
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("http://localhost:1234");
+    }
 
 }

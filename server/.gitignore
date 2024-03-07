@@ -6,6 +6,9 @@ build/
 !**/src/test/**/build/
 static/
 
+### ONNX ###
+*.onnx
+
 ### STS ###
 .apt_generated
 .classpath
