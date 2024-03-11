@@ -327,6 +327,7 @@ function setImage(_image) {
 
     focused = null;
     hovered = null;
+    predPoints = [];
 }
 
 function setCursor(cursorStyle) {
