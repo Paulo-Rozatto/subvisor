@@ -1,6 +1,7 @@
 package com.subvisor.server.api;
 
 import com.subvisor.server.App;
+import com.subvisor.server.neuralnetwork.SamHq;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.BufferedWriter;
@@ -58,6 +59,8 @@ public class DatasetApi {
     public List<String> getImageList(@RequestParam String path) {
         String realPath = Paths.get(DATASETS_PATH.toString(), path).toString();
         File[] images = new File(realPath).listFiles(file -> file.getName().endsWith(".jpg"));
+
+        SamHq.clearEmbeddings();
 
         if (images == null) {
             return  new ArrayList<>();

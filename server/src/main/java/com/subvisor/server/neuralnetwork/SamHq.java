@@ -4,22 +4,21 @@ import ai.onnxruntime.OnnxTensor;
 import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
 import ai.onnxruntime.OrtSession;
+import lombok.extern.slf4j.Slf4j;
 import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Map;
+import java.util.*;
 
 import static org.opencv.core.CvType.CV_32F;
 import static org.opencv.core.CvType.CV_8UC1;
 
+@Slf4j
 public class SamHq {
+    final private static Map<String, OrtSession.Result> embeddingsMap = new HashMap<>();
     final private OrtEnvironment env;
     final private OrtSession session;
     final private OrtSession decoderSession;
@@ -37,6 +36,10 @@ public class SamHq {
         }
     }
 
+    public static void clearEmbeddings() {
+        embeddingsMap.clear();
+    }
+
     public String run(String imagePath, String points, String labels) {
         Mat imageMat = Imgcodecs.imread(imagePath);
         float[] pts = str2array(points + ",0,0");
@@ -46,9 +49,19 @@ public class SamHq {
         float scale = 1024 / (float) Math.max(imageMat.rows(), imageMat.cols());
         resize(imageMat, scale);
 
+
         try {
             float[] inputSize = {imageMat.rows(), imageMat.cols()};
-            OrtSession.Result embeddings = encode(imageMat);
+
+            OrtSession.Result embeddings;
+
+            if (embeddingsMap.containsKey(imagePath)) {
+                embeddings = embeddingsMap.get(imagePath);
+            } else {
+                embeddings = encode(imageMat);
+                embeddingsMap.put(imagePath, embeddings);
+            }
+
             OrtSession.Result result = decode(embeddings, pts, scale, lbls, inputSize);
 
             Mat mask = new Mat((int) inputSize[0], (int) inputSize[1], CV_8UC1);
