@@ -4,21 +4,30 @@ import ai.onnxruntime.OnnxTensor;
 import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
 import ai.onnxruntime.OrtSession;
+import com.subvisor.server.models.EmbeddingPair;
 import lombok.extern.slf4j.Slf4j;
-import org.opencv.core.*;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Point;
+import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 import static org.opencv.core.CvType.CV_32F;
 import static org.opencv.core.CvType.CV_8UC1;
 
 @Slf4j
 public class SamHq {
-    final private static Map<String, OrtSession.Result> embeddingsMap = new HashMap<>();
     final private OrtEnvironment env;
     final private OrtSession session;
     final private OrtSession decoderSession;
@@ -36,14 +45,10 @@ public class SamHq {
         }
     }
 
-    public static void clearEmbeddings() {
-        embeddingsMap.clear();
-    }
-
     public String run(String imagePath, String points, String labels) {
         Mat imageMat = Imgcodecs.imread(imagePath);
-        float[] pts = str2array(points + ",0,0");
-        float[] lbls = str2array(labels + ",-1");
+        float[] pointsArray = str2array(points + ",0,0");
+        float[] labelsArray = str2array(labels + ",-1");
 
         float[] originalSize = {imageMat.rows(), imageMat.cols()};
         float scale = 1024 / (float) Math.max(imageMat.rows(), imageMat.cols());
@@ -53,19 +58,27 @@ public class SamHq {
         try {
             float[] inputSize = {imageMat.rows(), imageMat.cols()};
 
-            OrtSession.Result embeddings;
+            OnnxTensor imageEmbeddings;
+            OnnxTensor intermEmbeddings;
+            OrtSession.Result enconderResult = null;
+            Optional<EmbeddingPair> optional = Embeddings.retrieve(imagePath, env);
 
-            if (embeddingsMap.containsKey(imagePath)) {
-                embeddings = embeddingsMap.get(imagePath);
+            if (optional.isPresent()) {
+                EmbeddingPair pair = optional.get();
+                imageEmbeddings = pair.imageEmbedding();
+                intermEmbeddings = pair.intermEmbedding();
             } else {
-                embeddings = encode(imageMat);
-                embeddingsMap.put(imagePath, embeddings);
+                enconderResult = encode(imageMat);
+                imageEmbeddings = ((OnnxTensor) enconderResult.get("image_embeddings").get());
+                intermEmbeddings = (OnnxTensor) enconderResult.get("interm_embeddings").get();
+
+                Embeddings.save(imagePath, imageEmbeddings, intermEmbeddings, env);
             }
 
-            OrtSession.Result result = decode(embeddings, pts, scale, lbls, inputSize);
+            OrtSession.Result decoderResult = decode(imageEmbeddings, intermEmbeddings, pointsArray, scale, labelsArray, inputSize);
 
             Mat mask = new Mat((int) inputSize[0], (int) inputSize[1], CV_8UC1);
-            float[][] output = ((float[][][][]) result.get("masks").get().getValue())[0][0];
+            float[][] output = ((float[][][][]) decoderResult.get("masks").get().getValue())[0][0];
 
             int rows = (int) inputSize[0];
             int cols = (int) inputSize[1];
@@ -105,6 +118,11 @@ public class SamHq {
             }
             stringArray.replace(stringArray.length() - 1, stringArray.length(), "]");
 
+            if (enconderResult != null) {
+                enconderResult.close();
+            }
+            decoderResult.close();
+
             return stringArray.toString();
 
         } catch (OrtException e) {
@@ -125,7 +143,7 @@ public class SamHq {
         return session.run(Collections.singletonMap("input_image", imageTensor));
     }
 
-    private OrtSession.Result decode(OrtSession.Result result, float[] points, float scale, float[] labels, float[] inputSize) throws OrtException {
+    private OrtSession.Result decode(OnnxTensor imageEmbeddings, OnnxTensor intermEmbeddings, float[] points, float scale, float[] labels, float[] inputSize) throws OrtException {
         float[] mask = new float[256 * 256];
         float[] hasMask = {0.0f};
 
@@ -140,8 +158,6 @@ public class SamHq {
             points[i] *= scale;
         }
 
-        OnnxTensor imageEmbeddings = (OnnxTensor) result.get("image_embeddings").get();
-        OnnxTensor intermEmbeddings = (OnnxTensor) result.get("interm_embeddings").get();
         OnnxTensor pointsCoords = OnnxTensor.createTensor(env, FloatBuffer.wrap(points), pointsShape);
         OnnxTensor pointsLabels = OnnxTensor.createTensor(env, FloatBuffer.wrap(labels), labelsShape);
         OnnxTensor maskInput = OnnxTensor.createTensor(env, FloatBuffer.wrap(mask), maskShape);
