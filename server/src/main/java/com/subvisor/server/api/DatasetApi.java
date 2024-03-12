@@ -1,8 +1,14 @@
 package com.subvisor.server.api;
 
 import com.subvisor.server.App;
-import com.subvisor.server.neuralnetwork.SamHq;
-import org.springframework.web.bind.annotation.*;
+import com.subvisor.server.neuralnetwork.Embeddings;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -60,10 +66,10 @@ public class DatasetApi {
         String realPath = Paths.get(DATASETS_PATH.toString(), path).toString();
         File[] images = new File(realPath).listFiles(file -> file.getName().endsWith(".jpg"));
 
-        SamHq.clearEmbeddings();
+        Embeddings.clearCache();
 
         if (images == null) {
-            return  new ArrayList<>();
+            return new ArrayList<>();
         }
 
         return Arrays.stream(images)
@@ -74,7 +80,7 @@ public class DatasetApi {
 
     // todo: the file content should actually be only the points, whe should make the file formatting in the backend
     @PostMapping("/save-annotation")
-      public void saveAnnotation(@RequestBody Map<String, String> payload) {
+    public void saveAnnotation(@RequestBody Map<String, String> payload) {
         // todo: change it to a class or serializer
         String path = payload.get("path");
         String className = payload.get("className");
@@ -84,7 +90,7 @@ public class DatasetApi {
         Path dirPath = Paths.get(DATASETS_PATH.toString(), path, className);
         try {
             Files.createDirectories(dirPath);
-            File file = new File( dirPath + "/" + fileName);
+            File file = new File(dirPath + "/" + fileName);
             FileWriter fw = new FileWriter(file.getAbsoluteFile());
             BufferedWriter bw = new BufferedWriter(fw);
             bw.write(fileContent);
