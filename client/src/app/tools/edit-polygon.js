@@ -7,6 +7,7 @@ export class EditPolygon extends AbstractTool {
     _hasMoved = false;
     _buttonId = -1;
     _moveStart = { x: -1, y: -1 };
+    _isCreating = false;
 
     constructor(renderer, hist) {
         super(renderer);
@@ -178,26 +179,39 @@ export class EditPolygon extends AbstractTool {
             return;
         }
 
-        if (!this.renderer.annotations || this._buttonId !== MOUSE.left) {
+        if (this._buttonId !== MOUSE.left) {
             return;
         }
 
-        for (const annotation of this.renderer.annotations) {
-            if (
-                annotation.path &&
-                this.renderer.focused !== annotation &&
-                this.renderer.context.isPointInPath(
-                    annotation.path,
-                    event.offsetX,
-                    event.offsetY
-                )
-            ) {
-                this.renderer.selection.clear();
-                this.renderer.focused = annotation;
-                this.renderer.render();
-                classes.current = annotation.class;
-                return;
+        if (this.renderer.annotations) {
+            for (const annotation of this.renderer.annotations) {
+                if (
+                    annotation.path &&
+                    this.renderer.focused !== annotation &&
+                    this.renderer.context.isPointInPath(
+                        annotation.path,
+                        event.offsetX,
+                        event.offsetY
+                    )
+                ) {
+                    this.renderer.selection.clear();
+                    this.renderer.focused = annotation;
+                    this.renderer.render();
+                    classes.current = annotation.class;
+                    return;
+                }
             }
+        }
+        if (!this.renderer.focused) {
+            const newAnnotation = {
+                class: classes.current || "default",
+                points: [],
+            };
+
+            this._isCreating = true;
+            this.renderer.annotations.push(newAnnotation);
+            this.renderer.focused = newAnnotation;
+            classes.current = newAnnotation.class;
         }
 
         const newPoint = { x: event.offsetX, y: event.offsetY };
@@ -208,6 +222,16 @@ export class EditPolygon extends AbstractTool {
         const key = event.key.toLowerCase();
 
         switch (key) {
+            case "escape": {
+                this._isCreating = false;
+                break;
+            }
+
+            case "enter": {
+                this._isCreating = false;
+                break;
+            }
+
             case "backspace":
             case "delete": {
                 this._rmPoint();

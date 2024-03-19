@@ -109,51 +109,6 @@ function draw() {
                 path.closePath();
                 ctx.fill(path);
             }
-
-            const pointColors = annClass.points?.colors || annClass.color;
-            // only show points from focused annotation
-            if (focused === ann) {
-                let dir;
-
-                // draw selection
-                ctx.fillStyle = SELECTION_COLOR;
-                for (let i = 0; i < selection.length; i++) {
-                    win2canvas(selection.get(i), ctxPoint);
-
-                    ctx.beginPath();
-                    ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
-                    ctx.fill();
-                }
-
-                // draw points
-                for (let i = 0; i < points.length; i++) {
-                    ctx.strokeStyle = pointColors[i % pointColors.length];
-                    ctx.lineWidth = 3;
-                    win2canvas(points[i], ctxPoint);
-                    ctx.beginPath();
-                    ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
-                    ctx.stroke();
-
-                    if (annClass.points?.showNumber) {
-                        ctx.font = "20px sans";
-                        ctx.textAlign = "center";
-                        ctx.textBaseline = "baseline";
-
-                        ctx.fillStyle = ctx.strokeStyle;
-                        win2canvas(points[i], ctxPoint);
-                        dir = l2Norm(
-                            points[i].x - ann.center.x,
-                            points[i].y - ann.center.y
-                        );
-
-                        ctx.fillText(
-                            (i + 1).toString(),
-                            ctxPoint.x + dir.x * (RADIUS << 2),
-                            ctxPoint.y + dir.y * (RADIUS << 2)
-                        );
-                    }
-                }
-            }
         }
     }
 
@@ -213,6 +168,69 @@ function draw() {
         ctx.beginPath();
         ctx.arc(corner2.x, corner2.y, RADIUS, START_ARC, END_ARC);
         ctx.stroke();
+    }
+
+    // only show points from focused annotation
+    if (focused) {
+        annClass = classes[focused.class];
+        points = focused.points;
+
+        if (showPoints || showRoi) {
+            ctx.strokeStyle = annClass.color;
+            ctx.lineWidth = 3;
+
+            win2canvas(points[0], ctxPoint);
+            ctx.beginPath();
+            ctx.moveTo(ctxPoint.x, ctx.y);
+            for (let i = 0; i < points.length; i++) {
+                win2canvas(points[i], ctxPoint);
+                ctx.lineTo(ctxPoint.x, ctxPoint.y);
+            }
+            win2canvas(points[0], ctxPoint);
+            ctx.lineTo(ctxPoint.x, ctxPoint.y);
+            ctx.stroke();
+        } else {
+            // draw selection
+            ctx.fillStyle = SELECTION_COLOR;
+            for (let i = 0; i < selection.length; i++) {
+                win2canvas(selection.get(i), ctxPoint);
+
+                ctx.beginPath();
+                ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
+                ctx.fill();
+            }
+
+            // draw points
+            let dir;
+            const pointColors = annClass.points?.colors || annClass.color;
+            for (let i = 0; i < points.length; i++) {
+                ctx.strokeStyle = pointColors[i % pointColors.length];
+                ctx.lineWidth = 3;
+                win2canvas(points[i], ctxPoint);
+                ctx.beginPath();
+                ctx.arc(ctxPoint.x, ctxPoint.y, RADIUS, START_ARC, END_ARC);
+                ctx.stroke();
+
+                if (annClass.points?.showNumber) {
+                    ctx.font = "20px sans";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "baseline";
+
+                    ctx.fillStyle = ctx.strokeStyle;
+                    win2canvas(points[i], ctxPoint);
+                    dir = l2Norm(
+                        points[i].x - focused.center.x,
+                        points[i].y - focused.center.y
+                    );
+
+                    ctx.fillText(
+                        (i + 1).toString(),
+                        ctxPoint.x + dir.x * (RADIUS << 2),
+                        ctxPoint.y + dir.y * (RADIUS << 2)
+                    );
+                }
+            }
+        }
     }
 
     // draw hovered point

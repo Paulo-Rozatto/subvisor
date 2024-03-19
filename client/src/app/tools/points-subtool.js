@@ -18,7 +18,9 @@ export class PointsSubTool extends AbstractTool {
 
     onPointerDown(event) {
         this._buttonId = event.buttons;
+
         if (this._buttonId !== MOUSE.left) {
+            this._hasMoved = false;
             return;
         }
 
@@ -34,6 +36,8 @@ export class PointsSubTool extends AbstractTool {
     }
 
     onPointerMove(event) {
+        this._hasMoved = true;
+
         if (!this.renderer.hovered || !this._isGrabbing) {
             this.updateHover(event.offsetX, event.offsetY);
             return;
@@ -43,14 +47,19 @@ export class PointsSubTool extends AbstractTool {
             { x: event.offsetX, y: event.offsetY },
             this.renderer.hovered
         );
-        this._hasMoved = true;
 
         this.renderer.render();
     }
 
     onPointerUp(event) {
+        const newPoint = { x: event.offsetX, y: event.offsetY };
+
         if (this._buttonId !== MOUSE.left) {
-            return;
+            if (!this._hasMoved) {
+                newPoint.isBackground = true;
+            } else {
+                return;
+            }
         }
 
         if (this._isGrabbing) {
@@ -59,15 +68,32 @@ export class PointsSubTool extends AbstractTool {
             return;
         }
 
-        const newPoint = { x: event.offsetX, y: event.offsetY };
-        this.renderer.canvas2win(newPoint, newPoint);
-
-        if (event.ctrlKey) {
-            newPoint.isBackground = true;
+        if (this.renderer.annotations) {
+            for (const annotation of this.renderer.annotations) {
+                if (
+                    annotation.path &&
+                    this.renderer.focused !== annotation &&
+                    this.renderer.context.isPointInPath(
+                        annotation.path,
+                        event.offsetX,
+                        event.offsetY
+                    )
+                ) {
+                    this.renderer.selection.clear();
+                    this.renderer.focused = annotation;
+                    this.renderer.render();
+                    classes.current = annotation.class;
+                    return;
+                }
+            }
         }
 
+        this.renderer.canvas2win(newPoint, newPoint);
+
+        this._hasMoved = false;
         this.renderer.predPoints.push(newPoint);
         this.renderer.selection.set(newPoint);
+        this.renderer.render();
     }
 
     onKeyDown(event) {

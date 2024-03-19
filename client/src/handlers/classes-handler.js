@@ -78,13 +78,17 @@ async function predictAnnotation(points, isBox) {
         return;
     }
 
-    const ann = IMAGE_MAP[fileName].annotations.find(
-        (ann) => ann.class === "leaf"
-    );
+    let ann;
+    if (renderer.focused) {
+        ann = renderer.focused;
+    } else {
+        ann = { class: current || "default" };
+        IMAGE_MAP[fileName].annotations.push(ann);
+    }
     ann.points = newPoints;
     const xml = parser.pointsToXml(leafName, fileName, ann);
     renderer.render();
-    saveXml(currentPath, "leaf", fileName.replace(".jpg", ".xml"), xml);
+    saveXml(currentPath, ann.class, fileName.replace(".jpg", ".xml"), xml);
 }
 
 saveClassesButton.addEventListener("click", swithClass);
