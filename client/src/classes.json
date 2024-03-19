@@ -1,4 +1,10 @@
 {
+    "default": {
+        "color": "#e0e0e0",
+        "points": {
+            "colors": ["#a0a0a0"]
+        }
+    },
     "marker": {
         "color": "#00c8c8",
         "script": "",

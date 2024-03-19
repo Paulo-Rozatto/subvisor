@@ -10,7 +10,7 @@ const datasetsList = document.querySelector("#datasets-list");
 const datasetsPick = document.querySelector("#datasets-pick");
 const imageList = document.querySelector(".image-list");
 
-export let currentPath;
+export let currentPath = "";
 export let selected;
 
 function saveAnnotations() {
