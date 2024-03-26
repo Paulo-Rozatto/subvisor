@@ -1,6 +1,7 @@
 import * as API from "../api-consumer.js";
 import { IMAGE_MAP, loadBackendImage } from "../app/app.js";
 import { resetTimer, updateLengthInfo } from "./infos-handler.js";
+import { ClassesHandler } from "./classes-handler.js";
 import { modalToggle } from "../utils.js";
 import { DefaultParser as parser } from "../app/default-parser.js";
 
@@ -10,6 +11,7 @@ const datasetsList = document.querySelector("#datasets-list");
 const datasetsPick = document.querySelector("#datasets-pick");
 const imageList = document.querySelector(".image-list");
 
+export let openPath = "";
 export let currentPath = "";
 export let selected;
 
@@ -97,7 +99,16 @@ async function showDatasets() {
 
 async function pickDataset() {
     const path = currentPath || "";
-    const imageNames = (await API.fetchImageList(path)) || [];
+    const datasetInfo = await API.fetchDatasetInfo(path);
+
+    let configs = {};
+    if (datasetInfo.configString) {
+        configs = JSON.parse(datasetInfo.configString);
+    }
+    const classes = configs.classes || {};
+    const imageNames = datasetInfo.imageList;
+
+    ClassesHandler.setClasses(classes);
 
     const leafName = path.split("/").reverse()[0];
     document.querySelector("#title").innerHTML = leafName;
@@ -129,6 +140,7 @@ async function pickDataset() {
     imageList.innerHTML = "";
     imageList.append(fragment);
 
+    openPath = path;
     loadBackendImage(path, imageNames[0], updateLengthInfo);
     modalToggle(datasetsModal);
     resetTimer();

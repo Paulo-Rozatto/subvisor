@@ -151,6 +151,25 @@ aside {
     border-bottom: 1px solid $hover;
 }
 
+.class-form {
+    font-size: 1.1rem;
+    
+    .body  {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .inline {
+        display: flex;
+        gap: 5px;
+
+        button {
+            width: 6rem;
+        }
+    }
+}
+
 // components
 .btn {
     font-size: 0.9rem;
@@ -175,6 +194,12 @@ aside {
     border-radius: 50%;
     min-width: 0;
     width: auto;
+
+    i {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 }
 
 .btn-selected {
@@ -233,6 +258,32 @@ aside {
     background-color: transparent;
     border-bottom: 1px solid $hover;
 }
+
+#classes-wrapper {
+    display: flex;
+    align-items: center;
+    font-size: 1.1rem;
+    height: 40px;
+    min-height: 40px;
+    padding: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+
+    span {
+        flex-grow: 1;
+        padding-left: 7px;
+    }
+}
+
+#classes-wrapper:hover {
+    color: $base;
+    background-color: $selection;
+}
+
+#toggle-new-class{
+    cursor: pointer;
+}
+
 
 //configs
 .selected {
@@ -338,6 +389,11 @@ aside {
 
     .modal u {
         color: $dark-hover;
+    }
+
+    #classes-wrapper:hover {
+        color: $dark-primary;
+        background-color: $dark-hover;
     }
 }
 

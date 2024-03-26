@@ -1,29 +1,60 @@
-import { annotateLeaf, saveXml } from "../api-consumer";
-import { currentPath, selected } from "./dataset-load-handler";
-import CLASSES from "../classes.json";
+import { annotateLeaf, saveConfig, saveXml } from "../api-consumer";
+import { openPath, selected } from "./dataset-load-handler";
 import { IMAGE_MAP } from "../app/app";
 import { modalToggle } from "../utils";
 import { DefaultParser as parser } from "../app/default-parser";
 import { Renderer as renderer } from "../app/renderer";
 
 let current = "";
+let last = "";
+let classes = {};
+
+const defaultClass = {
+    color: "#e0e0e0",
+    points: {
+        colors: ["#a0a0a0"],
+    },
+};
 
 const classesDisplay = document.querySelector("#classes-display");
 const classesSelect = document.querySelector("#classes-select");
 const classesModal = document.querySelector("#classes-modal");
 const saveClassesButton = document.querySelector("#save-classes");
 
+const toggleNewClassButton = document.querySelector("#toggle-new-class");
+const newClassBody = document.querySelector("#new-class-body");
+const addClassButton = document.querySelector("#add-new-class");
+const classNameInput = document.querySelector("#input-class-name");
+const classColorInput = document.querySelector("#input-class-color");
+const pointColorInput = document.querySelector("#input-point-color");
+const pointLimitInput = document.querySelector("#input-point-limit");
+const showNumbersRadio = document.querySelector("#radio-show-numbers");
+
+function resetNewClassFields() {
+    newClassBody.classList.add("hide");
+
+    for (const field of [
+        classNameInput,
+        classColorInput,
+        pointColorInput,
+        pointLimitInput,
+    ]) {
+        field.value = "";
+    }
+}
+
 function setCurrent(newClass) {
     if (newClass === "") {
-        classesDisplay.innerText = "-";
+        classesDisplay.innerText = "---";
         current = "";
     }
 
-    if (!CLASSES[newClass]) {
+    if (!classes[newClass]) {
         return;
     }
 
     current = newClass;
+    last = newClass;
     classesDisplay.innerText = newClass;
 }
 
@@ -33,11 +64,14 @@ function openClassesModal() {
     }
 
     classesSelect.value = current;
+    resetNewClassFields();
     modalToggle(classesModal);
 }
 
 function swithClass(event) {
     event.preventDefault();
+
+    modalToggle(classesModal);
 
     if (classesSelect.value === current || !renderer.focused) {
         return;
@@ -49,13 +83,49 @@ function swithClass(event) {
         renderer.focused.class = current;
         renderer.render();
     }
+}
 
-    modalToggle(classesModal);
+function addNewClass(event) {
+    event.preventDefault();
+    const missing = [];
+
+    for (const field of [classNameInput, classColorInput, pointColorInput]) {
+        if (!field.value) {
+            missing.append(document.querySelector('[for="foobar"]').innerText);
+        }
+    }
+
+    if (missing.length > 0) {
+        alert("Os seguintes campos são obrigatórios: " + missing.join(","));
+        return;
+    }
+
+    const className = classNameInput.value.trim();
+    classes[className] = {
+        color: classColorInput.value,
+        points: {
+            colors: pointColorInput.value.split(";").map((e) => e.trim()),
+            limit: parseInt(pointLimitInput.value),
+            showNumber: showNumbersRadio.checked,
+        },
+    };
+
+    saveConfig(openPath, { classes });
+
+    const defaultEl = document.createElement("option");
+    defaultEl.innerText = className;
+    defaultEl.value = className;
+    defaultEl.disabled = true;
+
+    classesSelect.append(defaultEl);
+
+    classesSelect.value = className;
+    swithClass(event);
 }
 
 async function predictAnnotation(points, isBox) {
     const fileName = selected.innerText + ".jpg";
-    const filePath = currentPath + "/" + fileName;
+    const filePath = openPath + "/" + fileName;
     const leafName = document.querySelector("#title").innerText;
 
     if (isBox) {
@@ -88,25 +158,44 @@ async function predictAnnotation(points, isBox) {
     ann.points = newPoints;
     const xml = parser.pointsToXml(leafName, fileName, ann);
     renderer.render();
-    saveXml(currentPath, ann.class, fileName.replace(".jpg", ".xml"), xml);
+    saveXml(openPath, ann.class, fileName.replace(".jpg", ".xml"), xml);
 }
 
 saveClassesButton.addEventListener("click", swithClass);
+addClassButton.addEventListener("click", addNewClass);
 classesDisplay.parentElement.addEventListener("click", openClassesModal);
 
-(() => {
+toggleNewClassButton.addEventListener("click", () =>
+    newClassBody.classList.toggle("hide")
+);
+
+function setClasses(newClasses) {
+    classes = newClasses;
+    classes.default = defaultClass;
+
     const fragment = new DocumentFragment();
-    for (const _class in CLASSES) {
+
+    const defaultEl = document.createElement("option");
+    defaultEl.innerText = "default";
+    defaultEl.value = "default";
+    defaultEl.disabled = true;
+    fragment.append(defaultEl);
+
+    for (const className of Object.keys(classes).sort()) {
+        if (className === "default") {
+            continue;
+        }
+
         const element = document.createElement("option");
-        element.innerText = _class;
-        element.value = _class;
+        element.innerText = className;
+        element.value = className;
         fragment.append(element);
     }
     classesSelect.append(fragment);
-})();
+}
 
 export const ClassesHandler = {
-    ...CLASSES,
+    setClasses,
     predictAnnotation,
 
     get current() {
@@ -114,5 +203,13 @@ export const ClassesHandler = {
     },
     set current(newClass) {
         setCurrent(newClass);
+    },
+
+    get last() {
+        return last;
+    },
+
+    get(className) {
+        return classes[className];
     },
 };
