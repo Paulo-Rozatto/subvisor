@@ -1,7 +1,11 @@
 package com.subvisor.server.api;
 
 import com.subvisor.server.App;
+import com.subvisor.server.models.ConfigUpdateMessage;
+import com.subvisor.server.models.DatasetInfo;
 import com.subvisor.server.neuralnetwork.Embeddings;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,8 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,6 +32,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/datasets")
 @CrossOrigin(origins = "http://localhost:1234")
+@Slf4j
 public class DatasetApi {
     private static final Path DATASETS_PATH = Paths.get(App.DATA_DIR_PATH, "datasets");
     private static final String PATH_REGEX = "{path:(?:\\w/?)+}";
@@ -61,21 +68,36 @@ public class DatasetApi {
                 .collect(Collectors.toList());
     }
 
-    @GetMapping("/image-list")
-    public List<String> getImageList(@RequestParam String path) {
+    @GetMapping("/dataset-info")
+    public DatasetInfo getImageList(@RequestParam String path) {
         String realPath = Paths.get(DATASETS_PATH.toString(), path).toString();
         File[] images = new File(realPath).listFiles(file -> file.getName().endsWith(".jpg"));
 
-        Embeddings.clearCache();
-
         if (images == null) {
-            return new ArrayList<>();
+            return null;
         }
 
-        return Arrays.stream(images)
+        List<String> imagesList = Arrays.stream(images)
                 .map(File::getName)
                 .sorted()
-                .collect(Collectors.toList());
+                .toList();
+
+        String rootPath = Paths.get(path).getName(0).toString();
+        String configPath = Paths.get(DATASETS_PATH.toString(), rootPath, "config.json").toString();
+        File configFile = new File(configPath);
+        String configs = "";
+
+        if (configFile.isFile() && !configFile.isDirectory()) {
+            try {
+                configs = FileUtils.readFileToString(configFile, "utf-8");
+            } catch (IOException e) {
+                log.info("Couldn't find config file: " + configPath);
+            }
+        }
+
+        Embeddings.clearCache();
+
+        return new DatasetInfo(configs, imagesList);
     }
 
     // todo: the file content should actually be only the points, whe should make the file formatting in the backend
@@ -99,5 +121,18 @@ public class DatasetApi {
             throw new RuntimeException(e);
         }
 
+    }
+
+    @PostMapping("/save-config")
+    public void saveConfig(@RequestBody ConfigUpdateMessage payload) {
+        String rootPath = Paths.get(payload.path()).getName(0).toString();
+        String configPath = Paths.get(DATASETS_PATH.toString(), rootPath, "config.json").toString();
+        File configFile = new File(configPath);
+
+        try {
+            FileUtils.writeStringToFile(configFile, payload.configString(), "utf-8");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

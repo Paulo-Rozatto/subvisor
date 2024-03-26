@@ -1,23 +1,25 @@
 {
-    "default": {
-        "color": "#e0e0e0",
-        "points": {
-            "colors": ["#a0a0a0"]
-        }
-    },
-    "marker": {
-        "color": "#00c8c8",
-        "script": "",
-        "points": {
-            "showNumber": true,
-            "colors": ["#f00", "#070", "#00f", "#950"],
-            "limit": 4
-        }
-    },
-    "leaf": {
-        "color": "#c80000",
-        "points": {
-            "colors": ["#f00"]
+    "classes": {
+        "default": {
+            "color": "#e0e0e0",
+            "points": {
+                "colors": ["#a0a0a0"]
+            }
+        },
+        "marker": {
+            "color": "#00c8c8",
+            "script": "",
+            "points": {
+                "showNumber": true,
+                "colors": ["#f00", "#070", "#00f", "#950"],
+                "limit": 4
+            }
+        },
+        "leaf": {
+            "color": "#c80000",
+            "points": {
+                "colors": ["#f00"]
+            }
         }
     }
 }

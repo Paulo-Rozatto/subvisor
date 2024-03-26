@@ -44,8 +44,10 @@ export async function fetchPath(path) {
     return await reponse.json();
 }
 
-export async function fetchImageList(path) {
-    const reponse = await fetch(`${API_URL}/datasets/image-list?path=${path}`);
+export async function fetchDatasetInfo(path) {
+    const reponse = await fetch(
+        `${API_URL}/datasets/dataset-info?path=${path}`
+    );
     return await reponse.json();
 }
 
@@ -58,5 +60,17 @@ export async function saveXml(path, className, fileName, fileContent) {
             "Content-Type": "application/json",
         },
         body: JSON.stringify({ path, className, fileName, fileContent }),
+    });
+}
+
+export async function saveConfig(path, config) {
+    // todo: treat exceptions
+    await fetch(`${API_URL}/datasets/save-config`, {
+        method: "POST",
+        headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ path, configString: JSON.stringify(config) }),
     });
 }

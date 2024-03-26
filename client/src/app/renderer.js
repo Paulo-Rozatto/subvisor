@@ -88,7 +88,7 @@ function draw() {
                 ann.dirty = false;
             }
 
-            annClass = classes[ann.class];
+            annClass = classes.get(ann.class);
             points = ann.points;
             ctx.fillStyle = annClass.color + settings.opacityHex;
 
@@ -172,7 +172,7 @@ function draw() {
 
     // only show points from focused annotation
     if (focused) {
-        annClass = classes[focused.class];
+        annClass = classes.get(focused.class);
         points = focused.points;
 
         if (showPoints || showRoi) {

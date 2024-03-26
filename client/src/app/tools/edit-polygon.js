@@ -21,7 +21,7 @@ export class EditPolygon extends AbstractTool {
         if (!this.renderer.focused || !this.renderer.showAnnotations) {
             return;
         }
-        const limit = classes[annotation.class].points.limit;
+        const limit = classes.get(annotation.class).points.limit;
         const points = annotation.points;
 
         if (limit && points.length >= limit) {
@@ -204,7 +204,7 @@ export class EditPolygon extends AbstractTool {
         }
         if (!this.renderer.focused) {
             const newAnnotation = {
-                class: classes.current || "default",
+                class: classes.last || "default",
                 points: [],
             };
 

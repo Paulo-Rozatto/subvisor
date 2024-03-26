@@ -5,7 +5,6 @@ import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
 import ai.onnxruntime.OrtSession;
 import com.subvisor.server.models.EmbeddingPair;
-import lombok.extern.slf4j.Slf4j;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
@@ -26,7 +25,6 @@ import java.util.Optional;
 import static org.opencv.core.CvType.CV_32F;
 import static org.opencv.core.CvType.CV_8UC1;
 
-@Slf4j
 public class SamHq {
     final private OrtEnvironment env;
     final private OrtSession session;
