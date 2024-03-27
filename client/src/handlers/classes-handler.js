@@ -59,10 +59,6 @@ function setCurrent(newClass) {
 }
 
 function openClassesModal() {
-    if (!current) {
-        return;
-    }
-
     classesSelect.value = current;
     resetNewClassFields();
     modalToggle(classesModal);
@@ -79,7 +75,7 @@ function swithClass(event) {
 
     setCurrent(classesSelect.value);
 
-    if (current) {
+    if (current && renderer.focused) {
         renderer.focused.class = current;
         renderer.render();
     }
@@ -91,12 +87,14 @@ function addNewClass(event) {
 
     for (const field of [classNameInput, classColorInput, pointColorInput]) {
         if (!field.value) {
-            missing.append(document.querySelector('[for="foobar"]').innerText);
+            missing.push(
+                document.querySelector(`[for="${field.id}"]`).innerText
+            );
         }
     }
 
     if (missing.length > 0) {
-        alert("Os seguintes campos são obrigatórios: " + missing.join(","));
+        alert("Os seguintes campos são obrigatórios: " + missing.join(", "));
         return;
     }
 
@@ -115,9 +113,10 @@ function addNewClass(event) {
     const defaultEl = document.createElement("option");
     defaultEl.innerText = className;
     defaultEl.value = className;
-    defaultEl.disabled = true;
 
-    classesSelect.append(defaultEl);
+    const fragment = new DocumentFragment();
+    fragment.append(defaultEl);
+    classesSelect.append(fragment);
 
     classesSelect.value = className;
     swithClass(event);
@@ -172,6 +171,7 @@ toggleNewClassButton.addEventListener("click", () =>
 function setClasses(newClasses) {
     classes = newClasses;
     classes.default = defaultClass;
+    classesSelect.textContent = "";
 
     const fragment = new DocumentFragment();
 
@@ -203,6 +203,10 @@ export const ClassesHandler = {
     },
     set current(newClass) {
         setCurrent(newClass);
+    },
+
+    get default() {
+        return defaultClass;
     },
 
     get last() {
