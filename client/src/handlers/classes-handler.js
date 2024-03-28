@@ -155,9 +155,14 @@ async function predictAnnotation(points, isBox) {
         IMAGE_MAP[fileName].annotations.push(ann);
     }
     ann.points = newPoints;
-    const xml = parser.pointsToXml(leafName, fileName, ann);
     renderer.render();
-    saveXml(openPath, ann.class, fileName.replace(".jpg", ".xml"), xml);
+
+    const xml = parser.annotationsToXml(
+        leafName,
+        fileName,
+        IMAGE_MAP[fileName].annotations
+    );
+    saveXml(openPath, "annotations", fileName.replace(".jpg", ".xml"), xml);
 }
 
 saveClassesButton.addEventListener("click", swithClass);

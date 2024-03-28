@@ -41,8 +41,13 @@ public class Embeddings {
 
         String imageEmbedPath = imagePath.replace("datasets", "embeddings").replace(".jpg", ".emb");
 
-        try (FileOutputStream fileOutputStream = new FileOutputStream(imageEmbedPath)) {
+        try {
             Files.createDirectories(Path.of(imageEmbedPath).getParent());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        try (FileOutputStream fileOutputStream = new FileOutputStream(imageEmbedPath)) {
             fileOutputStream.write(imageEmbeddings.getByteBuffer().array());
         } catch (IOException e) {
             throw new RuntimeException(e);

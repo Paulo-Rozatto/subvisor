@@ -1,6 +1,61 @@
 import { SERVER_URL } from "../api-consumer";
 
-const BEAN_LEAF_NORMALIZER = 4624;
+const NORMALIZER = 4624;
+
+async function parse(path, imageName) {
+    const src = `${SERVER_URL}/datasets/${path}/${imageName}`;
+    const xmlName = imageName.replace(".jpg", ".xml");
+    const xmlPath = `${SERVER_URL}/datasets/${path}/annotations/${xmlName}`;
+    const response = await fetch(xmlPath);
+
+    const parsedImage = {
+        src,
+        annotations: [],
+        filePath: src.split("datasets")[1],
+    };
+
+    if (!response.ok) {
+        console.error(
+            `ERROR ${response.status}: ${response.statusText}, request: ${response.url}`
+        );
+        return parsedImage;
+    }
+
+    const fileText = await response.text();
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(fileText, "text/xml");
+    const errorNode = xml.querySelector("parsererror");
+
+    if (errorNode) {
+        console.error(
+            `ERRO: falha ao tentar passar para xml o arquivo ${fileText}`,
+            errorNode
+        );
+        return parsedImage;
+    }
+
+    const objects = xml.getElementsByTagName("objects")[0];
+    if (!objects) {
+        console.error(`ERRO: ${path} não tem tag <objects>`);
+        return [];
+    }
+
+    const elements = objects.children;
+    for (const el of elements) {
+        const points = [];
+
+        for (let i = 0; i < el.children.length; i += 2) {
+            points.push({
+                x: parseFloat(el.children[i].textContent) * NORMALIZER,
+                y: parseFloat(el.children[i + 1].textContent) * NORMALIZER,
+            });
+        }
+
+        parsedImage.annotations.push({ class: el.tagName, points });
+    }
+
+    return parsedImage;
+}
 
 async function loadXml(path, tagName) {
     const response = await fetch(path);
@@ -35,8 +90,8 @@ async function loadXml(path, tagName) {
     const points = [];
     for (let i = 0; i < children.length; i += 2) {
         const point = {
-            x: parseFloat(children[i].textContent) * BEAN_LEAF_NORMALIZER,
-            y: parseFloat(children[i + 1].textContent) * BEAN_LEAF_NORMALIZER,
+            x: parseFloat(children[i].textContent) * NORMALIZER,
+            y: parseFloat(children[i + 1].textContent) * NORMALIZER,
         };
         points.push(point);
     }
@@ -82,12 +137,8 @@ function pointsFromEntry(entry, tagName) {
                 const pts = [];
                 for (let i = 0; i < corners.length; i += 2) {
                     const point = {
-                        x:
-                            parseFloat(corners[i].textContent) *
-                            BEAN_LEAF_NORMALIZER,
-                        y:
-                            parseFloat(corners[i + 1].textContent) *
-                            BEAN_LEAF_NORMALIZER,
+                        x: parseFloat(corners[i].textContent) * NORMALIZER,
+                        y: parseFloat(corners[i + 1].textContent) * NORMALIZER,
                     };
                     pts.push(point);
                 }
@@ -99,6 +150,39 @@ function pointsFromEntry(entry, tagName) {
     });
 }
 
+export function annotationsToXml(dirName, imageName, annotations) {
+    const arr = [];
+
+    for (const annotation of annotations) {
+        const points = annotation.points;
+        const className = annotation.class;
+
+        const space1 = " ".repeat(6);
+        const space2 = " ".repeat(8);
+        let coordinates = "";
+
+        for (let i = 0; i < points.length; i++) {
+            const x = `${space1}<x${i + 1}>${points[i].x / NORMALIZER}</x${
+                i + 1
+            }>\n`;
+            const y = `${space2}<y${i + 1}>${points[i].y / NORMALIZER}</y${
+                i + 1
+            }>\n`;
+            coordinates += x + y;
+        }
+
+        arr.push(`    <${className}>\n${coordinates}    </${className}>`);
+    }
+
+    return `<annotation>
+  <dir>${dirName}</dir>
+  <filename>${imageName}</filename>
+  <objects>
+${arr.join("\n")}
+  </objects>
+</annotation>`.trimStart();
+}
+
 export function pointsToXml(leafName, imgName, annotation) {
     const points = annotation.points;
     const tag = annotation.class === "marker" ? "corners" : "points";
@@ -108,12 +192,12 @@ export function pointsToXml(leafName, imgName, annotation) {
     let coordinates = "";
 
     for (let i = 0; i < points.length; i++) {
-        const x = `${space1}<x${i + 1}>${
-            points[i].x / BEAN_LEAF_NORMALIZER
-        }</x${i + 1}>\n`;
-        const y = `${space2}<y${i + 1}>${
-            points[i].y / BEAN_LEAF_NORMALIZER
-        }</y${i + 1}>\n`;
+        const x = `${space1}<x${i + 1}>${points[i].x / NORMALIZER}</x${
+            i + 1
+        }>\n`;
+        const y = `${space2}<y${i + 1}>${points[i].y / NORMALIZER}</y${
+            i + 1
+        }>\n`;
         coordinates += x + y;
     }
 
@@ -128,4 +212,10 @@ ${coordinates.trimEnd()}
 </annotation>`.trimStart();
 }
 
-export const DefaultParser = { parseBeanLeaf, pointsToXml, pointsFromEntry };
+export const DefaultParser = {
+    parse,
+    parseBeanLeaf,
+    pointsToXml,
+    annotationsToXml,
+    pointsFromEntry,
+};
