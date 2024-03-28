@@ -25,10 +25,8 @@ function saveAnnotations() {
     const img = IMAGE_MAP[imgName];
     const leafName = document.querySelector("#title").innerText;
 
-    for (const annotation of img.annotations) {
-        const xml = parser.pointsToXml(leafName, imgName, annotation);
-        API.saveXml(currentPath, annotation.class, fileName + ".xml", xml);
-    }
+    const xml = parser.annotationsToXml(leafName, imgName, img.annotations);
+    API.saveXml(openPath, "annotations", fileName + ".xml", xml);
 }
 
 async function enterDir(event) {

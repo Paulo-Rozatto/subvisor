@@ -62,7 +62,7 @@ export async function loadBackendImage(path, imageName, callback) {
         return;
     }
 
-    const image = await parser.parseBeanLeaf(path, imageName);
+    const image = await parser.parse(path, imageName);
 
     if (!image) {
         console.error(`Can't load image ${path}`);
