@@ -50,6 +50,27 @@ export function pointToSegment(target, p1, p2) {
     return l1Distance(target, closerPt);
 }
 
+export function getArea(polygon) {
+    if (polygon?.length === 0) {
+        return;
+    }
+
+    let totalArea = 0;
+
+    for (let i = 0; i < polygon.length; i++) {
+        const currentVertex = polygon[i];
+        const nextVertex = polygon[(i + 1) % polygon.length];
+
+        const partialArea =
+            currentVertex.x * nextVertex.y - nextVertex.x * currentVertex.y;
+        totalArea += partialArea;
+    }
+
+    totalArea *= 0.5;
+
+    return Math.abs(totalArea);
+}
+
 export function getCenterOfMass(polygon) {
     if (polygon?.length === 0) {
         return;
@@ -106,6 +127,12 @@ export function findMinMaxPoints(polygon) {
     }
 
     return { min, max };
+}
+
+export function getBoudingBox(polygon) {
+    const { min, max } = findMinMaxPoints(polygon);
+
+    return [min.x, min.y, max.x - min.x, max.y - min.y];
 }
 
 // i'm not really using this now, maybe remove?

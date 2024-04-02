@@ -19,6 +19,10 @@ async function download() {
         folder.file(xmlName, xml);
     }
 
+    const cocoFolder = zip.folder("coco");
+    const coco = parser.annotationsToCoco(leafName, IMAGE_MAP);
+    cocoFolder.file(leafName + "-coco.json", coco);
+
     const content = await zip.generateAsync({ type: "blob" });
     saveAs(content, `${leafName}.zip`);
 }

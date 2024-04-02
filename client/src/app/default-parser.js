@@ -1,3 +1,5 @@
+import { getArea, getBoudingBox } from "../utils";
+import { ClassesHandler } from "../handlers/classes-handler";
 import { SERVER_URL } from "../api-consumer";
 
 const NORMALIZER = 4624;
@@ -183,6 +185,72 @@ ${arr.join("\n")}
 </annotation>`.trimStart();
 }
 
+export function annotationsToCoco(dirName, imageMap) {
+    // todo: ask user to fill info
+    const info = {
+        year: 2024,
+        version: "2024-1.0",
+        description: "datset annotated with subvisor",
+        contributor: "",
+        url: "",
+        date_created: new Date(),
+    };
+
+    const licenses = [
+        {
+            id: 0,
+            name: "",
+            url: "",
+        },
+    ];
+
+    const images = [];
+    const annotations = [];
+    const categoriesNames = ClassesHandler.list;
+    const categories = categoriesNames.map((className, id) => ({
+        id,
+        name: className,
+        supercategory: className,
+    }));
+
+    let imgId = 0;
+    let annId = 0;
+    for (const imageName in imageMap) {
+        const img = imageMap[imageName];
+
+        const image = {
+            id: imgId,
+            width: img.src.width,
+            height: img.src.height,
+            file_name: imageName,
+            license: 0, // todo: choose license
+            flickr_url: "",
+            coco_url: "",
+            date_captured: "",
+        };
+
+        for (const ann of img.annotations) {
+            const annotation = {
+                id: annId,
+                image_id: imgId,
+                category_id: categoriesNames.indexOf(ann.class),
+                segmentation: [ann.points.flatMap((pt) => [pt.x, pt.y])],
+                area: getArea(ann.points),
+                bbox: getBoudingBox(ann.points),
+                iscrowd: 0,
+            };
+
+            annotations.push(annotation);
+            annId += 1;
+        }
+
+        images.push(image);
+        imgId += 1;
+    }
+
+    return JSON.stringify({ info, images, annotations, categories, licenses });
+}
+
 export function pointsToXml(leafName, imgName, annotation) {
     const points = annotation.points;
     const tag = annotation.class === "marker" ? "corners" : "points";
@@ -217,5 +285,6 @@ export const DefaultParser = {
     parseBeanLeaf,
     pointsToXml,
     annotationsToXml,
+    annotationsToCoco,
     pointsFromEntry,
 };
