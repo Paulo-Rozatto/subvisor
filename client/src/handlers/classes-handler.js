@@ -218,6 +218,10 @@ export const ClassesHandler = {
         return last;
     },
 
+    get list() {
+        return Object.keys(classes);
+    },
+
     get(className) {
         return classes[className];
     },
