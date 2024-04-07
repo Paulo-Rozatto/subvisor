@@ -360,10 +360,10 @@ function removeEventListener(eventName, callback) {
     canvas.removeEventListener(eventName, callback);
 }
 
-image.addEventListener("load", reset);
+// image.addEventListener("load", reset);
 
-canvas.addEventListener("contextmenu", (event) => event.preventDefault());
-canvas.addEventListener("wheel", zoomOnWheel);
+// canvas.addEventListener("contextmenu", (event) => event.preventDefault());
+// canvas.addEventListener("wheel", zoomOnWheel);
 
 export const Renderer = {
     render,

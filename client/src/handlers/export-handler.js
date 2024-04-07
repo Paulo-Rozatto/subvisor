@@ -1,4 +1,4 @@
-import { IMAGE_MAP } from "../app/app";
+import { IMAGE_LIST } from "../app";
 import JSZip from "jszip";
 import { DefaultParser as parser } from "../app/default-parser";
 import saveAs from "file-saver";
@@ -11,16 +11,20 @@ async function download() {
     const leafName = document.querySelector("#title").innerText;
     const folder = zip.folder("annotations");
 
-    for (const imgName in IMAGE_MAP) {
-        const img = IMAGE_MAP[imgName];
-        const xmlName = imgName.replace(".jpg", ".xml");
+    for (const image of IMAGE_LIST) {
+        const xmlName = image.name.replace(/(\.\w+)$/, ".xml");
 
-        const xml = parser.annotationsToXml(leafName, imgName, img.annotations);
+        console.log(image.annotations);
+        const xml = parser.annotationsToXml(
+            leafName,
+            image.name,
+            image.annotations
+        );
         folder.file(xmlName, xml);
     }
 
     const cocoFolder = zip.folder("coco");
-    const coco = parser.annotationsToCoco(leafName, IMAGE_MAP);
+    const coco = parser.annotationsToCoco(leafName, IMAGE_LIST);
     cocoFolder.file(leafName + "-coco.json", coco);
 
     const content = await zip.generateAsync({ type: "blob" });

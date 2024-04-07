@@ -65,12 +65,12 @@ export async function saveXml(path, className, fileName, fileContent) {
 
 export async function saveConfig(path, config) {
     // todo: treat exceptions
-    await fetch(`${API_URL}/datasets/save-config`, {
-        method: "POST",
-        headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ path, configString: JSON.stringify(config) }),
-    });
+    // await fetch(`${API_URL}/datasets/save-config`, {
+    //     method: "POST",
+    //     headers: {
+    //         Accept: "application/json",
+    //         "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify({ path, configString: JSON.stringify(config) }),
+    // });
 }

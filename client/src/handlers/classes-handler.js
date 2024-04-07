@@ -1,15 +1,15 @@
 import { annotateLeaf, saveConfig, saveXml } from "../api-consumer";
 import { openPath, selected } from "./dataset-load-handler";
-import { IMAGE_MAP } from "../app/app";
 import { modalToggle } from "../utils";
-import { DefaultParser as parser } from "../app/default-parser";
-import { Renderer as renderer } from "../app/renderer";
+// import { DefaultParser as parser } from "../app/default-parser";
+// import { Renderer as renderer } from "../app/renderer";
 
 let current = "";
 let last = "";
 let classes = {};
 
 const defaultClass = {
+    name: "default",
     color: "#e0e0e0",
     points: {
         colors: ["#a0a0a0"],
@@ -64,22 +64,22 @@ function openClassesModal() {
     modalToggle(classesModal);
 }
 
-function swithClass(event) {
-    event.preventDefault();
+// function swithClass(event) {
+//     event.preventDefault();
 
-    modalToggle(classesModal);
+//     modalToggle(classesModal);
 
-    if (classesSelect.value === current || !renderer.focused) {
-        return;
-    }
+//     if (classesSelect.value === current || !renderer.focused) {
+//         return;
+//     }
 
-    setCurrent(classesSelect.value);
+//     setCurrent(classesSelect.value);
 
-    if (current && renderer.focused) {
-        renderer.focused.class = current;
-        renderer.render();
-    }
-}
+//     if (current && renderer.focused) {
+//         renderer.focused.class = current;
+//         renderer.render();
+//     }
+// }
 
 function addNewClass(event) {
     event.preventDefault();
@@ -99,16 +99,17 @@ function addNewClass(event) {
     }
 
     const className = classNameInput.value.trim();
-    classes[className] = {
+    classes.push({
+        name: className,
         color: classColorInput.value,
         points: {
             colors: pointColorInput.value.split(";").map((e) => e.trim()),
             limit: parseInt(pointLimitInput.value),
             showNumber: showNumbersRadio.checked,
         },
-    };
+    });
 
-    saveConfig(openPath, { classes });
+    // saveConfig(openPath, { classes });
 
     const defaultEl = document.createElement("option");
     defaultEl.innerText = className;
@@ -119,53 +120,53 @@ function addNewClass(event) {
     classesSelect.append(fragment);
 
     classesSelect.value = className;
-    swithClass(event);
+    // swithClass(event);
 }
 
-async function predictAnnotation(points, isBox) {
-    const fileName = selected.innerText + ".jpg";
-    const filePath = openPath + "/" + fileName;
-    const leafName = document.querySelector("#title").innerText;
+// async function predictAnnotation(points, isBox) {
+//     const fileName = selected.innerText + ".jpg";
+//     const filePath = openPath + "/" + fileName;
+//     const leafName = document.querySelector("#title").innerText;
 
-    if (isBox) {
-        const topLeft = {
-            x: Math.min(points[0].x, points[1].x),
-            y: Math.min(points[0].y, points[1].y),
-        };
+//     if (isBox) {
+//         const topLeft = {
+//             x: Math.min(points[0].x, points[1].x),
+//             y: Math.min(points[0].y, points[1].y),
+//         };
 
-        const bottomRight = {
-            x: Math.max(points[0].x, points[1].x),
-            y: Math.max(points[0].y, points[1].y),
-        };
+//         const bottomRight = {
+//             x: Math.max(points[0].x, points[1].x),
+//             y: Math.max(points[0].y, points[1].y),
+//         };
 
-        points = [topLeft, bottomRight];
-    }
+//         points = [topLeft, bottomRight];
+//     }
 
-    const newPoints = await annotateLeaf(filePath, points, isBox);
+//     const newPoints = await annotateLeaf(filePath, points, isBox);
 
-    if (!newPoints) {
-        return;
-    }
+//     if (!newPoints) {
+//         return;
+//     }
 
-    let ann;
-    if (renderer.focused) {
-        ann = renderer.focused;
-    } else {
-        ann = { class: current || "default" };
-        IMAGE_MAP[fileName].annotations.push(ann);
-    }
-    ann.points = newPoints;
-    renderer.render();
+//     let ann;
+//     if (renderer.focused) {
+//         ann = renderer.focused;
+//     } else {
+//         ann = { class: current || "default" };
+//         IMAGE_MAP[fileName].annotations.push(ann);
+//     }
+//     ann.points = newPoints;
+//     renderer.render();
 
-    const xml = parser.annotationsToXml(
-        leafName,
-        fileName,
-        IMAGE_MAP[fileName].annotations
-    );
-    saveXml(openPath, "annotations", fileName.replace(".jpg", ".xml"), xml);
-}
+//     const xml = parser.annotationsToXml(
+//         leafName,
+//         fileName,
+//         IMAGE_MAP[fileName].annotations
+//     );
+//     saveXml(openPath, "annotations", fileName.replace(".jpg", ".xml"), xml);
+// }
 
-saveClassesButton.addEventListener("click", swithClass);
+// saveClassesButton.addEventListener("click", swithClass);
 addClassButton.addEventListener("click", addNewClass);
 classesDisplay.parentElement.addEventListener("click", openClassesModal);
 
@@ -175,7 +176,14 @@ toggleNewClassButton.addEventListener("click", () =>
 
 function setClasses(newClasses) {
     classes = newClasses;
-    classes.default = defaultClass;
+
+    const idx = classes.findIndex((c) => c.name === "default");
+    if (idx === -1) {
+        classes.push(defaultClass);
+    } else {
+        classes.splice(idx, 1, defaultClass);
+    }
+
     classesSelect.textContent = "";
 
     const fragment = new DocumentFragment();
@@ -186,14 +194,14 @@ function setClasses(newClasses) {
     defaultEl.disabled = true;
     fragment.append(defaultEl);
 
-    for (const className of Object.keys(classes).sort()) {
-        if (className === "default") {
+    for (const clss of classes.sort((a, b) => a.name.localeCompare(b.name))) {
+        if (clss.name === "default") {
             continue;
         }
 
         const element = document.createElement("option");
-        element.innerText = className;
-        element.value = className;
+        element.innerText = clss.name;
+        element.value = clss.name;
         fragment.append(element);
     }
     classesSelect.append(fragment);
@@ -201,7 +209,7 @@ function setClasses(newClasses) {
 
 export const ClassesHandler = {
     setClasses,
-    predictAnnotation,
+    // predictAnnotation,
 
     get current() {
         return current;
@@ -223,6 +231,6 @@ export const ClassesHandler = {
     },
 
     get(className) {
-        return classes[className];
+        return classes.find((c) => c.name === className) || defaultClass;
     },
 };
