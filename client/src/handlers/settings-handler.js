@@ -1,5 +1,5 @@
 import { modalToggle } from "../utils";
-import { Renderer as renderer } from "../app/renderer";
+// import { Renderer as renderer } from "../app/renderer";
 
 const settingsModal = document.querySelector("#settings");
 const settingsForm = document.querySelector("#settings-form");
@@ -14,8 +14,8 @@ const DEFAULT = {
     maxZoom: 8,
     stepZoom: 0.1,
     pointZoom: 8,
-    opacity: 0.4,
-    opacityHex: "80",
+    opacity: 0.3,
+    opacityHex: "4d",
 };
 
 const settings = { ...DEFAULT };
@@ -71,7 +71,7 @@ function set(event) {
     localStorage.setItem("opacity", opacityInput.value);
 
     modalToggle(settingsModal);
-    renderer.render();
+    // renderer.render();
 }
 
 settingsButton.addEventListener("click", () => modalToggle(settingsModal));

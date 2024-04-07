@@ -1,4 +1,4 @@
-import { getObjectLength } from "../app/app";
+// import { getObjectLength } from "../index.js";
 import { modalToggle } from "../utils";
 
 const MAX_TIME = 5999; // 100 min - 1s
@@ -32,7 +32,8 @@ export function resetTimer() {
 }
 
 export function updateLengthInfo() {
-    const length = getObjectLength();
+    // const length = getObjectLength();
+    const length = 0;
     objLength.innerHTML = `${length.toString().padStart(3, "0")}`;
 }
 

@@ -1,12 +1,12 @@
 import { getArea, getBoudingBox } from "../utils";
-import { ClassesHandler } from "../handlers/classes-handler";
 import { SERVER_URL } from "../api-consumer";
+import { ClassesHandler as classes } from "../handlers/classes-handler";
 
 const NORMALIZER = 4624;
 
-async function parse(path, imageName) {
+async function loadParse(path, imageName) {
     const src = `${SERVER_URL}/datasets/${path}/${imageName}`;
-    const xmlName = imageName.replace(".jpg", ".xml");
+    const xmlName = imageName.replace(/(\.\w+)$/, ".xml");
     const xmlPath = `${SERVER_URL}/datasets/${path}/annotations/${xmlName}`;
     const response = await fetch(xmlPath);
 
@@ -53,7 +53,10 @@ async function parse(path, imageName) {
             });
         }
 
-        parsedImage.annotations.push({ class: el.tagName, points });
+        parsedImage.annotations.push({
+            class: classes.get(el.tagName),
+            points,
+        });
     }
 
     return parsedImage;
@@ -103,7 +106,7 @@ async function loadXml(path, tagName) {
 
 async function parseBeanLeaf(path, imageName) {
     const src = `${SERVER_URL}/datasets/${path}/${imageName}`;
-    const xmlName = imageName.replace(".jpg", ".xml");
+    const xmlName = imageName.replace(/(\.\w+)$/, ".xml");
     const leafPath = `${SERVER_URL}/datasets/${path}/leaf/${xmlName}`;
     const markerPath = `${SERVER_URL}/datasets/${path}/marker/${xmlName}`;
 
@@ -157,7 +160,11 @@ export function annotationsToXml(dirName, imageName, annotations) {
 
     for (const annotation of annotations) {
         const points = annotation.points;
-        const className = annotation.class;
+        const className = annotation.class.name;
+
+        if (points.length < 3 || !className) {
+            continue;
+        }
 
         const space1 = " ".repeat(6);
         const space2 = " ".repeat(8);
@@ -185,7 +192,7 @@ ${arr.join("\n")}
 </annotation>`.trimStart();
 }
 
-export function annotationsToCoco(dirName, imageMap) {
+export function annotationsToCoco(dirName, imageList) {
     // todo: ask user to fill info
     const info = {
         year: 2024,
@@ -206,7 +213,7 @@ export function annotationsToCoco(dirName, imageMap) {
 
     const images = [];
     const annotations = [];
-    const categoriesNames = ClassesHandler.list;
+    const categoriesNames = classes.list;
     const categories = categoriesNames.map((className, id) => ({
         id,
         name: className,
@@ -215,14 +222,12 @@ export function annotationsToCoco(dirName, imageMap) {
 
     let imgId = 0;
     let annId = 0;
-    for (const imageName in imageMap) {
-        const img = imageMap[imageName];
-
+    for (const img of imageList) {
         const image = {
             id: imgId,
             width: img.src.width,
             height: img.src.height,
-            file_name: imageName,
+            file_name: img.name,
             license: 0, // todo: choose license
             flickr_url: "",
             coco_url: "",
@@ -230,13 +235,20 @@ export function annotationsToCoco(dirName, imageMap) {
         };
 
         for (const ann of img.annotations) {
+            const points = ann.points;
+            const className = ann.class.name;
+
+            if (points.length < 3 || !className) {
+                continue;
+            }
+
             const annotation = {
                 id: annId,
                 image_id: imgId,
-                category_id: categoriesNames.indexOf(ann.class),
-                segmentation: [ann.points.flatMap((pt) => [pt.x, pt.y])],
-                area: getArea(ann.points),
-                bbox: getBoudingBox(ann.points),
+                category_id: categoriesNames.indexOf(className),
+                segmentation: [points.flatMap((pt) => [pt.x, pt.y])],
+                area: getArea(points),
+                bbox: getBoudingBox(points),
                 iscrowd: 0,
             };
 
@@ -281,7 +293,7 @@ ${coordinates.trimEnd()}
 }
 
 export const DefaultParser = {
-    parse,
+    loadParse,
     parseBeanLeaf,
     pointsToXml,
     annotationsToXml,

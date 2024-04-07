@@ -208,7 +208,7 @@ export function onKeyDown(event) {
 
 /* -- RENDERER EVENTS ASSIGNEMENT -- */
 
-renderer.addEventListener("pointermove", onPointerMove);
-renderer.addEventListener("keydown", onKeyDown);
+// renderer.addEventListener("pointermove", onPointerMove);
+// renderer.addEventListener("keydown", onKeyDown);
 
 renderer.reset();

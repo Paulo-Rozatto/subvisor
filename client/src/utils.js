@@ -1,4 +1,8 @@
+import { canvas, getZoom, window2canvas } from "./renderer";
+
 const dropZone = document.querySelector(".drop-zone");
+
+const auxPt = { x: 0, y: 0 };
 let currentModal;
 
 export function modalToggle(modal) {
@@ -27,8 +31,8 @@ export const MOUSE = {
     },
 };
 
-export function l1Distance(p1, p2) {
-    return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
+export function l1Distance(x1, y1, x2, y2) {
+    return Math.abs(x2 - x1) + Math.abs(y2 - y1);
 }
 
 export function l2Norm(x, y) {
@@ -133,6 +137,37 @@ export function getBoudingBox(polygon) {
     const { min, max } = findMinMaxPoints(polygon);
 
     return [min.x, min.y, max.x - min.x, max.y - min.y];
+}
+
+export function event2canvas(e, dst) {
+    auxPt.x = e.offsetX;
+    auxPt.y = e.offsetY;
+    window2canvas(auxPt, dst);
+}
+
+export function hoverPoints(e, polygon, hover) {
+    if (!polygon) {
+        return false;
+    }
+
+    const l = polygon.points.length;
+    let pt;
+
+    event2canvas(e, auxPt);
+
+    for (let i = 0; i < l; i++) {
+        pt = polygon.points[i];
+        pt.hovered = false;
+        if (l1Distance(pt.x, pt.y, auxPt.x, auxPt.y) * getZoom() < 15) {
+            hover.point = pt;
+            hover.polygon = null;
+            canvas.style.cursor = "pointer";
+            return i;
+        }
+    }
+
+    hover.point = null;
+    return -1;
 }
 
 // i'm not really using this now, maybe remove?

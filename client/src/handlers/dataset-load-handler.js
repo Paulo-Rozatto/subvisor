@@ -1,5 +1,5 @@
 import * as API from "../api-consumer.js";
-import { IMAGE_MAP, loadBackendImage } from "../app/app.js";
+import { IMAGE_LIST, loadBackendImage } from "../app.js";
 import { resetTimer, updateLengthInfo } from "./infos-handler.js";
 import { ClassesHandler } from "./classes-handler.js";
 import { modalToggle } from "../utils.js";
@@ -22,7 +22,7 @@ function saveAnnotations() {
 
     const fileName = selected.innerText;
     const imgName = fileName + ".jpg";
-    const img = IMAGE_MAP[imgName];
+    const img = IMAGE_LIST.find((img) => img.name === imgName);
     const leafName = document.querySelector("#title").innerText;
 
     const xml = parser.annotationsToXml(leafName, imgName, img.annotations);
@@ -108,12 +108,10 @@ async function pickDataset() {
 
     ClassesHandler.setClasses(classes);
 
-    const leafName = path.split("/").reverse()[0];
-    document.querySelector("#title").innerHTML = leafName;
+    const dirName = path.split("/").reverse()[0];
+    document.querySelector("#title").innerHTML = dirName;
 
-    for (const key in IMAGE_MAP) {
-        delete IMAGE_MAP[key];
-    }
+    IMAGE_LIST.length = 0;
 
     const fragment = new DocumentFragment();
     for (const imageName of imageNames) {
@@ -143,6 +141,10 @@ async function pickDataset() {
     modalToggle(datasetsModal);
     resetTimer();
 }
+
+currentPath = "bean-leaf/571-580/571";
+pickDataset();
+modalToggle(datasetsModal);
 
 datasetsButton.addEventListener("click", showDatasets);
 datasetsPick.addEventListener("click", pickDataset);
