@@ -1,4 +1,3 @@
-// import { getObjectLength } from "../index.js";
 import { modalToggle } from "../utils";
 
 const MAX_TIME = 5999; // 100 min - 1s
@@ -7,7 +6,7 @@ const info = document.querySelector("#info");
 const infoButton = document.querySelector("#info-button");
 const timer = document.querySelector("#timer");
 const objLength = document.querySelector("#obj-length");
-const canvas = document.querySelector("#canvas");
+const currentZoom = document.querySelector("#current-zoom");
 
 let time = 0;
 let interval;
@@ -31,11 +30,12 @@ export function resetTimer() {
     interval = setInterval(updateTimer, 1000);
 }
 
-export function updateLengthInfo() {
-    // const length = getObjectLength();
-    const length = 0;
+export function setUiPolyLength(length = 0) {
     objLength.innerHTML = `${length.toString().padStart(3, "0")}`;
 }
 
+export function updateZoom(zoom) {
+    currentZoom.textContent = (zoom * 100).toFixed(0).padStart(3, "0") + "%";
+}
+
 infoButton.addEventListener("click", () => modalToggle(info));
-canvas.addEventListener("click", updateLengthInfo);

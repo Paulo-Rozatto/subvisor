@@ -1,13 +1,9 @@
-import "./handlers/export-handler.js";
-
 import * as renderer from "./renderer.js";
 import * as tools from "./tools.js";
 import { MOUSE, event2canvas } from "./utils.js";
-import { DefaultParser as parser } from "./app/default-parser.js";
+import { setUiPolyLength } from "./handlers/infos-handler.js";
 
-export const IMAGE_LIST = [];
-
-const focus = {
+export const focus = {
     _image: null,
     _polygon: null,
     _point: null,
@@ -34,6 +30,7 @@ const focus = {
 
         this._polygon = newPolygon;
         this._point = null;
+        setUiPolyLength(this._polygon?.points.length || 0);
     },
     get polygon() {
         return this._polygon;
@@ -94,31 +91,13 @@ const hover = {
 
 tools.init(focus, hover);
 
+export const IMAGE_LIST = [];
+
 // MAIN FUNCTIONS
-
-export async function loadBackendImage(path, imageName, callback = () => {}) {
-    let image = IMAGE_LIST.find((img) => img.name === imageName);
-
-    if (!image) {
-        if (!(path || imageName)) {
-            console.error(`ERRO: faltando caminho o nome da imagem`, {
-                path,
-                imageName,
-            });
-            return;
-        }
-
-        image = await parser.loadParse(path, imageName);
-
-        if (!image) {
-            console.error(`Can't load image ${path}`);
-            return;
-        }
-    }
-
+export function setImage(name, image) {
     tools.active.deactivate();
 
-    image.name = imageName;
+    image.name = name;
     IMAGE_LIST.push(image);
     focus.image = image;
     hover.point = null;
@@ -127,7 +106,11 @@ export async function loadBackendImage(path, imageName, callback = () => {}) {
     tools.active.activate();
 
     renderer.setImage(image);
-    callback();
+}
+
+export function updateUiLength() {
+    console.log(1);
+    setUiPolyLength(focus.polygon?.points || 0);
 }
 
 function onMouseMove(e) {
