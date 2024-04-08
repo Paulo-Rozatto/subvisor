@@ -1,4 +1,5 @@
 import { SettingsHandler as settings } from "./handlers/settings-handler";
+import { updateZoom } from "./handlers/infos-handler";
 
 export const canvas = document.querySelector("#canvas");
 export const ctx = canvas.getContext("2d");
@@ -141,6 +142,7 @@ export function setImage(_image) {
 
 function setZoom(_zoom) {
     zoom = _zoom;
+    updateZoom(zoom);
 }
 
 export function getZoom() {

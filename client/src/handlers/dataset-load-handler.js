@@ -1,9 +1,9 @@
 import * as API from "../api-consumer.js";
-import { IMAGE_LIST, loadBackendImage } from "../app.js";
-import { resetTimer, updateLengthInfo } from "./infos-handler.js";
+import { IMAGE_LIST, setImage } from "../app.js";
 import { ClassesHandler } from "./classes-handler.js";
 import { modalToggle } from "../utils.js";
 import { DefaultParser as parser } from "../app/default-parser.js";
+import { resetTimer } from "./infos-handler.js";
 
 const datasetsButton = document.querySelector("#datasets-list-button");
 const datasetsModal = document.querySelector("#datasets-modal");
@@ -14,6 +14,29 @@ const imageList = document.querySelector(".image-list");
 export let openPath = "";
 export let currentPath = "";
 export let selected;
+
+export async function loadBackendImage(path, imageName) {
+    let image = IMAGE_LIST.find((img) => img.name === imageName);
+
+    if (!image) {
+        if (!(path || imageName)) {
+            console.error(`ERRO: faltando caminho o nome da imagem`, {
+                path,
+                imageName,
+            });
+            return;
+        }
+
+        image = await parser.loadParse(path, imageName);
+
+        if (!image) {
+            console.error(`Can't load image ${path}`);
+            return;
+        }
+    }
+
+    setImage(imageName, image);
+}
 
 function saveAnnotations() {
     if (!selected) {
@@ -122,7 +145,7 @@ async function pickDataset() {
 
         button.onclick = () => {
             saveAnnotations(selected, currentPath);
-            loadBackendImage(path, imageName, updateLengthInfo);
+            loadBackendImage(path, imageName);
             selected.classList.remove("selected");
             selected.classList.add("checked");
             button.classList.add("selected");
@@ -137,7 +160,7 @@ async function pickDataset() {
     imageList.append(fragment);
 
     openPath = path;
-    loadBackendImage(path, imageNames[0], updateLengthInfo);
+    loadBackendImage(path, imageNames[0]);
     modalToggle(datasetsModal);
     resetTimer();
 }

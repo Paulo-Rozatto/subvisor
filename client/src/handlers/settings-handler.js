@@ -1,5 +1,4 @@
 import { modalToggle } from "../utils";
-// import { Renderer as renderer } from "../app/renderer";
 
 const settingsModal = document.querySelector("#settings");
 const settingsForm = document.querySelector("#settings-form");
@@ -20,15 +19,11 @@ const DEFAULT = {
 
 const settings = { ...DEFAULT };
 
-// let maxZoom, stepZoom, pointZoom, opacity;
-
 function opacityToHex(opacity) {
     return Math.round(255 * opacity).toString(16);
 }
 
 function load() {
-    // let { maxZoom, stepZoom, pointZoom, opacity } = getConfigs();
-    // settings = {...DEFAULT};
     const maxZoomStorage = localStorage.getItem("max-zoom");
     if (maxZoomStorage) {
         settings.maxZoom = parseFloat(maxZoomStorage);
@@ -71,14 +66,14 @@ function set(event) {
     localStorage.setItem("opacity", opacityInput.value);
 
     modalToggle(settingsModal);
-    // renderer.render();
 }
 
 settingsButton.addEventListener("click", () => modalToggle(settingsModal));
 settingsForm.addEventListener("submit", set);
 
+window.addEventListener("load", load);
+
 export const SettingsHandler = {
-    load,
     get maxZoom() {
         return settings.maxZoom;
     },

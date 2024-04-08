@@ -13,4 +13,6 @@ function toggle() {
 
 document.querySelector("#theme-button").addEventListener("click", toggle);
 
+window.addEventListener("load", load);
+
 export const ThemeHandler = { load };
