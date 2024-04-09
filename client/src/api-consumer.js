@@ -1,17 +1,12 @@
 export const SERVER_URL = "http://localhost:8080";
 const API_URL = `${SERVER_URL}/api`;
 
-export async function annotateLeaf(path, points, isBox) {
-    const pointsString = points
-        .map((p) => `${parseInt(p.x)},${parseInt(p.y)}`)
-        .join(",");
-
-    let labels = "";
-    if (!isBox) {
-        labels = points.map((p) => (p.isBackground ? "0" : "1")).join(",");
-    }
-
-    const params = new URLSearchParams({ path, points: pointsString, labels });
+export async function annotateLeaf(path, pointsString, labelsString) {
+    const params = new URLSearchParams({
+        path,
+        points: pointsString,
+        labels: labelsString,
+    });
     const response = await fetch(`${API_URL}/nn/predict?${params}`);
 
     if (!response.headers.get("content-type").includes("json")) {

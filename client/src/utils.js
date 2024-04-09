@@ -170,6 +170,12 @@ export function hoverPoints(e, polygon, hover) {
     return -1;
 }
 
+export function points2String(pointsArray) {
+    return pointsArray
+        .map((p) => `${parseInt(p.x)},${parseInt(p.y)}`)
+        .join(",");
+}
+
 // i'm not really using this now, maybe remove?
 export function debounce(callback, time) {
     let timeoutCallback, timeoutClear;
