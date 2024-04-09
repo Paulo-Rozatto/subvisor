@@ -210,6 +210,12 @@ function onKeyDown(e) {
             focus.point = null;
             tools.active.reset();
             renderer.render();
+            break;
+        }
+
+        case "enter": {
+            tools.active.onEnter();
+            break;
         }
     }
 }

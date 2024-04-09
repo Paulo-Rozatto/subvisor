@@ -1,5 +1,8 @@
-import { event2canvas, hoverPoints } from "./utils";
+import { annotateLeaf, saveXml } from "./api-consumer";
+import { event2canvas, hoverPoints, points2String } from "./utils";
 import { render, window2canvas } from "./renderer";
+import { ClassesHandler as classes } from "./handlers/classes-handler";
+import { DefaultParser as parser } from "./app/default-parser";
 
 let focus, hover, currentMode;
 
@@ -100,6 +103,42 @@ const box = {
     },
 };
 
+// PREDICT FUNCTION
+async function predictAnnotation(points, isBox) {
+    if (focus.image === null) {
+        return;
+    }
+
+    const newPoints = await annotateLeaf(focus.image.filePath, points, isBox);
+
+    if (!newPoints) {
+        return;
+    }
+
+    let ann;
+    if (focus.polygon !== null) {
+        ann = focus.polygon;
+    } else {
+        ann = {
+            class: classes.default,
+        };
+        focus.image.annotations.push(ann);
+    }
+    ann.points = newPoints;
+    render();
+
+    const dirName = document.querySelector("#title").innerText;
+    const path = focus.image.filePath.replace(/\/\w+\.\w+/, "");
+    const xmlName = focus.image.name.replace(/(\.\w+)$/, ".xml");
+    const xml = parser.annotationsToXml(
+        dirName,
+        focus.image.name,
+        focus.image.annotations
+    );
+
+    saveXml(path, "annotations", xmlName, xml);
+}
+
 // TOOLS
 
 const Edit = {
@@ -142,6 +181,8 @@ const Edit = {
     onMove(e) {
         hoverPoints(e, this._poly, hover);
     },
+
+    onEnter() {},
 
     onDelete(image, polygon, point) {
         let idx;
@@ -222,6 +263,22 @@ const PredictPoints = {
             hoverPoints(e, background, hover) !== -1;
     },
 
+    onEnter() {
+        if (foreground.points.length > 0 || background.points.length > 0) {
+            const pointsString = points2String([
+                ...foreground.points,
+                ...background.points,
+            ]);
+
+            const labelsString = Array(foreground.points.length)
+                .fill(1)
+                .concat(Array(background.points.length).fill(0))
+                .join(",");
+
+            predictAnnotation(pointsString, labelsString, false);
+        }
+    },
+
     onDelete(_, __, point) {
         let idx = foreground.points.indexOf(point);
         if (idx > -1) {
@@ -287,6 +344,8 @@ const PredictBox = {
         box.outline = true;
         hover.point = box.points[2];
     },
+
+    onEnter() {},
 
     onMove(e) {
         if (box.showPoints) {
