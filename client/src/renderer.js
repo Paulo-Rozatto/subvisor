@@ -1,3 +1,10 @@
+import {
+    getCenterOfMass,
+    normalize,
+    add as vecAdd,
+    scale as vecScale,
+    sub as vecSub,
+} from "./utils";
 import { SettingsHandler as settings } from "./handlers/settings-handler";
 import { updateZoom } from "./handlers/infos-handler";
 
@@ -97,6 +104,37 @@ function draw() {
             ctx.lineWidth = 3;
             ctx.strokeStyle = HOVER_COLOR;
             ctx.stroke(selectedPath);
+
+            // PAINT NUMBERS IF ENABLED
+            if (poly.class.enumerate) {
+                ctx.font = "20px sans";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "baseline";
+
+                ctx.fillStyle = poly.class.color;
+                ctx.strokeStyle = "#000";
+                ctx.lineWidth = 2;
+
+                if (poly.dirty) {
+                    poly.center = getCenterOfMass(poly.points);
+                    poly.dirty = false;
+                }
+
+                const dir = { x: 0, y: 0 };
+                let numString;
+                for (let j = 0; j < m; j++) {
+                    vecSub(poly.points[j], poly.center, dir);
+                    normalize(dir, dir);
+                    vecScale(dir, 20, dir);
+
+                    origin2canvas(poly.points[j], auxPt);
+                    vecAdd(auxPt, dir, auxPt);
+
+                    numString = (j + 1).toString();
+                    ctx.strokeText(numString, auxPt.x, auxPt.y);
+                    ctx.fillText(numString, auxPt.x, auxPt.y);
+                }
+            }
         }
     }
 }
@@ -127,7 +165,7 @@ export function set(polyArray) {
         return;
     }
     polygons = polyArray;
-    polygons.forEach((el) => el.dirty);
+    polygons.forEach((el) => (el.dirty = true));
 }
 
 export function setImage(_image) {

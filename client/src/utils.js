@@ -35,9 +35,30 @@ export function l1Distance(x1, y1, x2, y2) {
     return Math.abs(x2 - x1) + Math.abs(y2 - y1);
 }
 
-export function l2Norm(x, y) {
-    const length = Math.sqrt(x ** 2 + y ** 2);
-    return { x: x / length, y: y / length };
+export function normalize(vec, dst = {}) {
+    const length = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
+    console.log(1);
+    dst.x = vec.x / length;
+    dst.y = vec.y / length;
+    return dst;
+}
+
+export function add(vec1, vec2, dst = {}) {
+    dst.x = vec1.x + vec2.x;
+    dst.y = vec1.y + vec2.y;
+    return dst;
+}
+
+export function sub(vec1, vec2, dst = {}) {
+    dst.x = vec1.x - vec2.x;
+    dst.y = vec1.y - vec2.y;
+    return dst;
+}
+
+export function scale(vec, scalar, dst) {
+    dst.x = vec.x * scalar;
+    dst.y = vec.y * scalar;
+    return dst;
 }
 
 export function pointToSegment(target, p1, p2) {
@@ -75,8 +96,8 @@ export function getArea(polygon) {
     return Math.abs(totalArea);
 }
 
-export function getCenterOfMass(polygon) {
-    if (polygon?.length === 0) {
+export function getCenterOfMass(polyPoints) {
+    if (polyPoints?.length === 0) {
         return;
     }
 
@@ -84,9 +105,9 @@ export function getCenterOfMass(polygon) {
     let centerX = 0;
     let centerY = 0;
 
-    for (let i = 0; i < polygon.length; i++) {
-        const currentVertex = polygon[i];
-        const nextVertex = polygon[(i + 1) % polygon.length];
+    for (let i = 0; i < polyPoints.length; i++) {
+        const currentVertex = polyPoints[i];
+        const nextVertex = polyPoints[(i + 1) % polyPoints.length];
 
         const partialArea =
             currentVertex.x * nextVertex.y - nextVertex.x * currentVertex.y;
@@ -102,8 +123,8 @@ export function getCenterOfMass(polygon) {
         centerY /= 6 * totalArea;
     } else {
         // The polygon has zero area, set center to the first vertex
-        centerX = polygon[0].x;
-        centerY = polygon[0].y;
+        centerX = polyPoints[0].x;
+        centerY = polyPoints[0].y;
     }
 
     return { x: centerX, y: centerY };
@@ -162,6 +183,7 @@ export function hoverPoints(e, polygon, hover) {
             hover.point = pt;
             hover.polygon = null;
             canvas.style.cursor = "pointer";
+            polygon.dirty = true;
             return i;
         }
     }
