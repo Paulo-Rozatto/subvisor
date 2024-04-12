@@ -1,5 +1,11 @@
 import { annotateLeaf, saveXml } from "./api-consumer";
-import { event2canvas, hoverPoints, points2String } from "./utils";
+import {
+    event2canvas,
+    getCenterOfMass,
+    getFullAngle,
+    hoverPoints,
+    points2String,
+} from "./utils";
 import { render, window2canvas } from "./renderer";
 import { ClassesHandler as classes } from "./handlers/classes-handler";
 import { DefaultParser as parser } from "./app/default-parser";
@@ -172,7 +178,38 @@ const Edit = {
         if (poly !== null) {
             const newPoint = { x: e.offsetX, y: e.offsetY };
             window2canvas(newPoint, newPoint);
-            poly.points.push(newPoint);
+
+            const l = poly.points.length;
+            const points = poly.points;
+
+            if (l < 3) {
+                poly.points.push(newPoint);
+                return;
+            } else {
+                if (!poly.center) {
+                    poly.center = getCenterOfMass(poly.points);
+                }
+
+                let index, angle, closerAngle, diff;
+                let smaller = Number.POSITIVE_INFINITY;
+                const newAngle = getFullAngle(newPoint, poly.center);
+
+                for (let i = 0; i < l; i++) {
+                    angle = getFullAngle(points[i], poly.center);
+                    diff = Math.abs(angle - newAngle);
+
+                    if (smaller > diff) {
+                        smaller = diff;
+                        closerAngle = angle;
+                        index = i;
+                    }
+                }
+
+                index = newAngle > closerAngle ? index + 1 : index;
+                points.splice(index, 0, newPoint);
+                poly.dirty = true;
+            }
+
             focus.point = newPoint;
             hover.point = null;
         }

@@ -109,7 +109,6 @@ export function setImage(name, image) {
 }
 
 export function updateUiLength() {
-    console.log(1);
     setUiPolyLength(focus.polygon?.points || 0);
 }
 
