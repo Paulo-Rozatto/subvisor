@@ -13,8 +13,6 @@ async function download() {
 
     for (const image of IMAGE_LIST) {
         const xmlName = image.name.replace(/(\.\w+)$/, ".xml");
-
-        console.log(image.annotations);
         const xml = parser.annotationsToXml(
             leafName,
             image.name,
