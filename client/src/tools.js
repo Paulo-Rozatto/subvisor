@@ -1,9 +1,9 @@
 import { annotateLeaf, saveXml } from "./api-consumer";
 import {
+    bisectorNorm,
     event2canvas,
-    getCenterOfMass,
-    getFullAngle,
     hoverPoints,
+    intersect,
     points2String,
 } from "./utils";
 import { render, window2canvas } from "./renderer";
@@ -186,28 +186,49 @@ const Edit = {
                 poly.points.push(newPoint);
                 return;
             } else {
-                if (!poly.center) {
-                    poly.center = getCenterOfMass(poly.points);
-                }
+                // p.length = 0;
+                // setA(newPoint);
 
-                let index, angle, closerAngle, diff;
-                let smaller = Number.POSITIVE_INFINITY;
-                const newAngle = getFullAngle(newPoint, poly.center);
+                let distance = Number.POSITIVE_INFINITY;
+                let closer = Number.POSITIVE_INFINITY;
+                let index = l - 1;
 
+                let iCurr, iNext, jCurr, jNext;
+                let intersects = false;
                 for (let i = 0; i < l; i++) {
-                    angle = getFullAngle(points[i], poly.center);
-                    diff = Math.abs(angle - newAngle);
+                    iCurr = points[i % l];
+                    iNext = points[(i + 1) % l];
 
-                    if (smaller > diff) {
-                        smaller = diff;
-                        closerAngle = angle;
+                    distance = bisectorNorm(newPoint, iCurr, iNext);
+
+                    if (distance < closer) {
+                        intersects = false;
+                        for (let j = 0; j < l; j++) {
+                            if (j === i) {
+                                continue;
+                            }
+
+                            jCurr = points[j % l];
+                            jNext = points[(j + 1) % l];
+
+                            intersects =
+                                intersect(newPoint, iCurr, jCurr, jNext) ||
+                                intersect(newPoint, iNext, jCurr, jNext);
+
+                            if (intersects) {
+                                break;
+                            }
+                        }
+
+                        if (intersects) {
+                            continue;
+                        }
+
+                        closer = distance;
                         index = i;
                     }
                 }
-
-                index = newAngle > closerAngle ? index + 1 : index;
-                points.splice(index, 0, newPoint);
-                poly.dirty = true;
+                points.splice(index + 1, 0, newPoint);
             }
 
             focus.point = newPoint;

@@ -60,12 +60,50 @@ export function scale(vec, scalar, dst) {
     return dst;
 }
 
-export function getFullAngle(vec, center) {
-    let angle = Math.atan2(vec.y - center.y, vec.x - center.x);
-    if (angle < 0) {
-        angle += 2 * Math.PI;
+export function squaredNorm(x, y) {
+    return x * x + y * y;
+}
+
+export function l2Normalize(x, y, dst = {}) {
+    const length = Math.sqrt(x * x + y * y);
+    dst.x = x / length;
+    dst.y = y / length;
+    return dst;
+}
+
+export function bisectorNorm(a, b, c) {
+    const ab = sub(b, a);
+    const ac = sub(c, a);
+    const norm1 = squaredNorm(ab.x, ab.y);
+    const norm2 = squaredNorm(ac.x, ac.y);
+    const sumNomr = norm1 + norm2;
+
+    const lambda = norm1 / sumNomr;
+
+    const bc = sub(c, b);
+    bc.x *= lambda;
+    bc.y *= lambda;
+
+    const d = add(b, bc);
+    // p.push(d);
+    return l1Distance(d.x, d.y, a.x, a.y);
+}
+
+export function intersect(p1, p2, p3, p4) {
+    // https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection#Given_two_points_on_each_line_segment
+
+    const det = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
+    const t =
+        ((p1.x - p3.x) * (p3.y - p4.y) - (p1.y - p3.y) * (p3.x - p4.x)) / det;
+    const u =
+        ((p1.x - p2.x) * (p1.y - p3.y) - (p1.y - p2.y) * (p1.x - p3.x)) / -det;
+
+    if (det < 0.01 && det > -0.01) {
+        return false;
     }
-    return angle;
+
+    // return t > 0 && t < 1 && u > 1 && u < 1;
+    return t > 0.01 && t < 0.99 && u > 0.01 && u < 0.99;
 }
 
 export function getArea(polygon) {
