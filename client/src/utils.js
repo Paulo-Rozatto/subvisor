@@ -85,7 +85,6 @@ export function bisectorNorm(a, b, c) {
     bc.y *= lambda;
 
     const d = add(b, bc);
-    // p.push(d);
     return l1Distance(d.x, d.y, a.x, a.y);
 }
 
