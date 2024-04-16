@@ -13,12 +13,6 @@ export const ctx = canvas.getContext("2d");
 const display = document.querySelector(".display");
 const image = new Image();
 
-// export const p = [];
-// export let a;
-// export function setA(_a) {
-//     a = _a;
-// }
-
 // main settings
 const offset = { x: 0, y: 0 };
 let zoom = 1;
@@ -142,45 +136,6 @@ function draw() {
                 }
             }
         }
-
-        // if (a) {
-        //     const pt = { x: 0, y: 0 };
-        //     for (let i = 0; i < p.length; i++) {
-        //         origin2canvas(a, pt);
-        //         ctx.lineWidth = 3;
-        //         ctx.strokeStyle = "#F0F";
-
-        //         ctx.beginPath();
-        //         ctx.moveTo(pt.x, pt.y);
-        //         origin2canvas(p[i], pt);
-        //         ctx.lineTo(pt.x, pt.y);
-        //         // ctx.lineTo(1000, 1000);
-        //         ctx.stroke();
-        //         ctx.closePath();
-        //         // ctx.fill();
-        //     }
-
-        //     for (let i = 0; i < p.length; i++) {
-        //         ctx.strokeStyle = "#f0f";
-        //         ctx.fillStyle = "#fff";
-
-        //         origin2canvas(a, auxPt);
-
-        //         ctx.beginPath();
-        //         ctx.arc(auxPt.x, auxPt.y, 5, 0, PI2);
-        //         ctx.fill();
-        //         ctx.stroke();
-
-        //         origin2canvas(p[i], auxPt);
-
-        //         ctx.strokeStyle = "#f0f";
-        //         ctx.fillStyle = "#fff";
-        //         ctx.beginPath();
-        //         ctx.arc(auxPt.x, auxPt.y, 5, 0, PI2);
-        //         ctx.fill();
-        //         ctx.stroke();
-        //     }
-        // }
     }
 }
 

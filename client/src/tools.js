@@ -186,9 +186,6 @@ const Edit = {
                 poly.points.push(newPoint);
                 return;
             } else {
-                // p.length = 0;
-                // setA(newPoint);
-
                 let distance = Number.POSITIVE_INFINITY;
                 let closer = Number.POSITIVE_INFINITY;
                 let index = l - 1;
