@@ -175,62 +175,78 @@ const Edit = {
     },
 
     onClick(e, poly) {
-        if (poly !== null) {
-            const newPoint = { x: e.offsetX, y: e.offsetY };
-            window2canvas(newPoint, newPoint);
+        if (focus.image === null) {
+            return;
+        }
 
-            const l = poly.points.length;
-            const points = poly.points;
+        const newPoint = { x: e.offsetX, y: e.offsetY };
+        window2canvas(newPoint, newPoint);
 
-            if (l < 3) {
-                poly.points.push(newPoint);
-                return;
-            } else {
-                let distance = Number.POSITIVE_INFINITY;
-                let closer = Number.POSITIVE_INFINITY;
-                let index = l - 1;
-
-                let iCurr, iNext, jCurr, jNext;
-                let intersects = false;
-                for (let i = 0; i < l; i++) {
-                    iCurr = points[i % l];
-                    iNext = points[(i + 1) % l];
-
-                    distance = bisectorNorm(newPoint, iCurr, iNext);
-
-                    if (distance < closer) {
-                        intersects = false;
-                        for (let j = 0; j < l; j++) {
-                            if (j === i) {
-                                continue;
-                            }
-
-                            jCurr = points[j % l];
-                            jNext = points[(j + 1) % l];
-
-                            intersects =
-                                intersect(newPoint, iCurr, jCurr, jNext) ||
-                                intersect(newPoint, iNext, jCurr, jNext);
-
-                            if (intersects) {
-                                break;
-                            }
-                        }
-
-                        if (intersects) {
-                            continue;
-                        }
-
-                        closer = distance;
-                        index = i;
-                    }
-                }
-                points.splice(index + 1, 0, newPoint);
-            }
+        if (poly === null) {
+            const ann = {
+                class: classes.default,
+                showPoints: true,
+                points: [newPoint],
+            };
+            focus.polygon = ann;
+            focus.image.annotations.push(ann);
+            this.onFocus(ann);
 
             focus.point = newPoint;
             hover.point = null;
+            return;
         }
+
+        const l = poly.points.length;
+        const points = poly.points;
+
+        if (l < 3) {
+            poly.points.push(newPoint);
+        } else {
+            let distance = Number.POSITIVE_INFINITY;
+            let closer = Number.POSITIVE_INFINITY;
+            let index = l - 1;
+
+            let iCurr, iNext, jCurr, jNext;
+            let intersects = false;
+            for (let i = 0; i < l; i++) {
+                iCurr = points[i % l];
+                iNext = points[(i + 1) % l];
+
+                distance = bisectorNorm(newPoint, iCurr, iNext);
+
+                if (distance < closer) {
+                    intersects = false;
+                    for (let j = 0; j < l; j++) {
+                        if (j === i) {
+                            continue;
+                        }
+
+                        jCurr = points[j % l];
+                        jNext = points[(j + 1) % l];
+
+                        intersects =
+                            intersect(newPoint, iCurr, jCurr, jNext) ||
+                            intersect(newPoint, iNext, jCurr, jNext);
+
+                        if (intersects) {
+                            break;
+                        }
+                    }
+
+                    if (intersects) {
+                        continue;
+                    }
+
+                    closer = distance;
+                    index = i;
+                }
+            }
+            points.splice(index + 1, 0, newPoint);
+        }
+
+        focus.point = newPoint;
+        hover.point = null;
     },
 
     onMove(e) {
