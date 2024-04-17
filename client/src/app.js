@@ -257,7 +257,27 @@ function onWheel(e) {
 }
 
 function onKeyDown(e) {
-    switch (e.key.toLowerCase()) {
+    const key = e.key.toLowerCase();
+
+    if (e.ctrlKey) {
+        switch (key) {
+            case "z": {
+                hist.undo();
+                focus.point = null;
+                hover.point = null;
+                return;
+            }
+
+            case "y": {
+                console.log("oi");
+                hist.redo();
+                focus.point = null;
+                hover.point = null;
+            }
+        }
+    }
+
+    switch (key) {
         case "delete":
         case "backspace": {
             if (
@@ -281,17 +301,6 @@ function onKeyDown(e) {
 
         case "enter": {
             tools.active.onEnter();
-            break;
-        }
-
-        case "z": {
-            if (!e.ctrlKey) {
-                break;
-            }
-
-            hist.undo();
-            focus.point = null;
-            hover.point = null;
             break;
         }
     }

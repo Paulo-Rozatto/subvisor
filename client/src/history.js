@@ -18,6 +18,7 @@ class LimitedStack {
 }
 
 const undoStack = new LimitedStack();
+const redoStack = new LimitedStack();
 
 export function push(image, polygon) {
     undoStack.push({
@@ -28,20 +29,48 @@ export function push(image, polygon) {
 }
 
 export function undo() {
-    const hist = undoStack.pop();
-    console.log(hist);
+    const entry = undoStack.pop();
 
-    if (!hist) {
+    if (!entry) {
         return;
     }
 
-    hist.polygon.points = hist.copy;
+    if (!entry.redoCopy) {
+        entry.redoCopy = entry.polygon.points.map((p) => ({ x: p.x, y: p.y }));
+    }
 
-    const index = hist.image.annotations.findIndex(
-        (ann) => ann === hist.polygon
+    redoStack.push(entry);
+
+    entry.polygon.points = entry.copy;
+
+    const index = entry.image.annotations.findIndex(
+        (ann) => ann === entry.polygon
     );
+
     if (index === -1) {
-        hist.image.annotations.push(hist.polygon);
+        entry.image.annotations.push(entry.polygon);
+    }
+
+    render();
+}
+
+export function redo() {
+    const entry = redoStack.pop();
+
+    if (!entry) {
+        return;
+    }
+
+    undoStack.push(entry);
+
+    entry.polygon.points = entry.redoCopy;
+
+    const index = entry.image.annotations.findIndex(
+        (ann) => ann === entry.polygon
+    );
+
+    if (index === -1) {
+        entry.image.annotations.push(entry.polygon);
     }
 
     render();
