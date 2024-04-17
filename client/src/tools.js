@@ -1,3 +1,4 @@
+import * as hist from "./history.js";
 import { annotateLeaf, saveXml } from "./api-consumer";
 import {
     bisectorNorm,
@@ -197,6 +198,8 @@ const Edit = {
             return;
         }
 
+        hist.push(focus.image, poly);
+
         const l = poly.points.length;
         const points = poly.points;
 
@@ -255,29 +258,34 @@ const Edit = {
 
     onEnter() {},
 
-    onDelete(image, polygon, point, multi) {
+    onDelete() {
         let idx;
 
-        if (polygon.points.length - (multi.length + 1) <= 3) {
-            idx = image.annotations.indexOf(polygon);
+        hist.push(focus.image, focus.polygon);
+
+        const multi = focus.multiFocus;
+        if (focus.polygon.points.length - multi.length - 1 < 3) {
+            idx = focus.image.annotations.indexOf(focus.polygon);
 
             if (idx > -1) {
-                image.annotations.splice(idx, 1);
+                focus.image.annotations.splice(idx, 1);
             }
+            focus.polygon = null;
             return;
         }
 
-        idx = polygon.points.indexOf(point);
+        idx = focus.polygon.points.indexOf(focus.point);
         if (idx > -1) {
-            polygon.points.splice(idx, 1);
+            focus.polygon.points.splice(idx, 1);
         }
 
         for (let i = 0; i < multi.length; i++) {
-            idx = polygon.points.indexOf(multi[i]);
+            idx = focus.polygon.points.indexOf(multi[i]);
             if (idx > -1) {
-                polygon.points.splice(idx, 1);
+                focus.polygon.points.splice(idx, 1);
             }
         }
+        focus.point = null;
     },
 };
 
@@ -357,7 +365,10 @@ const PredictPoints = {
         }
     },
 
-    onDelete(_, __, point) {
+    onDelete() {
+        const point = focus.point;
+        focus.point = null;
+
         let idx = foreground.points.indexOf(point);
         if (idx > -1) {
             foreground.points.splice(idx, 1);
