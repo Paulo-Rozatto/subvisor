@@ -1,7 +1,10 @@
+import * as hist from "./history.js";
 import * as renderer from "./renderer.js";
 import * as tools from "./tools.js";
 import { MOUSE, event2canvas } from "./utils.js";
 import { setUiPolyLength } from "./handlers/infos-handler.js";
+
+export const IMAGE_LIST = [];
 
 export const focus = {
     _image: null,
@@ -42,7 +45,6 @@ export const focus = {
     },
 
     set point(newPoint) {
-        console.log("cara", this._point, newPoint);
         if (this._point !== null) {
             this._point.focused = false;
         }
@@ -137,7 +139,7 @@ const hover = {
 
 tools.init(focus, hover);
 
-export const IMAGE_LIST = [];
+let flagMoveHist = true;
 
 // MAIN FUNCTIONS
 export function setImage(name, image) {
@@ -164,10 +166,15 @@ function onMouseMove(e) {
     }
 
     if (e.buttons === MOUSE.left && hover.point !== null) {
+        if (flagMoveHist) {
+            flagMoveHist = false;
+            hist.push(focus.image, focus.polygon);
+        }
         event2canvas(e, hover.point);
         renderer.render();
         return;
     }
+    flagMoveHist = true;
 
     if (e.buttons === MOUSE.right) {
         renderer.pan(e.movementX, e.movementY);
@@ -258,12 +265,7 @@ function onKeyDown(e) {
                 focus.polygon !== null &&
                 focus.point !== null
             ) {
-                tools.active.onDelete(
-                    focus.image,
-                    focus.polygon,
-                    focus.point,
-                    focus.multiFocus
-                );
+                tools.active.onDelete(focus);
                 renderer.render();
             }
             break;
@@ -279,6 +281,17 @@ function onKeyDown(e) {
 
         case "enter": {
             tools.active.onEnter();
+            break;
+        }
+
+        case "z": {
+            if (!e.ctrlKey) {
+                break;
+            }
+
+            hist.undo();
+            focus.point = null;
+            hover.point = null;
             break;
         }
     }
