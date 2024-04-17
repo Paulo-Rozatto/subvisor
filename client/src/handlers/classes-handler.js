@@ -1,12 +1,12 @@
-import { annotateLeaf, saveConfig, saveXml } from "../api-consumer";
-import { openPath, selected } from "./dataset-load-handler";
+import { focus } from "../app";
 import { modalToggle } from "../utils";
-// import { DefaultParser as parser } from "../app/default-parser";
-// import { Renderer as renderer } from "../app/renderer";
+import { openPath } from "./dataset-load-handler";
+import { render } from "../renderer";
+import { saveConfig } from "../api-consumer";
 
-let current = "";
+let currentClass = null;
 let last = "";
-let classes = {};
+let classes = [];
 
 const defaultClass = {
     name: "default",
@@ -46,40 +46,43 @@ function resetNewClassFields() {
 function setCurrent(newClass) {
     if (newClass === "") {
         classesDisplay.innerText = "---";
-        current = "";
+        currentClass = null;
     }
 
-    if (!classes[newClass]) {
+    const clss = classes.find((c) => c.name === newClass);
+    if (!clss) {
+        console.log("a");
         return;
     }
 
-    current = newClass;
+    currentClass = clss;
     last = newClass;
     classesDisplay.innerText = newClass;
 }
 
 function openClassesModal() {
-    classesSelect.value = current;
+    classesSelect.value = currentClass?.name || "---";
     resetNewClassFields();
     modalToggle(classesModal);
 }
 
-// function swithClass(event) {
-//     event.preventDefault();
+function swithClass(event) {
+    event.preventDefault();
 
-//     modalToggle(classesModal);
+    modalToggle(classesModal);
 
-//     if (classesSelect.value === current || !renderer.focused) {
-//         return;
-//     }
+    if (classesSelect.value === currentClass?.name || !focus.polygon) {
+        return;
+    }
 
-//     setCurrent(classesSelect.value);
+    setCurrent(classesSelect.value);
 
-//     if (current && renderer.focused) {
-//         renderer.focused.class = current;
-//         renderer.render();
-//     }
-// }
+    console.log(2, currentClass, focus.polygon, classesSelect.value);
+    if (currentClass && focus.polygon) {
+        focus.polygon.class = classes.find((c) => c.name === currentClass.name);
+        render();
+    }
+}
 
 function addNewClass(event) {
     event.preventDefault();
@@ -102,14 +105,13 @@ function addNewClass(event) {
     classes.push({
         name: className,
         color: classColorInput.value,
-        points: {
-            colors: pointColorInput.value.split(";").map((e) => e.trim()),
-            limit: parseInt(pointLimitInput.value),
-            showNumber: showNumbersRadio.checked,
-        },
+        limit: parseInt(pointLimitInput.value) || undefined,
+        enumerate: showNumbersRadio.checked,
+        fill: true,
+        stroke: false,
     });
 
-    // saveConfig(openPath, { classes });
+    saveConfig(openPath, { classes });
 
     const defaultEl = document.createElement("option");
     defaultEl.innerText = className;
@@ -120,53 +122,10 @@ function addNewClass(event) {
     classesSelect.append(fragment);
 
     classesSelect.value = className;
-    // swithClass(event);
+    swithClass(event);
 }
 
-// async function predictAnnotation(points, isBox) {
-//     const fileName = selected.innerText + ".jpg";
-//     const filePath = openPath + "/" + fileName;
-//     const leafName = document.querySelector("#title").innerText;
-
-//     if (isBox) {
-//         const topLeft = {
-//             x: Math.min(points[0].x, points[1].x),
-//             y: Math.min(points[0].y, points[1].y),
-//         };
-
-//         const bottomRight = {
-//             x: Math.max(points[0].x, points[1].x),
-//             y: Math.max(points[0].y, points[1].y),
-//         };
-
-//         points = [topLeft, bottomRight];
-//     }
-
-//     const newPoints = await annotateLeaf(filePath, points, isBox);
-
-//     if (!newPoints) {
-//         return;
-//     }
-
-//     let ann;
-//     if (renderer.focused) {
-//         ann = renderer.focused;
-//     } else {
-//         ann = { class: current || "default" };
-//         IMAGE_MAP[fileName].annotations.push(ann);
-//     }
-//     ann.points = newPoints;
-//     renderer.render();
-
-//     const xml = parser.annotationsToXml(
-//         leafName,
-//         fileName,
-//         IMAGE_MAP[fileName].annotations
-//     );
-//     saveXml(openPath, "annotations", fileName.replace(".jpg", ".xml"), xml);
-// }
-
-// saveClassesButton.addEventListener("click", swithClass);
+saveClassesButton.addEventListener("click", swithClass);
 addClassButton.addEventListener("click", addNewClass);
 classesDisplay.parentElement.addEventListener("click", openClassesModal);
 
@@ -212,7 +171,7 @@ export const ClassesHandler = {
     // predictAnnotation,
 
     get current() {
-        return current;
+        return currentClass;
     },
     set current(newClass) {
         setCurrent(newClass);
