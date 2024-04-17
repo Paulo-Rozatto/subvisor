@@ -255,10 +255,10 @@ const Edit = {
 
     onEnter() {},
 
-    onDelete(image, polygon, point) {
+    onDelete(image, polygon, point, multi) {
         let idx;
 
-        if (polygon.points.length === 3) {
+        if (polygon.points.length - (multi.length + 1) <= 3) {
             idx = image.annotations.indexOf(polygon);
 
             if (idx > -1) {
@@ -270,6 +270,13 @@ const Edit = {
         idx = polygon.points.indexOf(point);
         if (idx > -1) {
             polygon.points.splice(idx, 1);
+        }
+
+        for (let i = 0; i < multi.length; i++) {
+            idx = polygon.points.indexOf(multi[i]);
+            if (idx > -1) {
+                polygon.points.splice(idx, 1);
+            }
         }
     },
 };
