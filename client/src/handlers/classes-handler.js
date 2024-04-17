@@ -51,7 +51,6 @@ function setCurrent(newClass) {
 
     const clss = classes.find((c) => c.name === newClass);
     if (!clss) {
-        console.log("a");
         return;
     }
 
@@ -77,7 +76,6 @@ function swithClass(event) {
 
     setCurrent(classesSelect.value);
 
-    console.log(2, currentClass, focus.polygon, classesSelect.value);
     if (currentClass && focus.polygon) {
         focus.polygon.class = classes.find((c) => c.name === currentClass.name);
         render();

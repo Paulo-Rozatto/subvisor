@@ -269,7 +269,6 @@ function onKeyDown(e) {
             }
 
             case "y": {
-                console.log("oi");
                 hist.redo();
                 focus.point = null;
                 hover.point = null;
