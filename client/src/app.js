@@ -7,12 +7,15 @@ export const focus = {
     _image: null,
     _polygon: null,
     _point: null,
+    _multiFocus: [],
 
     set image(newImage) {
         this._image = newImage;
         this._polygon = null;
         this._point = null;
+        this.clearMultiFocus();
     },
+
     get image() {
         return this._image;
     },
@@ -30,13 +33,16 @@ export const focus = {
 
         this._polygon = newPolygon;
         this._point = null;
+        this.clearMultiFocus();
         setUiPolyLength(this._polygon?.points.length || 0);
     },
+
     get polygon() {
         return this._polygon;
     },
 
     set point(newPoint) {
+        console.log("cara", this._point, newPoint);
         if (this._point !== null) {
             this._point.focused = false;
         }
@@ -46,10 +52,50 @@ export const focus = {
         }
 
         this._point = newPoint;
+        this.clearMultiFocus();
     },
 
     get point() {
         return this._point;
+    },
+
+    get multiFocus() {
+        return this._multiFocus;
+    },
+
+    addMultiFocus(point, continuous) {
+        point.focused = true;
+
+        if (!continuous) {
+            this._multiFocus.push(point);
+            return;
+        }
+        this.clearMultiFocus();
+        this._multiFocus.push(point);
+
+        const points = this._polygon.points;
+        const startIdx = points.indexOf(this._point);
+        const endIdx = points.indexOf(point);
+        const distance = endIdx - startIdx;
+        const dir =
+            Math.abs(distance) > points.length * 0.5
+                ? -Math.sign(distance)
+                : Math.sign(distance);
+
+        for (let i = startIdx + dir; i !== endIdx; i += dir) {
+            if (i < 0) {
+                i = points.length - 1;
+            } else if (i >= points.length) {
+                i = 0;
+            }
+            points[i].focused = true;
+            this._multiFocus.push(points[i]);
+        }
+    },
+
+    clearMultiFocus() {
+        this._multiFocus.forEach((p) => (p.focused = false));
+        this._multiFocus.length = 0;
     },
 };
 
@@ -169,6 +215,20 @@ function onClick(e) {
         return;
     }
 
+    if (focus.point !== null) {
+        if (e.ctrlKey) {
+            focus.addMultiFocus(hover.point);
+            hover.point = null;
+            renderer.render();
+            return;
+        } else if (e.shiftKey) {
+            focus.addMultiFocus(hover.point, true);
+            hover.point = null;
+            renderer.render();
+            return;
+        }
+    }
+
     if (hover.polygon !== null && hover.polygon !== focus.polygon) {
         focus.polygon = hover.polygon;
         tools.active.onFocus(focus.polygon);
@@ -198,15 +258,20 @@ function onKeyDown(e) {
                 focus.polygon !== null &&
                 focus.point !== null
             ) {
-                tools.active.onDelete(focus.image, focus.polygon, focus.point);
+                tools.active.onDelete(
+                    focus.image,
+                    focus.polygon,
+                    focus.point,
+                    focus.multiFocus
+                );
                 renderer.render();
             }
             break;
         }
 
         case "escape": {
-            focus.polygon = null;
             focus.point = null;
+            focus.polygon = null;
             tools.active.reset();
             renderer.render();
             break;
