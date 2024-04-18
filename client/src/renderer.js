@@ -1,10 +1,4 @@
-import {
-    getCenterOfMass,
-    normalize,
-    add as vecAdd,
-    scale as vecScale,
-    sub as vecSub,
-} from "./utils";
+import { add, getCenterOfMass, normalize, scale, sub } from "./utils";
 import { SettingsHandler as settings } from "./handlers/settings-handler";
 import { updateZoom } from "./handlers/infos-handler";
 
@@ -123,12 +117,12 @@ function draw() {
                 const dir = { x: 0, y: 0 };
                 let numString;
                 for (let j = 0; j < m; j++) {
-                    vecSub(poly.points[j], poly.center, dir);
+                    sub(poly.points[j], poly.center, dir);
                     normalize(dir, dir);
-                    vecScale(dir, 20, dir);
+                    scale(dir, 20, dir);
 
                     origin2canvas(poly.points[j], auxPt);
-                    vecAdd(auxPt, dir, auxPt);
+                    add(auxPt, dir, auxPt);
 
                     numString = (j + 1).toString();
                     ctx.strokeText(numString, auxPt.x, auxPt.y);
@@ -143,24 +137,7 @@ export function render() {
     requestAnimationFrame(draw);
 }
 
-export function add(polygon) {
-    polygon.dirty = true;
-    polygons.push(polygon);
-}
-
-export function remove(polygon) {
-    const index = polygons.indexOf(polygon);
-
-    if (index !== -1) {
-        polygons.splice(index, 1);
-    }
-}
-
-export function find(callback) {
-    return polygons.find(callback);
-}
-
-export function set(polyArray) {
+function set(polyArray) {
     if (!Array.isArray(polyArray)) {
         return;
     }
