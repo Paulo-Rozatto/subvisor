@@ -1,8 +1,9 @@
 import * as API from "../api-consumer.js";
+import * as defaultParser from "../parsers/default.js";
+
 import { IMAGE_LIST, setImage } from "../app.js";
 import { ClassesHandler } from "./classes-handler.js";
 import { modalToggle } from "../utils.js";
-import { DefaultParser as parser } from "../app/default-parser.js";
 import { resetTimer } from "./infos-handler.js";
 
 const datasetsButton = document.querySelector("#datasets-list-button");
@@ -27,7 +28,7 @@ export async function loadBackendImage(path, imageName) {
             return;
         }
 
-        image = await parser.loadParse(path, imageName);
+        image = await defaultParser.fetchParse(path, imageName);
 
         if (!image) {
             console.error(`Can't load image ${path}`);
@@ -48,7 +49,7 @@ function saveAnnotations() {
     const img = IMAGE_LIST.find((img) => img.name === imgName);
     const leafName = document.querySelector("#title").innerText;
 
-    const xml = parser.annotationsToXml(leafName, imgName, img.annotations);
+    const xml = defaultParser.stringify(leafName, imgName, img.annotations);
     API.saveXml(openPath, "annotations", fileName + ".xml", xml);
 }
 

@@ -1,4 +1,5 @@
 import * as hist from "./history.js";
+
 import { annotateLeaf, saveXml } from "./api-consumer";
 import {
     bisectorNorm,
@@ -9,7 +10,7 @@ import {
 } from "./utils";
 import { render, window2canvas } from "./renderer";
 import { ClassesHandler as classes } from "./handlers/classes-handler";
-import { DefaultParser as parser } from "./app/default-parser";
+import { stringify } from "./parsers/default.js";
 
 let focus, hover, currentMode;
 
@@ -137,11 +138,7 @@ async function predictAnnotation(points, isBox) {
     const dirName = document.querySelector("#title").innerText;
     const path = focus.image.filePath.replace(/\/\w+\.\w+/, "");
     const xmlName = focus.image.name.replace(/(\.\w+)$/, ".xml");
-    const xml = parser.annotationsToXml(
-        dirName,
-        focus.image.name,
-        focus.image.annotations
-    );
+    const xml = stringify(dirName, focus.image.name, focus.image.annotations);
 
     saveXml(path, "annotations", xmlName, xml);
 }
