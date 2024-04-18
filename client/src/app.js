@@ -222,7 +222,7 @@ function onClick(e) {
         return;
     }
 
-    if (focus.point !== null) {
+    if (focus.point !== null && hover.point !== null) {
         if (e.ctrlKey) {
             focus.addMultiFocus(hover.point);
             hover.point = null;

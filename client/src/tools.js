@@ -377,7 +377,7 @@ const PredictPoints = {
 
         idx = background.points.indexOf(point);
         if (idx > -1) {
-            foreground.points.splice(idx, 1);
+            background.points.splice(idx, 1);
             return;
         }
     },
