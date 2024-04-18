@@ -1,6 +1,8 @@
+import * as cocoParser from "../parsers/coco";
+import * as defaultParser from "../parsers/default";
+
 import { IMAGE_LIST } from "../app";
 import JSZip from "jszip";
-import { DefaultParser as parser } from "../app/default-parser";
 import saveAs from "file-saver";
 
 const exportButton = document.querySelector("#export-button");
@@ -13,7 +15,7 @@ async function download() {
 
     for (const image of IMAGE_LIST) {
         const xmlName = image.name.replace(/(\.\w+)$/, ".xml");
-        const xml = parser.annotationsToXml(
+        const xml = defaultParser.stringify(
             leafName,
             image.name,
             image.annotations
@@ -22,7 +24,7 @@ async function download() {
     }
 
     const cocoFolder = zip.folder("coco");
-    const coco = parser.annotationsToCoco(leafName, IMAGE_LIST);
+    const coco = cocoParser.stringify(IMAGE_LIST);
     cocoFolder.file(leafName + "-coco.json", coco);
 
     const content = await zip.generateAsync({ type: "blob" });
