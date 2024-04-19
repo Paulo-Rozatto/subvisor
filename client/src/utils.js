@@ -31,6 +31,8 @@ export const MOUSE = {
     },
 };
 
+export const EXTENSION_REGEX = /(\.\w+)$/;
+
 export function l1Distance(x1, y1, x2, y2) {
     return Math.abs(x2 - x1) + Math.abs(y2 - y1);
 }

@@ -1,6 +1,7 @@
 import * as cocoParser from "../parsers/coco";
 import * as defaultParser from "../parsers/default";
 
+import { EXTENSION_REGEX } from "../utils";
 import { IMAGE_LIST } from "../app";
 import JSZip from "jszip";
 import saveAs from "file-saver";
@@ -14,7 +15,7 @@ async function download() {
     const folder = zip.folder("annotations");
 
     for (const image of IMAGE_LIST) {
-        const xmlName = image.name.replace(/(\.\w+)$/, ".xml");
+        const xmlName = image.name.replace(EXTENSION_REGEX, ".xml");
         const xml = defaultParser.stringify(
             leafName,
             image.name,
