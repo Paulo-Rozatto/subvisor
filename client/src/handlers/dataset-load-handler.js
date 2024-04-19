@@ -16,7 +16,9 @@ export let openPath = "";
 export let currentPath = "";
 export let selected;
 
-export async function loadBackendImage(path, imageName) {
+export const select = (el) => (selected = el);
+
+async function loadBackendImage(path, imageName) {
     let image = IMAGE_LIST.find((img) => img.name === imageName);
 
     if (!image) {

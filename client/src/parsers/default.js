@@ -1,47 +1,31 @@
+import { EXTENSION_REGEX } from "../utils";
 import { SERVER_URL } from "../api-consumer";
 import { ClassesHandler as classes } from "../handlers/classes-handler";
 
 const NORMALIZER = 4624;
 
-export async function fetchParse(path, imageName) {
-    const src = `${SERVER_URL}/datasets/${path}/${imageName}`;
-    const xmlName = imageName.replace(/(\.\w+)$/, ".xml");
-    const xmlPath = `${SERVER_URL}/datasets/${path}/annotations/${xmlName}`;
-    const response = await fetch(xmlPath);
-
-    const parsedImage = {
-        src,
-        annotations: [],
-        filePath: src.split("datasets")[1],
-    };
-
-    if (!response.ok) {
-        console.error(
-            `ERROR ${response.status}: ${response.statusText}, request: ${response.url}`
-        );
-        return parsedImage;
-    }
-
-    const fileText = await response.text();
+export function parse(fileName, fileText) {
     const parser = new DOMParser();
     const xml = parser.parseFromString(fileText, "text/xml");
     const errorNode = xml.querySelector("parsererror");
 
     if (errorNode) {
         console.error(
-            `ERRO: falha ao tentar passar para xml o arquivo ${fileText}`,
+            `ERRO: falha ao tentar passar para xml o arquivo ${fileName}`,
             errorNode
         );
-        return parsedImage;
+        return [];
     }
 
     const objects = xml.getElementsByTagName("objects")[0];
     if (!objects) {
-        console.error(`ERRO: ${path} não tem tag <objects>`);
+        console.error(`ERRO:  ${fileName} não tem tag <objects>`);
         return [];
     }
 
     const elements = objects.children;
+    const annotations = [];
+
     for (const el of elements) {
         const points = [];
 
@@ -52,13 +36,34 @@ export async function fetchParse(path, imageName) {
             });
         }
 
-        parsedImage.annotations.push({
+        annotations.push({
             class: classes.get(el.tagName),
             points,
         });
     }
 
-    return parsedImage;
+    return annotations;
+}
+
+export async function fetchParse(path, imageName) {
+    const src = `${SERVER_URL}/datasets/${path}/${imageName}`;
+    const xmlName = imageName.replace(EXTENSION_REGEX, ".xml");
+    const xmlPath = `${SERVER_URL}/datasets/${path}/annotations/${xmlName}`;
+    const response = await fetch(xmlPath);
+
+    if (!response.ok) {
+        console.error(
+            `ERROR ${response.status}: ${response.statusText}, request: ${response.url}`
+        );
+    }
+
+    const xmlText = await response.text();
+
+    return {
+        src,
+        annotations: parse(xmlName, xmlText),
+        filePath: src.split("datasets")[1],
+    };
 }
 
 export function stringify(dirName, imageName, annotations) {
