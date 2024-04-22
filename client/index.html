@@ -13,6 +13,20 @@
             <section>
                 <button class="btn" id="datasets-list-button">Arquivos</button>
                 <button
+                    class="btn"
+                    id="add-class-button"
+                    title="Adcionar classe"
+                >
+                    <i class="bi bi-bookmark-plus"></i>
+                </button>
+                <span id="classes-wrapper" title="Classe do objeto selecionado">
+                    <i class="bi bi-bookmark"></i>
+                    <span id="classes-display"></span>
+                    <i class="bi bi-chevron-down"></i>
+                </span>
+            </section>
+            <section>
+                <button
                     class="btn btn-icon btn-selected"
                     id="tool-edit-button"
                     title="Editar polígonos"
@@ -45,11 +59,6 @@
                         </button>
                     </div>
                 </div>
-
-                <span id="classes-wrapper" title="Classe do objeto selecionado">
-                    <i class="bi bi-tag"></i>
-                    <span id="classes-display">---</span>
-                </span>
             </section>
             <section style="justify-content: end">
                 <button class="btn" id="theme-button" title="Trocar tema">
@@ -155,40 +164,38 @@
             </div>
         </article>
 
-        <article class="modal hide" id="classes-modal">
-            <h2>Adcionar ou Trocar Classe</h2>
-            <form class="form class-form">
-                <div class="inline">
-                    <select id="classes-select"></select>
-                    <button class="btn" id="save-classes">Trocar</button>
-                </div>
-            </form>
+        <form class="form class-form hide">
+            <div class="inline">
+                <select id="classes-select"></select>
+                <button class="btn" id="save-classes">Trocar</button>
+            </div>
+        </form>
 
+        <article class="modal hide" id="new-class-modal">
+            <h2>Adcionar Classe</h2>
             <form class="form class-form">
-                <h4 id="toggle-new-class">Adcionar nova classe <i class="bi bi-chevron-down"></i></h4>
-                <div class="body hide" id="new-class-body">
-                    <input type="text" class="text-input" id="input-class-name" placeholder="ex.: foo" required/>
+                <span>
                     <label for="input-class-name">Nome da classe</label>
+                    <input type="text" class="text-input" id="input-class-name" placeholder="ex.: foo" required/>
+                </span>
 
-                    <input type="text" class="text-input" id="input-class-color" placeholder="ex.: #ff0 ou #ffff00" required/>
-                    <label for="input-class-color">Cor de fundo</label>
-                    
-                    <input type="text" class="text-input" id="input-point-color" placeholder="ex.: #dd0" required/>
-                    <label for="input-point-color">Cor de borda</label>
-                    
-                    <input type="number" class="text-input" id="input-point-limit" placeholder="opicional, ex.: 5"/>
+                <span>
                     <label for="input-point-limit">Limite de pontos</label>
+                    <input type="number" class="text-input" id="input-point-limit" placeholder="opicional, ex.: 5"/>
+                </span>
 
-                    <div>
-                        Mostrar números:
-                        <input type="radio" name="showNumbers" value="Sim"id="radio-show-numbers">
-                        <label for="radio-show-numbers">Sim</label>
-                        <input type="radio" name="showNumbers" value="Não"id="radio-not-show-numbers" checked>
-                        <label for="radio-not-show-numbers">Não</label>
-                    </div>
-                    
-                    <button class="btn" id="add-new-class">Adicionar e Trocar</button>
+                <div class="inline" style="justify-content: center;">
+                    <span class="inline">
+                        <label for="input-class-color">Cor:</label>
+                        <input type="color" value="#FF00FF" class="color-input" id="input-class-color" placeholder="ex.: #ff0 ou #ffff00" required/>
+                    </span>&VerticalSeparator;
+                    <span>
+                        <label for="input-class-color">Enumerar:</label>
+                        <input type="checkbox" id="check-enumerate" class="check">
+                    </span>
                 </div>
+                
+                <button class="btn" id="save-new-class">Salvar</button>
             </form>
         </article>
 

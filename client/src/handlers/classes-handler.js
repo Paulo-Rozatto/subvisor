@@ -16,31 +16,22 @@ const defaultClass = {
     },
 };
 
+const addClassButton = document.querySelector("#add-class-button");
 const classesDisplay = document.querySelector("#classes-display");
 const classesSelect = document.querySelector("#classes-select");
-const classesModal = document.querySelector("#classes-modal");
+const classesModal = document.querySelector("#new-class-modal");
 const saveClassesButton = document.querySelector("#save-classes");
 
-const toggleNewClassButton = document.querySelector("#toggle-new-class");
-const newClassBody = document.querySelector("#new-class-body");
-const addClassButton = document.querySelector("#add-new-class");
+const saveNewClassButton = document.querySelector("#save-new-class");
 const classNameInput = document.querySelector("#input-class-name");
 const classColorInput = document.querySelector("#input-class-color");
-const pointColorInput = document.querySelector("#input-point-color");
 const pointLimitInput = document.querySelector("#input-point-limit");
-const showNumbersRadio = document.querySelector("#radio-show-numbers");
+const enumerateCheckbox = document.querySelector("#check-enumerate");
 
 function resetNewClassFields() {
-    newClassBody.classList.add("hide");
-
-    for (const field of [
-        classNameInput,
-        classColorInput,
-        pointColorInput,
-        pointLimitInput,
-    ]) {
-        field.value = "";
-    }
+    classNameInput.value = "";
+    pointLimitInput.value = "";
+    enumerateCheckbox.checked = false;
 }
 
 export function setCurrentClass(newClass) {
@@ -60,7 +51,7 @@ export function setCurrentClass(newClass) {
 }
 
 function openClassesModal() {
-    classesSelect.value = currentClass?.name || "---";
+    classesSelect.value = currentClass?.name || "";
     resetNewClassFields();
     modalToggle(classesModal);
 }
@@ -82,11 +73,11 @@ function swithClass(event) {
     }
 }
 
-function addNewClass(event) {
+function saveNewClass(event) {
     event.preventDefault();
     const missing = [];
 
-    for (const field of [classNameInput, classColorInput, pointColorInput]) {
+    for (const field of [classNameInput, classColorInput]) {
         if (!field.value) {
             missing.push(
                 document.querySelector(`[for="${field.id}"]`).innerText
@@ -104,7 +95,7 @@ function addNewClass(event) {
         name: className,
         color: classColorInput.value,
         limit: parseInt(pointLimitInput.value) || undefined,
-        enumerate: showNumbersRadio.checked,
+        enumerate: enumerateCheckbox.checked,
         fill: true,
         stroke: false,
     });
@@ -124,12 +115,8 @@ function addNewClass(event) {
 }
 
 saveClassesButton.addEventListener("click", swithClass);
-addClassButton.addEventListener("click", addNewClass);
-classesDisplay.parentElement.addEventListener("click", openClassesModal);
-
-toggleNewClassButton.addEventListener("click", () =>
-    newClassBody.classList.toggle("hide")
-);
+addClassButton.addEventListener("click", openClassesModal);
+saveNewClassButton.addEventListener("click", saveNewClass);
 
 function setClasses(newClasses) {
     classes = newClasses || [];

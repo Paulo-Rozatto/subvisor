@@ -153,16 +153,18 @@ aside {
 
 .class-form {
     font-size: 1.1rem;
-    
-    .body  {
+    text-align: left;
+
+    .body {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 1.1rem;
     }
 
     .inline {
         display: flex;
-        gap: 5px;
+        align-items: center;
+        gap: 15px;
 
         button {
             width: 6rem;
@@ -259,6 +261,12 @@ aside {
     border-bottom: 1px solid $hover;
 }
 
+.color-input {
+    display: inline;
+    background-color: transparent;
+    cursor: pointer;
+}
+
 #classes-wrapper {
     display: flex;
     align-items: center;
@@ -267,6 +275,7 @@ aside {
     min-height: 40px;
     padding: 5px;
     border-radius: 5px;
+    gap: 3px;
     cursor: pointer;
 
     span {
@@ -280,10 +289,9 @@ aside {
     background-color: $selection;
 }
 
-#toggle-new-class{
+#toggle-new-class {
     cursor: pointer;
 }
-
 
 //configs
 .selected {
