@@ -183,7 +183,7 @@ const Edit = {
 
         if (poly === null) {
             const ann = {
-                class: classes.default,
+                class: classes.current || classes.default,
                 showPoints: true,
                 points: [newPoint],
             };

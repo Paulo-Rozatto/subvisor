@@ -296,7 +296,6 @@ function onKeyDown(e) {
             focus.point = null;
             focus.polygon = null;
             tools.active.reset();
-            setCurrentClass("");
             renderer.render();
             break;
         }
