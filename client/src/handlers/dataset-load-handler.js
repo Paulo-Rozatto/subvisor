@@ -129,7 +129,7 @@ async function pickDataset() {
     if (datasetInfo.configString) {
         configs = JSON.parse(datasetInfo.configString);
     }
-    const classes = configs.classes || {};
+    const classes = configs.classes || [];
     const imageNames = datasetInfo.imageList;
 
     ClassesHandler.setClasses(classes);

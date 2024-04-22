@@ -43,7 +43,7 @@ function resetNewClassFields() {
     }
 }
 
-function setCurrent(newClass) {
+export function setCurrentClass(newClass) {
     if (newClass === "") {
         classesDisplay.innerText = "---";
         currentClass = null;
@@ -74,7 +74,7 @@ function swithClass(event) {
         return;
     }
 
-    setCurrent(classesSelect.value);
+    setCurrentClass(classesSelect.value);
 
     if (currentClass && focus.polygon) {
         focus.polygon.class = classes.find((c) => c.name === currentClass.name);
@@ -132,7 +132,7 @@ toggleNewClassButton.addEventListener("click", () =>
 );
 
 function setClasses(newClasses) {
-    classes = newClasses;
+    classes = newClasses || [];
 
     const idx = classes.findIndex((c) => c.name === "default");
     if (idx === -1) {
@@ -172,7 +172,7 @@ export const ClassesHandler = {
         return currentClass;
     },
     set current(newClass) {
-        setCurrent(newClass);
+        setCurrentClass(newClass);
     },
 
     get default() {

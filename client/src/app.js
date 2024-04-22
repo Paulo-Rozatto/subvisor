@@ -2,6 +2,7 @@ import * as hist from "./history.js";
 import * as renderer from "./renderer.js";
 import * as tools from "./tools.js";
 import { MOUSE, event2canvas } from "./utils.js";
+import { setCurrentClass } from "./handlers/classes-handler.js";
 import { setUiPolyLength } from "./handlers/infos-handler.js";
 
 export const IMAGE_LIST = [];
@@ -238,6 +239,7 @@ function onClick(e) {
 
     if (hover.polygon !== null && hover.polygon !== focus.polygon) {
         focus.polygon = hover.polygon;
+        setCurrentClass(focus.polygon.class.name);
         tools.active.onFocus(focus.polygon);
     } else if (hover.point === null) {
         tools.active.onClick(e, focus.polygon);
@@ -294,6 +296,7 @@ function onKeyDown(e) {
             focus.point = null;
             focus.polygon = null;
             tools.active.reset();
+            setCurrentClass("");
             renderer.render();
             break;
         }
