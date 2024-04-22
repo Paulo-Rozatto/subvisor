@@ -1,0 +1,55 @@
+.custom-select {
+    box-sizing: border-box;
+    position: absolute;
+    background-color: $base;
+    padding: 10px;
+    z-index: 99;
+    max-height: 300px;
+    transform: translateY(5px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 1px 1px 2px $hover, -1px 1px 2px $hover;
+
+    input {
+        width: 100%;
+        border: none;
+        outline: none;
+        border-bottom: 1px solid $hover;
+        color: $hover;
+        background-color: transparent;
+        font-size: 1.1rem;
+    }
+
+    ul {
+        flex: auto;
+        overflow-y: auto;
+
+        li {
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        li:hover {
+            background-color: $hover;
+            color: $base;
+        }
+    }
+}
+
+@mixin dark-custom-select {
+    .custom-select {
+        background-color: $dark-base;
+        box-shadow: 1px 1px 2px $dark-selection, -1px 1px 2px $dark-selection;
+
+        input {
+            color: $dark-hover;
+            border-bottom: 1px solid $dark-hover;
+        }
+        
+        ul li:hover {
+            background-color: $dark-hover;
+            color: $dark-base;
+        }
+    }
+}

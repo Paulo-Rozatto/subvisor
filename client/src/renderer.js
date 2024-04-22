@@ -135,6 +135,7 @@ function draw() {
 
 export function render() {
     requestAnimationFrame(draw);
+    canvas.focus();
 }
 
 function set(polyArray) {

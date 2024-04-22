@@ -19,11 +19,21 @@
                 >
                     <i class="bi bi-bookmark-plus"></i>
                 </button>
-                <span id="classes-wrapper" title="Classe do objeto selecionado">
-                    <i class="bi bi-bookmark"></i>
-                    <span id="classes-display"></span>
-                    <i class="bi bi-chevron-down"></i>
-                </span>
+
+                <div>
+                    <span id="classes-wrapper" title="Classe do objeto selecionado">
+                        <i class="bi bi-bookmark"></i>
+                        <span id="classes-display">default</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </span>
+                    <article class="custom-select hide" id="classes-select">
+                        <section>
+                            <i class="bi bi-search"></i>
+                            <input type="text" class="" id="class-search-input" placeholder="Pesquisar">
+                        </section>
+                        <ul id="classes-options"></ul>
+                    </article>
+                </div>
             </section>
             <section>
                 <button
@@ -163,13 +173,6 @@
                 <button class="btn" id="datasets-pick">Selecionar</button>
             </div>
         </article>
-
-        <form class="form class-form hide">
-            <div class="inline">
-                <select id="classes-select"></select>
-                <button class="btn" id="save-classes">Trocar</button>
-            </div>
-        </form>
 
         <article class="modal hide" id="new-class-modal">
             <h2>Adcionar Classe</h2>

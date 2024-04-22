@@ -5,7 +5,6 @@ import { render } from "../renderer";
 import { saveConfig } from "../api-consumer";
 
 let currentClass = null;
-let last = "";
 let classes = [];
 
 const defaultClass = {
@@ -16,13 +15,12 @@ const defaultClass = {
     },
 };
 
-const addClassButton = document.querySelector("#add-class-button");
+const classesWrapper = document.querySelector("#classes-wrapper");
 const classesDisplay = document.querySelector("#classes-display");
 const classesSelect = document.querySelector("#classes-select");
+const classesOptions = document.querySelector("#classes-options");
 const classesModal = document.querySelector("#new-class-modal");
-const saveClassesButton = document.querySelector("#save-classes");
 
-const saveNewClassButton = document.querySelector("#save-new-class");
 const classNameInput = document.querySelector("#input-class-name");
 const classColorInput = document.querySelector("#input-class-color");
 const pointLimitInput = document.querySelector("#input-point-limit");
@@ -35,8 +33,8 @@ function resetNewClassFields() {
 }
 
 export function setCurrentClass(newClass) {
-    if (newClass === "") {
-        classesDisplay.innerText = "---";
+    if (newClass === "" || newClass === "default") {
+        classesDisplay.innerText = "default";
         currentClass = null;
     }
 
@@ -46,31 +44,32 @@ export function setCurrentClass(newClass) {
     }
 
     currentClass = clss;
-    last = newClass;
     classesDisplay.innerText = newClass;
 }
 
 function openClassesModal() {
-    classesSelect.value = currentClass?.name || "";
+    classesOptions.value = currentClass?.name || "";
     resetNewClassFields();
     modalToggle(classesModal);
 }
 
-function swithClass(event) {
-    event.preventDefault();
-
-    modalToggle(classesModal);
-
-    if (classesSelect.value === currentClass?.name || !focus.polygon) {
+function swithClass() {
+    if (classesOptions.value === currentClass?.name) {
         return;
     }
 
-    setCurrentClass(classesSelect.value);
+    setCurrentClass(classesOptions.value);
 
     if (currentClass && focus.polygon) {
         focus.polygon.class = classes.find((c) => c.name === currentClass.name);
         render();
     }
+}
+
+function selectClassOption(event) {
+    classesSelect.classList.add("hide");
+    classesOptions.value = event.target.innerText;
+    swithClass();
 }
 
 function saveNewClass(event) {
@@ -102,21 +101,46 @@ function saveNewClass(event) {
 
     saveConfig(openPath, { classes });
 
-    const defaultEl = document.createElement("option");
-    defaultEl.innerText = className;
-    defaultEl.value = className;
+    const newEl = document.createElement("li");
+    newEl.innerText = className;
+    newEl.onclick = selectClassOption;
+    newEl.value = className;
 
     const fragment = new DocumentFragment();
-    fragment.append(defaultEl);
-    classesSelect.append(fragment);
+    fragment.append(newEl);
+    classesOptions.append(fragment);
 
-    classesSelect.value = className;
-    swithClass(event);
+    classesOptions.value = className;
+    swithClass();
+    modalToggle(classesModal);
 }
 
-saveClassesButton.addEventListener("click", swithClass);
-addClassButton.addEventListener("click", openClassesModal);
-saveNewClassButton.addEventListener("click", saveNewClass);
+function toggleClassesOptions() {
+    classesSelect.classList.toggle("hide");
+}
+
+function closeClassesOptions(event) {
+    if (
+        event.target !== classesWrapper &&
+        !classesWrapper.contains(event.target) &&
+        event.target !== classesSelect &&
+        !classesSelect.contains(event.target)
+    ) {
+        classesSelect.classList.add("hide");
+    }
+}
+
+function filterClassesOptions(event) {
+    const searchString = event.target.value.toLowerCase();
+
+    for (const option of classesOptions.children) {
+        if (option.innerText.toLowerCase().indexOf(searchString) === -1) {
+            option.classList.add("hide");
+        } else {
+            option.classList.remove("hide");
+        }
+    }
+}
 
 function setClasses(newClasses) {
     classes = newClasses || [];
@@ -128,14 +152,13 @@ function setClasses(newClasses) {
         classes.splice(idx, 1, defaultClass);
     }
 
-    classesSelect.textContent = "";
+    classesOptions.textContent = "";
 
     const fragment = new DocumentFragment();
 
-    const defaultEl = document.createElement("option");
+    const defaultEl = document.createElement("li");
     defaultEl.innerText = "default";
-    defaultEl.value = "default";
-    defaultEl.disabled = true;
+    defaultEl.onclick = selectClassOption;
     fragment.append(defaultEl);
 
     for (const clss of classes.sort((a, b) => a.name.localeCompare(b.name))) {
@@ -143,17 +166,29 @@ function setClasses(newClasses) {
             continue;
         }
 
-        const element = document.createElement("option");
+        const element = document.createElement("li");
         element.innerText = clss.name;
-        element.value = clss.name;
+        element.onclick = selectClassOption;
         fragment.append(element);
     }
-    classesSelect.append(fragment);
+    classesOptions.append(fragment);
 }
+
+classesWrapper.addEventListener("click", toggleClassesOptions);
+document
+    .querySelector("#add-class-button")
+    .addEventListener("click", openClassesModal);
+document
+    .querySelector("#save-new-class")
+    .addEventListener("click", saveNewClass);
+document
+    .querySelector("#class-search-input")
+    .addEventListener("keyup", filterClassesOptions);
+
+document.addEventListener("pointerdown", closeClassesOptions);
 
 export const ClassesHandler = {
     setClasses,
-    // predictAnnotation,
 
     get current() {
         return currentClass;
@@ -164,10 +199,6 @@ export const ClassesHandler = {
 
     get default() {
         return defaultClass;
-    },
-
-    get last() {
-        return last;
     },
 
     get list() {
