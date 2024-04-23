@@ -124,6 +124,9 @@ async function predictAnnotation(points, isBox) {
         return;
     }
 
+    hist.push(focus.image, focus.polygon);
+    focus.image.saved = false;
+
     let ann;
     if (focus.polygon !== null) {
         ann = focus.polygon;
@@ -135,13 +138,6 @@ async function predictAnnotation(points, isBox) {
     }
     ann.points = newPoints;
     render();
-
-    const dirName = document.querySelector("#title").innerText;
-    const path = focus.image.filePath.replace(/\/\w+\.\w+/, "");
-    const xmlName = focus.image.name.replace(EXTENSION_REGEX, ".xml");
-    const xml = stringify(dirName, focus.image.name, focus.image.annotations);
-
-    saveXml(path, "annotations", xmlName, xml);
 }
 
 // TOOLS
@@ -189,6 +185,7 @@ const Edit = {
             };
             focus.polygon = ann;
             focus.image.annotations.push(ann);
+            focus.image.saved = false;
             this.onFocus(ann);
 
             focus.point = newPoint;
@@ -197,6 +194,7 @@ const Edit = {
         }
 
         hist.push(focus.image, poly);
+        focus.image.saved = false;
 
         const l = poly.points.length;
         const points = poly.points;
@@ -260,6 +258,7 @@ const Edit = {
         let idx;
 
         hist.push(focus.image, focus.polygon);
+        focus.image.saved = false;
 
         const multi = focus.multiFocus;
         if (focus.polygon.points.length - multi.length - 1 < 3) {
@@ -466,6 +465,10 @@ export function boxMode() {
     active.deactivate();
     PredictBox.activate();
     active = PredictBox;
+}
+
+export function isEditMode() {
+    return active === Edit;
 }
 
 const toolEditButton = document.querySelector("#tool-edit-button");

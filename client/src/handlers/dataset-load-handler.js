@@ -1,9 +1,9 @@
 import * as API from "../api-consumer.js";
 import * as defaultParser from "../parsers/default.js";
 
+import { EXTENSION_REGEX, modalToggle } from "../utils.js";
 import { IMAGE_LIST, setImage } from "../app.js";
 import { ClassesHandler } from "./classes-handler.js";
-import { modalToggle } from "../utils.js";
 import { resetTimer } from "./infos-handler.js";
 
 const datasetsButton = document.querySelector("#datasets-list-button");
@@ -18,7 +18,7 @@ export let selected;
 
 export const select = (el) => (selected = el);
 
-async function loadBackendImage(path, imageName) {
+async function loadBackendImage(path, imageName, element) {
     let image = IMAGE_LIST.find((img) => img.name === imageName);
 
     if (!image) {
@@ -30,7 +30,21 @@ async function loadBackendImage(path, imageName) {
             return;
         }
 
+        const name = imageName.replace(EXTENSION_REGEX, "");
         image = await defaultParser.fetchParse(path, imageName);
+        image = {
+            ...image,
+            _saved: true,
+            get saved() {
+                return this._saved;
+            },
+            set saved(value) {
+                this._saved = value;
+                if (element) {
+                    element.innerText = value ? name : "*" + name;
+                }
+            },
+        };
 
         if (!image) {
             console.error(`Can't load image ${path}`);
@@ -46,13 +60,16 @@ function saveAnnotations() {
         return;
     }
 
-    const fileName = selected.innerText;
-    const imgName = fileName + ".jpg";
-    const img = IMAGE_LIST.find((img) => img.name === imgName);
-    const leafName = document.querySelector("#title").innerText;
+    const fileName = selected.innerText.replace("*", "");
+    const imgName = fileName;
+    const img = IMAGE_LIST.find((img) => img.name.indexOf(imgName) !== -1);
 
-    const xml = defaultParser.stringify(leafName, imgName, img.annotations);
-    API.saveXml(openPath, "annotations", fileName + ".xml", xml);
+    if (!img.saved) {
+        const leafName = document.querySelector("#title").innerText;
+        const xml = defaultParser.stringify(leafName, imgName, img.annotations);
+        API.saveXml(openPath, "annotations", fileName + ".xml", xml);
+        img.saved = true;
+    }
 }
 
 async function enterDir(event) {
@@ -148,7 +165,7 @@ async function pickDataset() {
 
         button.onclick = () => {
             saveAnnotations(selected, currentPath);
-            loadBackendImage(path, imageName);
+            loadBackendImage(path, imageName, button);
             selected.classList.remove("selected");
             selected.classList.add("checked");
             button.classList.add("selected");
@@ -159,13 +176,14 @@ async function pickDataset() {
     }
     selected = fragment.children[0];
     selected.classList.add("selected");
-    imageList.innerHTML = "";
-    imageList.append(fragment);
 
     openPath = path;
-    loadBackendImage(path, imageNames[0]);
+    loadBackendImage(path, imageNames[0], fragment.childNodes[0]);
     modalToggle(datasetsModal);
     resetTimer();
+
+    imageList.innerHTML = "";
+    imageList.append(fragment);
 }
 
 currentPath = "bean-leaf/571-580/571";

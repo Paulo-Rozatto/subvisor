@@ -1,9 +1,11 @@
 import * as hist from "./history.js";
 import * as renderer from "./renderer.js";
 import * as tools from "./tools.js";
-import { MOUSE, event2canvas } from "./utils.js";
+import { EXTENSION_REGEX, MOUSE, event2canvas } from "./utils.js";
 import { setCurrentClass } from "./handlers/classes-handler.js";
 import { setUiPolyLength } from "./handlers/infos-handler.js";
+import { stringify } from "./parsers/default.js";
+import { saveXml } from "./api-consumer.js";
 
 export const IMAGE_LIST = [];
 
@@ -169,8 +171,13 @@ function onMouseMove(e) {
     if (e.buttons === MOUSE.left && hover.point !== null) {
         if (flagMoveHist) {
             flagMoveHist = false;
-            hist.push(focus.image, focus.polygon);
+
+            if (tools.isEditMode()) {
+                hist.push(focus.image, focus.polygon);
+                focus.image.saved = false;
+            }
         }
+
         event2canvas(e, hover.point);
         renderer.render();
         return;
@@ -263,6 +270,26 @@ function onKeyDown(e) {
 
     if (e.ctrlKey) {
         switch (key) {
+            case "s": {
+                e.preventDefault();
+
+                const dirName = document.querySelector("#title").innerText;
+                const path = focus.image.filePath.replace(/\/\w+\.\w+/, "");
+                const xmlName = focus.image.name.replace(
+                    EXTENSION_REGEX,
+                    ".xml"
+                );
+                const xml = stringify(
+                    dirName,
+                    focus.image.name,
+                    focus.image.annotations
+                );
+
+                saveXml(path, "annotations", xmlName, xml);
+                focus.image.saved = true;
+                break;
+            }
+
             case "z": {
                 hist.undo();
                 focus.point = null;
@@ -307,8 +334,20 @@ function onKeyDown(e) {
     }
 }
 
+function onBeforeUnload(e) {
+    for (const image of IMAGE_LIST) {
+        if (!image.saved) {
+            e.preventDefault();
+            e.returnValue = "";
+            break;
+        }
+    }
+}
+
 renderer.canvas.addEventListener("pointermove", onMouseMove);
 renderer.canvas.addEventListener("wheel", onWheel);
 renderer.canvas.addEventListener("pointerdown", onClick);
 renderer.canvas.addEventListener("keydown", onKeyDown);
 renderer.canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+
+addEventListener("beforeunload", onBeforeUnload);
