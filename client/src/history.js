@@ -23,6 +23,7 @@ const redoStack = new LimitedStack();
 export function push(image, polygon) {
     undoStack.push({
         image,
+        saved: image.saved,
         polygon,
         copy: polygon.points.map((p) => ({ x: p.x, y: p.y })),
     });
@@ -41,6 +42,7 @@ export function undo() {
 
     redoStack.push(entry);
 
+    entry.image.saved = entry.saved;
     entry.polygon.points = entry.copy;
 
     const index = entry.image.annotations.findIndex(
@@ -63,6 +65,7 @@ export function redo() {
 
     undoStack.push(entry);
 
+    entry.image.saved = !entry.saved;
     entry.polygon.points = entry.redoCopy;
 
     const index = entry.image.annotations.findIndex(

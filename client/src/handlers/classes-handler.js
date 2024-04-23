@@ -62,6 +62,7 @@ function swithClass() {
 
     if (currentClass && focus.polygon) {
         focus.polygon.class = classes.find((c) => c.name === currentClass.name);
+        focus.image.saved = false;
         render();
     }
 }
