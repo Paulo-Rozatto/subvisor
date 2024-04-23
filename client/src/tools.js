@@ -1,17 +1,15 @@
 import * as hist from "./history.js";
 
 import {
-    EXTENSION_REGEX,
     bisectorNorm,
     event2canvas,
     hoverPoints,
     intersect,
     points2String,
 } from "./utils";
-import { annotateLeaf, saveXml } from "./api-consumer";
 import { render, window2canvas } from "./renderer";
+import { annotateLeaf } from "./api-consumer";
 import { ClassesHandler as classes } from "./handlers/classes-handler";
-import { stringify } from "./parsers/default.js";
 
 let focus, hover, currentMode;
 
