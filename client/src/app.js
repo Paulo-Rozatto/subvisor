@@ -2,10 +2,10 @@ import * as hist from "./history.js";
 import * as renderer from "./renderer.js";
 import * as tools from "./tools.js";
 import { EXTENSION_REGEX, MOUSE, event2canvas } from "./utils.js";
+import { saveXml } from "./api-consumer.js";
 import { setCurrentClass } from "./handlers/classes-handler.js";
 import { setUiPolyLength } from "./handlers/infos-handler.js";
 import { stringify } from "./parsers/default.js";
-import { saveXml } from "./api-consumer.js";
 
 export const IMAGE_LIST = [];
 
