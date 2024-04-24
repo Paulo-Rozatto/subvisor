@@ -291,14 +291,14 @@ function onKeyDown(e) {
             }
 
             case "z": {
-                hist.undo();
+                hist.undo(focus.image);
                 focus.point = null;
                 hover.point = null;
                 return;
             }
 
             case "y": {
-                hist.redo();
+                hist.redo(focus.image);
                 focus.point = null;
                 hover.point = null;
             }

@@ -5,6 +5,10 @@ const MAX_STACK_SIZE = 3;
 class LimitedStack {
     _items = [];
 
+    head() {
+        return this._items[0];
+    }
+
     pop() {
         return this._items.pop();
     }
@@ -29,7 +33,11 @@ export function push(image, polygon) {
     });
 }
 
-export function undo() {
+export function undo(focusedImage) {
+    if (undoStack.head()?.image !== focusedImage) {
+        return;
+    }
+
     const entry = undoStack.pop();
 
     if (!entry) {
@@ -56,7 +64,11 @@ export function undo() {
     render();
 }
 
-export function redo() {
+export function redo(focusedImage) {
+    if (redoStack.head()?.image !== focusedImage) {
+        return;
+    }
+
     const entry = redoStack.pop();
 
     if (!entry) {
