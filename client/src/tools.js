@@ -7,7 +7,7 @@ import {
     intersect,
     points2String,
 } from "./utils";
-import { render, window2canvas } from "./renderer";
+import { focusCanvas, render, window2canvas } from "./renderer";
 import { annotateLeaf } from "./api-consumer";
 import { ClassesHandler as classes } from "./handlers/classes-handler";
 
@@ -497,6 +497,7 @@ toolEditButton.addEventListener("click", () => {
     toolPredictButton.classList.remove("btn-selected");
     toolEditButton.classList.add("btn-selected");
     editMode();
+    focusCanvas();
     render();
 });
 
@@ -505,6 +506,7 @@ toolPredictButton.addEventListener("click", () => {
     toolPredictButton.classList.add("btn-selected");
     toolEditButton.classList.remove("btn-selected");
     currentMode();
+    focusCanvas();
     render();
 });
 
@@ -513,6 +515,7 @@ predictPointsButton.addEventListener("click", () => {
     predictBoxButton.classList.remove("btn-selected");
     currentMode = pointsMode;
     pointsMode();
+    focusCanvas();
     render();
 });
 
@@ -521,5 +524,6 @@ predictBoxButton.addEventListener("click", () => {
     predictBoxButton.classList.add("btn-selected");
     currentMode = boxMode;
     boxMode();
+    focusCanvas();
     render();
 });

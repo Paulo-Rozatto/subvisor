@@ -1,3 +1,4 @@
+import { reset } from "../renderer";
 import { modalToggle } from "../utils";
 
 const MAX_TIME = 5999; // 100 min - 1s
@@ -39,3 +40,4 @@ export function updateZoom(zoom) {
 }
 
 infoButton.addEventListener("click", () => modalToggle(info));
+currentZoom.addEventListener("click", reset);

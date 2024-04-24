@@ -1,0 +1,91 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 5px;
+
+    input {
+        font-size: 1.2rem;
+    }
+
+    button {
+        align-self: flex-end;
+    }
+
+    .input {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        color: $hover;
+        border: none;
+        outline: none;
+        background-color: transparent;
+        border-bottom: 1px solid $hover;
+    }
+
+    .color-input {
+        display: inline;
+        background-color: transparent;
+        cursor: pointer;
+    }
+
+    .slider {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        text-align: left;
+        min-height: max-content;
+
+        label {
+            color: $hover;
+        }
+
+        .tip {
+            display: flex;
+            justify-content: space-between;
+            color: $hover;
+        }
+    }
+}
+
+.class-form {
+    font-size: 1.1rem;
+    text-align: left;
+
+    span {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .inline {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 15px;
+
+        button {
+            width: 6rem;
+        }
+    }
+}
+
+@mixin dark-form {
+    .form {
+        .input {
+            color: $dark-selection;
+            border-bottom: 1px solid $dark-selection;
+        }
+    }
+
+    .slider {
+        label {
+            color: $dark-selection;
+        }
+
+        .tip {
+            display: flex;
+            justify-content: space-between;
+            color: $dark-selection;
+        }
+    }
+}
