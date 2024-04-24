@@ -163,6 +163,26 @@ export function updateUiLength() {
     setUiPolyLength(focus.polygon?.points || 0);
 }
 
+function saveAnnotation(dirName, image) {
+    if (!image.saved) {
+        const path = image.filePath.replace(/\/\w+\.\w+/, "");
+        const xmlName = image.name.replace(EXTENSION_REGEX, ".xml");
+        const xml = stringify(dirName, image.name, image.annotations);
+
+        saveXml(path, "annotations", xmlName, xml);
+        image.saved = true;
+    }
+}
+
+function saveAllAnnotations() {
+    const dirName = document.querySelector("#title").innerText;
+    for (const image of IMAGE_LIST) {
+        saveAnnotation(dirName, image);
+    }
+}
+
+// EVENT HANDLERS
+
 function onMouseMove(e) {
     if (!focus.image) {
         return;
@@ -268,25 +288,19 @@ function onWheel(e) {
 function onKeyDown(e) {
     const key = e.key.toLowerCase();
 
+    if (e.shiftKey && e.ctrlKey && key === "s") {
+        e.preventDefault();
+        saveAllAnnotations();
+        return;
+    }
+
     if (e.ctrlKey) {
         switch (key) {
             case "s": {
                 e.preventDefault();
 
                 const dirName = document.querySelector("#title").innerText;
-                const path = focus.image.filePath.replace(/\/\w+\.\w+/, "");
-                const xmlName = focus.image.name.replace(
-                    EXTENSION_REGEX,
-                    ".xml"
-                );
-                const xml = stringify(
-                    dirName,
-                    focus.image.name,
-                    focus.image.annotations
-                );
-
-                saveXml(path, "annotations", xmlName, xml);
-                focus.image.saved = true;
+                saveAnnotation(dirName, focus.image);
                 break;
             }
 

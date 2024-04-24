@@ -230,6 +230,8 @@ aside {
     }
 
     .btn-offside {
+        position: absolute;
+        transform: translateX(80%);
         overflow: visible;
         padding: 2px;
         padding-left: 1rem;

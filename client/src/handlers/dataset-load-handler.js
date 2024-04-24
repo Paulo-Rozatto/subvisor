@@ -55,23 +55,6 @@ async function loadBackendImage(path, imageName, element) {
     setImage(imageName, image);
 }
 
-function saveAnnotations() {
-    if (!selected) {
-        return;
-    }
-
-    const fileName = selected.innerText.replace("*", "");
-    const imgName = fileName;
-    const img = IMAGE_LIST.find((img) => img.name.indexOf(imgName) !== -1);
-
-    if (!img.saved) {
-        const leafName = document.querySelector("#title").innerText;
-        const xml = defaultParser.stringify(leafName, imgName, img.annotations);
-        API.saveXml(openPath, "annotations", fileName + ".xml", xml);
-        img.saved = true;
-    }
-}
-
 async function enterDir(event) {
     const path = event.target.getAttribute("path") || event.target.innerText;
     const dirs = await API.fetchPath(path);
@@ -164,7 +147,6 @@ async function pickDataset() {
         button.innerText = imageName.replace(".jpg", "");
 
         button.onclick = () => {
-            saveAnnotations(selected, currentPath);
             loadBackendImage(path, imageName, button);
             selected.classList.remove("selected");
             selected.classList.add("checked");
