@@ -135,6 +135,9 @@ function draw() {
 
 export function render() {
     requestAnimationFrame(draw);
+}
+
+export function focusCanvas() {
     canvas.focus();
 }
 
@@ -197,10 +200,12 @@ export function reset() {
     offset.x = (canvas.width - screenWidth) * 0.5;
     offset.y = (canvas.height - screenHeight) * 0.5;
 
+    focusCanvas();
     render();
 }
 
 image.onload = () => {
     reset();
+    focusCanvas();
     render();
 };

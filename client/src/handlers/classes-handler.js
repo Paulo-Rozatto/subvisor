@@ -1,7 +1,7 @@
 import { focus } from "../app";
 import { modalToggle } from "../utils";
 import { openPath } from "./dataset-load-handler";
-import { render } from "../renderer";
+import { focusCanvas, render } from "../renderer";
 import { saveConfig } from "../api-consumer";
 
 let currentClass = null;
@@ -63,6 +63,7 @@ function swithClass() {
     if (currentClass && focus.polygon) {
         focus.polygon.class = classes.find((c) => c.name === currentClass.name);
         focus.image.saved = false;
+        focusCanvas();
         render();
     }
 }
