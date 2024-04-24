@@ -45,8 +45,8 @@ public class SamHq {
 
     public String run(String imagePath, String points, String labels) {
         Mat imageMat = Imgcodecs.imread(imagePath);
-        float[] pointsArray = str2array(points + ",0,0");
-        float[] labelsArray = str2array(labels + ",-1");
+        float[] pointsArray = str2array(points);
+        float[] labelsArray = str2array(labels);
 
         float[] originalSize = {imageMat.rows(), imageMat.cols()};
         float scale = 1024 / (float) Math.max(imageMat.rows(), imageMat.cols());

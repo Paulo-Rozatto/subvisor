@@ -111,18 +111,20 @@ const box = {
 };
 
 // PREDICT FUNCTION
-async function predictAnnotation(points, isBox) {
+async function predictAnnotation(points, labels) {
     if (focus.image === null) {
         return;
     }
 
-    const newPoints = await annotateLeaf(focus.image.filePath, points, isBox);
+    const newPoints = await annotateLeaf(focus.image.filePath, points, labels);
 
     if (!newPoints) {
         return;
     }
 
-    hist.push(focus.image, focus.polygon);
+    if (focus.polygon) {
+        hist.push(focus.image, focus.polygon);
+    }
     focus.image.saved = false;
 
     let ann;
@@ -356,7 +358,7 @@ const PredictPoints = {
                 .concat(Array(background.points.length).fill(0))
                 .join(",");
 
-            predictAnnotation(pointsString, labelsString, false);
+            predictAnnotation(pointsString + ",0,0", labelsString + ",-1");
         }
     },
 
@@ -429,7 +431,20 @@ const PredictBox = {
         hover.point = box.points[2];
     },
 
-    onEnter() {},
+    onEnter() {
+        if (box.showPoints) {
+            // get top-left and bottom-right corners
+            const pointsString = `${Math.min(
+                box.points[0].x,
+                box.points[1].x
+            )},${Math.min(box.points[0].y, box.points[1].y)},${Math.max(
+                box.points[0].x,
+                box.points[1].x
+            )},${Math.max(box.points[0].y, box.points[2].y)}`;
+
+            predictAnnotation(pointsString, "2,3");
+        }
+    },
 
     onMove(e) {
         if (box.showPoints) {
