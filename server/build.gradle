@@ -23,14 +23,8 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	implementation 'commons-io:commons-io:2.13.0'
-	implementation 'com.microsoft.onnxruntime:onnxruntime_gpu:1.17.1'
+	implementation group: 'com.microsoft.onnxruntime', name: 'onnxruntime', version: '1.17.3'
 	implementation 'org.openpnp:opencv:4.8.1-0'
 }
-
-//tasks.named('test') {
-//	useJUnitPlatform()
-//}
