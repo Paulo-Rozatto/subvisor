@@ -1,6 +1,6 @@
 import { render } from "./renderer";
 
-const MAX_STACK_SIZE = 3;
+const MAX_STACK_SIZE = 20;
 
 class LimitedStack {
     _items = [];
@@ -28,8 +28,9 @@ export function push(image, polygon) {
     undoStack.push({
         image,
         saved: image.saved,
-        polygon,
-        copy: polygon.points.map((p) => ({ x: p.x, y: p.y })),
+        polygon: polygon,
+        copy: polygon?.points.map((p) => ({ x: p.x, y: p.y })) || null,
+        annLength: image.annotations.length,
     });
 }
 
@@ -44,13 +45,22 @@ export function undo(focusedImage) {
         return;
     }
 
+    entry.image.saved = entry.saved;
+
+    if (entry.polygon === null) {
+        const polygon = entry.image.annotations.splice(entry.annLength, 1)[0];
+        entry.redoCopy = polygon;
+        redoStack.push(entry);
+        render();
+        return;
+    }
+
     if (!entry.redoCopy) {
         entry.redoCopy = entry.polygon.points.map((p) => ({ x: p.x, y: p.y }));
     }
 
     redoStack.push(entry);
 
-    entry.image.saved = entry.saved;
     entry.polygon.points = entry.copy;
 
     const index = entry.image.annotations.findIndex(
@@ -75,9 +85,17 @@ export function redo(focusedImage) {
         return;
     }
 
+    entry.image.saved = !entry.saved;
+
+    if (entry.polygon === null) {
+        entry.image.annotations.splice(entry.annLength, 0, entry.redoCopy);
+        undoStack.push(entry);
+        render();
+        return;
+    }
+
     undoStack.push(entry);
 
-    entry.image.saved = !entry.saved;
     entry.polygon.points = entry.redoCopy;
 
     const index = entry.image.annotations.findIndex(

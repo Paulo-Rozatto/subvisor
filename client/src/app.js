@@ -159,10 +159,6 @@ export function setImage(name, image) {
     renderer.setImage(image);
 }
 
-export function updateUiLength() {
-    setUiPolyLength(focus.polygon?.points || 0);
-}
-
 function saveAnnotation(dirName, image) {
     if (!image.saved) {
         const path = image.filePath.replace(/\/\w+\.\w+/, "");
