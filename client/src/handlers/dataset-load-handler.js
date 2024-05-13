@@ -168,9 +168,5 @@ async function pickDataset() {
     imageList.append(fragment);
 }
 
-currentPath = "bean-leaf/571-580/571";
-pickDataset();
-modalToggle(datasetsModal);
-
 datasetsButton.addEventListener("click", showDatasets);
 datasetsPick.addEventListener("click", pickDataset);

@@ -10,6 +10,7 @@ import {
 import { focusCanvas, render, window2canvas } from "./renderer";
 import { annotateLeaf } from "./api-consumer";
 import { ClassesHandler as classes } from "./handlers/classes-handler";
+import { setUiPolyLength } from "./handlers/infos-handler.js";
 
 let focus, hover, currentMode;
 
@@ -122,9 +123,7 @@ async function predictAnnotation(points, labels) {
         return;
     }
 
-    if (focus.polygon) {
-        hist.push(focus.image, focus.polygon);
-    }
+    hist.push(focus.image, focus.polygon);
     focus.image.saved = false;
 
     let ann;
@@ -136,8 +135,12 @@ async function predictAnnotation(points, labels) {
         };
         focus.image.annotations.push(ann);
     }
+
     ann.points = newPoints;
+    focus.polygon = ann;
+    focus.polygon.outline = true;
     render();
+    setUiPolyLength(newPoints.length);
 }
 
 // TOOLS
