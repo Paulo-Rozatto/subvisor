@@ -196,6 +196,10 @@ const Edit = {
             return;
         }
 
+        if (poly.class.limit && poly.points.length >= poly.class.limit) {
+            return;
+        }
+
         hist.push(focus.image, poly);
         focus.image.saved = false;
 
