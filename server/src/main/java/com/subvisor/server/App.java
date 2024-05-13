@@ -1,6 +1,5 @@
 package com.subvisor.server;
 
-import lombok.val;
 import nu.pattern.OpenCV;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -10,6 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @SpringBootApplication
@@ -17,9 +17,9 @@ public class App implements WebMvcConfigurer {
     public static String DATA_DIR_PATH;
 
     private static String getOrCreateDataDirs() {
-        val homePath = System.getProperty("user.home");
-        val rootDataDir = Paths.get(homePath, "subvisor").toString();
-        val datasetsDir = Paths.get(rootDataDir, "datasets");
+        final String homePath = System.getProperty("user.home");
+        final String rootDataDir = Paths.get(homePath, "subvisor").toString();
+        final Path datasetsDir = Paths.get(rootDataDir, "datasets");
 
         try {
             Files.createDirectories(datasetsDir);
@@ -39,7 +39,7 @@ public class App implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        val datasetPath = Paths.get(DATA_DIR_PATH, "datasets").toString();
+        String datasetPath = Paths.get(DATA_DIR_PATH, "datasets").toString();
 
         System.out.println(datasetPath);
         registry.addResourceHandler("/datasets/**")
