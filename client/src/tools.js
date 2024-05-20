@@ -8,6 +8,7 @@ import {
     points2String,
 } from "./utils";
 import { focusCanvas, render, window2canvas } from "./renderer";
+import { NORMALIZER } from "./parsers/default.js";
 import { annotateLeaf } from "./api-consumer";
 import { ClassesHandler as classes } from "./handlers/classes-handler";
 import { setUiPolyLength } from "./handlers/infos-handler.js";
@@ -112,12 +113,19 @@ const box = {
 };
 
 // PREDICT FUNCTION
-async function predictAnnotation(points, labels) {
+async function predictAnnotation(promptPoints, promptLabels) {
     if (focus.image === null) {
         return;
     }
 
-    const newPoints = await annotateLeaf(focus.image.filePath, points, labels);
+    const promptPoly = focus.polygon ? points2String(focus.polygon.points) : "";
+
+    const newPoints = await annotateLeaf(
+        focus.image.filePath,
+        promptPoly,
+        promptPoints,
+        promptLabels
+    );
 
     if (!newPoints) {
         return;
