@@ -1,11 +1,12 @@
 export const SERVER_URL = "http://localhost:8080";
 const API_URL = `${SERVER_URL}/api`;
 
-export async function annotateLeaf(path, pointsString, labelsString) {
+export async function annotateLeaf(path, polygonString, pointsString, labelsString) {
     const params = new URLSearchParams({
         path,
-        points: pointsString,
-        labels: labelsString,
+        promptMask: polygonString,
+        promptPoints: pointsString,
+        promptLabels: labelsString,
     });
     const response = await fetch(`${API_URL}/nn/predict?${params}`);
 

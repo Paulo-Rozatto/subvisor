@@ -2,7 +2,7 @@ import { EXTENSION_REGEX } from "../utils";
 import { SERVER_URL } from "../api-consumer";
 import { ClassesHandler as classes } from "../handlers/classes-handler";
 
-const NORMALIZER = 4624;
+export const NORMALIZER = 4624;
 
 export function parse(fileName, fileText) {
     const parser = new DOMParser();

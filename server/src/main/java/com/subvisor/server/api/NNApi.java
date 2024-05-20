@@ -19,9 +19,9 @@ public class NNApi {
     final private SamHq samHq = new SamHq();
 
     @GetMapping("/predict")
-    public Contour predict(String path, String points, String labels) {
+    public Contour predict(String path, String promptMask, String promptPoints, String promptLabels) {
         String imagePath = Paths.get(DATA_DIR_PATH, "datasets", path).toString();
-        String result = samHq.run(imagePath, points, labels);
+        String result = samHq.run(imagePath, promptMask, promptPoints, promptLabels);
         return new Contour(result);
     }
 }

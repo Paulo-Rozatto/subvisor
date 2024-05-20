@@ -9,6 +9,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
+import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
@@ -30,6 +31,9 @@ public class SamHq {
     final private OrtSession session;
     final private OrtSession decoderSession;
 
+    final private int image_dimension = 1024;
+    final private int mask_dimension = image_dimension / 4;
+
     public SamHq() {
         try {
             byte[] encoder = Objects.requireNonNull(getClass().getResourceAsStream("/models/encoder.onnx")).readAllBytes();
@@ -43,13 +47,15 @@ public class SamHq {
         }
     }
 
-    public String run(String imagePath, String points, String labels) {
+    public String run(String imagePath, String maskPrompt, String promptPoints, String promptLabels) {
         Mat imageMat = Imgcodecs.imread(imagePath);
-        float[] pointsArray = str2array(points);
-        float[] labelsArray = str2array(labels);
+        Mat maskMat = maskPrompt.isEmpty() ? null : fillMask(maskPrompt, imageMat.size());
+
+        float[] pointsArray = str2array(promptPoints);
+        float[] labelsArray = str2array(promptLabels);
 
         float[] originalSize = {imageMat.rows(), imageMat.cols()};
-        float scale = 1024 / (float) Math.max(imageMat.rows(), imageMat.cols());
+        float scale = image_dimension / (float) Math.max(imageMat.rows(), imageMat.cols());
         resize(imageMat, scale);
 
 
@@ -73,7 +79,7 @@ public class SamHq {
                 Embeddings.save(imagePath, imageEmbeddings, intermEmbeddings, env);
             }
 
-            OrtSession.Result decoderResult = decode(imageEmbeddings, intermEmbeddings, pointsArray, scale, labelsArray, inputSize);
+            OrtSession.Result decoderResult = decode(imageEmbeddings, intermEmbeddings, maskMat, pointsArray, scale, labelsArray, inputSize);
 
             Mat mask = new Mat((int) inputSize[0], (int) inputSize[1], CV_8UC1);
             float[][] output = ((float[][][][]) decoderResult.get("masks").get().getValue())[0][0];
@@ -141,16 +147,20 @@ public class SamHq {
         return session.run(Collections.singletonMap("input_image", imageTensor));
     }
 
-    private OrtSession.Result decode(OnnxTensor imageEmbeddings, OnnxTensor intermEmbeddings, float[] points, float scale, float[] labels, float[] inputSize) throws OrtException {
-        float[] mask = new float[256 * 256];
+    private OrtSession.Result decode(OnnxTensor imageEmbeddings, OnnxTensor intermEmbeddings, Mat maskMat, float[] points, float scale, float[] labels, float[] inputSize) throws OrtException {
+        float[] mask = new float[mask_dimension * mask_dimension];
         float[] hasMask = {0.0f};
+
+        if (maskMat != null) {
+            maskMat.get(0, 0, mask);
+            hasMask[0] = 1.0f;
+        }
 
         long[] pointsShape = {1, points.length / 2, 2};
         long[] labelsShape = {1, pointsShape[1]};
-        long[] maskShape = {1, 1, 256, 256};
+        long[] maskShape = {1, 1, mask_dimension, mask_dimension};
         long[] hasMaskShape = {1};
         long[] sizeShape = {2};
-
 
         for (int i = 0; i < points.length; i++) {
             points[i] *= scale;
@@ -172,6 +182,27 @@ public class SamHq {
                 "orig_im_size", origImSize
         ));
 
+    }
+
+    private Mat fillMask(String maskPoints, Size imageSize) {
+        String[] stringPts = maskPoints.split(",");
+        int pointsLength = stringPts.length / 2;
+        Point[] points = new Point[pointsLength];
+
+        for (int i = 0, j = 0; i < pointsLength; i++, j += 2) {
+            float x = Float.parseFloat(stringPts[j]) / (float) imageSize.width;
+            float y = Float.parseFloat(stringPts[j + 1]) / (float) imageSize.height;
+
+            points[i] = new Point(Math.round(x * mask_dimension), Math.round(y * mask_dimension));
+        }
+
+        Mat image = Mat.zeros(new Size(mask_dimension, mask_dimension), CV_32F);
+        List<MatOfPoint> pts = new ArrayList<>();
+        pts.add(new MatOfPoint(points));
+
+        Imgproc.fillPoly(image, pts, new Scalar(255, 255, 255));
+
+        return image;
     }
 
     private float[] str2array(String dataPoints) {
