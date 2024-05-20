@@ -8,7 +8,6 @@ import {
     points2String,
 } from "./utils";
 import { focusCanvas, render, window2canvas } from "./renderer";
-import { NORMALIZER } from "./parsers/default.js";
 import { annotateLeaf } from "./api-consumer";
 import { ClassesHandler as classes } from "./handlers/classes-handler";
 import { setUiPolyLength } from "./handlers/infos-handler.js";
@@ -113,38 +112,53 @@ const box = {
 };
 
 // PREDICT FUNCTION
-async function predictAnnotation(promptPoints, promptLabels) {
-    if (focus.image === null) {
+async function predictAnnotation(promptPoints, promptLabels, spinner) {
+    const image = focus.image;
+    const polygon = focus.polygon;
+
+    if (image === null) {
         return;
     }
 
-    const promptPoly = focus.polygon ? points2String(focus.polygon.points) : "";
+    const promptPoly = polygon ? points2String(polygon.points) : "";
+
+    image.spinners.push(spinner);
+    render();
 
     const newPoints = await annotateLeaf(
-        focus.image.filePath,
+        image.filePath,
         promptPoly,
         promptPoints,
         promptLabels
     );
 
+    const idx = image.spinners.indexOf(spinner);
+    image.spinners.splice(idx, 1);
+
     if (!newPoints) {
         return;
     }
 
-    hist.push(focus.image, focus.polygon);
-    focus.image.saved = false;
+    hist.push(image, polygon);
+    image.saved = false;
 
     let ann;
-    if (focus.polygon !== null) {
-        ann = focus.polygon;
+    if (polygon !== null) {
+        ann = polygon;
     } else {
         ann = {
-            class: classes.default,
+            class: classes.current,
         };
-        focus.image.annotations.push(ann);
+
+        image.annotations.push(ann);
     }
 
     ann.points = newPoints;
+
+    if (image !== focus.image) {
+        return;
+    }
+
     focus.polygon = ann;
     focus.polygon.outline = true;
     render();
@@ -363,17 +377,20 @@ const PredictPoints = {
 
     onEnter() {
         if (foreground.points.length > 0 || background.points.length > 0) {
-            const pointsString = points2String([
-                ...foreground.points,
-                ...background.points,
-            ]);
+            const allPoints = [...foreground.points, ...background.points];
+            const pointsString = points2String(allPoints);
 
             const labelsString = Array(foreground.points.length)
                 .fill(1)
                 .concat(Array(background.points.length).fill(0))
                 .join(",");
 
-            predictAnnotation(pointsString + ",0,0", labelsString + ",-1");
+            const last = allPoints.length - 1;
+            predictAnnotation(
+                pointsString + ",0,0",
+                labelsString + ",-1",
+                allPoints[last]
+            );
         }
     },
 
@@ -457,7 +474,12 @@ const PredictBox = {
                 box.points[1].x
             )},${Math.max(box.points[0].y, box.points[2].y)}`;
 
-            predictAnnotation(pointsString, "2,3");
+            const spinner = {
+                x: (box.points[0].x + box.points[1].x) * 0.5,
+                y: (box.points[0].y + box.points[2].y) * 0.5,
+            };
+
+            predictAnnotation(pointsString, "2,3", spinner);
         }
     },
 
