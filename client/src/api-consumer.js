@@ -1,7 +1,12 @@
 export const SERVER_URL = "http://localhost:8080";
 const API_URL = `${SERVER_URL}/api`;
 
-export async function annotateLeaf(path, polygonString, pointsString, labelsString) {
+export async function annotateLeaf(
+    path,
+    polygonString,
+    pointsString,
+    labelsString
+) {
     const params = new URLSearchParams({
         path,
         promptMask: polygonString,
@@ -68,5 +73,17 @@ export async function saveConfig(path, config) {
             "Content-Type": "application/json",
         },
         body: JSON.stringify({ path, configString: JSON.stringify(config) }),
+    });
+}
+
+export async function fetchCheckpointList() {
+    const response = await fetch(`${API_URL}/nn/checkpoints`);
+    return await response.json();
+}
+
+export async function loadCheckpoint(checkpoint) {
+    await fetch(`${API_URL}/nn/load-checkpoint`, {
+        method: "POST",
+        body: checkpoint,
     });
 }

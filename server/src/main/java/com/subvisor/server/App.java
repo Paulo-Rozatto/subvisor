@@ -7,6 +7,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,9 +21,11 @@ public class App implements WebMvcConfigurer {
         final String homePath = System.getProperty("user.home");
         final String rootDataDir = Paths.get(homePath, "subvisor").toString();
         final Path datasetsDir = Paths.get(rootDataDir, "datasets");
+        final Path checkpointsDir = Paths.get(rootDataDir, "checkpoints");
 
         try {
             Files.createDirectories(datasetsDir);
+            Files.createDirectories(checkpointsDir);
             return rootDataDir;
         } catch (IOException e) {
             throw new RuntimeException(e);

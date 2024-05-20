@@ -15,6 +15,7 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,11 +29,10 @@ import static org.opencv.core.CvType.CV_8UC1;
 
 public class SamHq {
     final private OrtEnvironment env;
-    final private OrtSession session;
-    final private OrtSession decoderSession;
-
+    final private OrtSession encoderSession;
     final private int image_dimension = 1024;
     final private int mask_dimension = image_dimension / 4;
+    private OrtSession decoderSession;
 
     public SamHq() {
         try {
@@ -40,7 +40,7 @@ public class SamHq {
             byte[] decoder = Objects.requireNonNull(getClass().getResourceAsStream("/models/decoder.onnx")).readAllBytes();
 
             env = OrtEnvironment.getEnvironment();
-            session = env.createSession(encoder, new OrtSession.SessionOptions());
+            encoderSession = env.createSession(encoder, new OrtSession.SessionOptions());
             decoderSession = env.createSession(decoder, new OrtSession.SessionOptions());
         } catch (IOException | NullPointerException | OrtException e) {
             throw new RuntimeException(e);
@@ -49,7 +49,10 @@ public class SamHq {
 
     public String run(String imagePath, String maskPrompt, String promptPoints, String promptLabels) {
         Mat imageMat = Imgcodecs.imread(imagePath);
-        Mat maskMat = maskPrompt.isEmpty() ? null : fillMask(maskPrompt, imageMat.size());
+//        Mat maskMat = maskPrompt.isEmpty() ? null : fillMask(maskPrompt, imageMat.size());
+//        disbling it because it looks buggy
+//        todo: fix
+        Mat maskMat = null;
 
         float[] pointsArray = str2array(promptPoints);
         float[] labelsArray = str2array(promptLabels);
@@ -135,6 +138,16 @@ public class SamHq {
 
     }
 
+    public void updateDecoderSession(InputStream stream) {
+        try {
+            byte[] decoder = stream.readAllBytes();
+            decoderSession.close();
+            decoderSession = env.createSession(decoder, new OrtSession.SessionOptions());
+        } catch (IOException | OrtException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private OrtSession.Result encode(Mat imageMat) throws OrtException {
         float[] floatData = new float[imageMat.rows() * imageMat.cols() * imageMat.channels()];
         imageMat.convertTo(imageMat, CV_32F);
@@ -144,7 +157,7 @@ public class SamHq {
         long[] shape = {imageMat.rows(), imageMat.cols(), imageMat.channels()};
         OnnxTensor imageTensor = OnnxTensor.createTensor(env, FloatBuffer.wrap(floatData), shape);
 
-        return session.run(Collections.singletonMap("input_image", imageTensor));
+        return encoderSession.run(Collections.singletonMap("input_image", imageTensor));
     }
 
     private OrtSession.Result decode(OnnxTensor imageEmbeddings, OnnxTensor intermEmbeddings, Mat maskMat, float[] points, float scale, float[] labels, float[] inputSize) throws OrtException {
