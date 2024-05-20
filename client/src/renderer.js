@@ -13,11 +13,13 @@ let zoom = 1;
 
 // main objects
 let polygons = [];
+let spinners = [];
 
 // aux
 const HOVER_COLOR = "#a5db94";
 const auxPt = { x: 0, y: 0 };
 const PI2 = Math.PI * 2;
+let isSpinning = false;
 
 export function window2canvas(src, dst) {
     dst.x = (src.x - offset.x) / zoom;
@@ -29,7 +31,7 @@ export function origin2canvas(src, dst) {
     dst.y = src.y * zoom + offset.y;
 }
 
-function draw() {
+function draw(timestamp) {
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(
@@ -41,7 +43,7 @@ function draw() {
     );
 
     let poly;
-    const l = polygons.length;
+    let l = polygons.length;
     for (let i = 0; i < l; i++) {
         poly = polygons[i];
 
@@ -131,9 +133,36 @@ function draw() {
             }
         }
     }
+
+    l = spinners.length;
+    for (let i = 0; i < l; i++) {
+        ctx.fillStyle = HOVER_COLOR;
+        ctx.strokeStyle = "#000";
+        ctx.lineWidth = 10;
+        origin2canvas(spinners[i], auxPt);
+
+        ctx.beginPath();
+        const start = timestamp * 0.005;
+        const end = start + PI2 - 0.5;
+        ctx.arc(auxPt.x, auxPt.y, 15, start, end);
+
+        ctx.stroke();
+
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = "#fff";
+        ctx.stroke();
+    }
+
+    isSpinning = l > 0;
+    if (isSpinning) {
+        requestAnimationFrame(draw);
+    }
 }
 
 export function render() {
+    if (isSpinning) {
+        return;
+    }
     requestAnimationFrame(draw);
 }
 
@@ -157,6 +186,7 @@ export function setImage(_image) {
 
     set(_image.annotations);
     image.src = _image.src;
+    spinners = _image.spinners;
 }
 
 function setZoom(_zoom) {

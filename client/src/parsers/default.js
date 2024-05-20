@@ -63,6 +63,7 @@ export async function fetchParse(path, imageName) {
         src,
         annotations: parse(xmlName, xmlText),
         filePath: src.split("datasets")[1],
+        spinners: [],
     };
 }
 
