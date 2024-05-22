@@ -1,19 +1,19 @@
+import { focusCanvas, render } from "../renderer";
 import { focus } from "../app";
 import { modalToggle } from "../utils";
 import { openPath } from "./dataset-load-handler";
-import { focusCanvas, render } from "../renderer";
 import { saveConfig } from "../api-consumer";
-
-let currentClass = null;
-let classes = [];
 
 const defaultClass = {
     name: "default",
     color: "#e0e0e0",
-    points: {
-        colors: ["#a0a0a0"],
-    },
+    enumerate: false,
+    fill: true,
+    stroke: false,
 };
+
+let currentClass = defaultClass;
+let classes = [];
 
 const classesWrapper = document.querySelector("#classes-wrapper");
 const classesDisplay = document.querySelector("#classes-display");

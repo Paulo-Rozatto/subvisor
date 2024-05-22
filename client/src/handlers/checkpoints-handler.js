@@ -1,4 +1,5 @@
 import { fetchCheckpointList, loadCheckpoint } from "../api-consumer";
+import { focusCanvas } from "../renderer";
 
 const checkpointsSelect = document.querySelector("#checkpoints");
 
@@ -17,10 +18,10 @@ async function update() {
 function onChange() {
     const value = checkpointsSelect.value;
 
-    console.log(value)
     if (value) {
         loadCheckpoint(value);
     }
+    focusCanvas();
 }
 
 checkpointsSelect.addEventListener("change", onChange);

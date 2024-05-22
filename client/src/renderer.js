@@ -216,6 +216,9 @@ export function wheelZoom(e) {
 }
 
 export function reset() {
+    canvas.width = display.clientWidth;
+    canvas.height = display.clientHeight;
+
     if (!image.src) {
         return;
     }
@@ -224,8 +227,6 @@ export function reset() {
     const screenHeight = display.clientHeight * 0.8;
     const screenWidth = screenHeight * imageAspectRatio;
 
-    canvas.width = display.clientWidth;
-    canvas.height = display.clientHeight;
     setZoom(screenHeight / image.height);
     offset.x = (canvas.width - screenWidth) * 0.5;
     offset.y = (canvas.height - screenHeight) * 0.5;
@@ -236,6 +237,5 @@ export function reset() {
 
 image.onload = () => {
     reset();
-    focusCanvas();
     render();
 };

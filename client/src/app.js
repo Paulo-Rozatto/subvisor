@@ -361,3 +361,6 @@ renderer.canvas.addEventListener("keydown", onKeyDown);
 renderer.canvas.addEventListener("contextmenu", (e) => e.preventDefault());
 
 addEventListener("beforeunload", onBeforeUnload);
+addEventListener("resize", renderer.reset);
+
+renderer.reset();
