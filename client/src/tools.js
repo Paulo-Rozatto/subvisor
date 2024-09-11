@@ -139,6 +139,7 @@ async function predictAnnotation(promptPoints, promptLabels, spinner) {
         return;
     }
 
+
     hist.push(image, polygon);
     image.saved = false;
 
@@ -147,7 +148,7 @@ async function predictAnnotation(promptPoints, promptLabels, spinner) {
         ann = polygon;
     } else {
         ann = {
-            class: classes.current,
+            class: classes.current || classes.default
         };
 
         image.annotations.push(ann);
@@ -272,7 +273,8 @@ const Edit = {
             }
             points.splice(index + 1, 0, newPoint);
         }
-
+        
+        setUiPolyLength(poly.points.length)
         focus.point = newPoint;
         hover.point = null;
     },

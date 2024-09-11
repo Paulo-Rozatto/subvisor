@@ -1,5 +1,5 @@
-import { reset } from "../renderer";
 import { modalToggle } from "../utils";
+import { reset } from "../renderer";
 
 const MAX_TIME = 5999; // 100 min - 1s
 
@@ -23,6 +23,10 @@ function updateTimer() {
     timer.textContent = `${minutes.toString().padStart(2, "0")}:${seconds
         .toString()
         .padStart(2, "0")}`;
+}
+
+export function getTime() {
+    return time;
 }
 
 export function resetTimer() {

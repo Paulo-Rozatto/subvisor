@@ -133,6 +133,7 @@ async function pickDataset() {
     const imageNames = datasetInfo.imageList;
 
     ClassesHandler.setClasses(classes);
+    ClassesHandler.current = "";
 
     const dirName = path.split("/").reverse()[0];
     document.querySelector("#title").innerHTML = dirName;

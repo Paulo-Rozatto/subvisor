@@ -1,6 +1,7 @@
 import { EXTENSION_REGEX } from "../utils";
 import { SERVER_URL } from "../api-consumer";
 import { ClassesHandler as classes } from "../handlers/classes-handler";
+import { getTime } from "../handlers/infos-handler";
 
 export const NORMALIZER = 4624;
 
@@ -98,6 +99,7 @@ export function stringify(dirName, imageName, annotations) {
     return `<annotation>
   <dir>${dirName}</dir>
   <filename>${imageName}</filename>
+  <time>${getTime()}</time>
   <objects>
 ${arr.join("\n")}
   </objects>
