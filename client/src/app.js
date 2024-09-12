@@ -149,7 +149,6 @@ export function setImage(name, image) {
     tools.active.deactivate();
 
     image.name = name;
-    IMAGE_LIST.push(image);
     focus.image = image;
     hover.point = null;
     hover.polygon = null;
@@ -160,7 +159,7 @@ export function setImage(name, image) {
 }
 
 function saveAnnotation(dirName, image) {
-    if (!image.saved) {
+    if (image.filePath && !image.saved) {
         const path = image.filePath.replace(/\/\w+\.\w+/, "");
         const xmlName = image.name.replace(EXTENSION_REGEX, ".xml");
         const xml = stringify(dirName, image.name, image.annotations);
