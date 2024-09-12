@@ -32,6 +32,12 @@ async function loadBackendImage(path, imageName, element) {
 
         const name = imageName.replace(EXTENSION_REGEX, "");
         image = await defaultParser.fetchParse(path, imageName);
+
+        if (!image) {
+            console.error(`Can't load image ${path}`);
+            return;
+        }
+
         image = {
             ...image,
             _saved: true,
@@ -46,10 +52,7 @@ async function loadBackendImage(path, imageName, element) {
             },
         };
 
-        if (!image) {
-            console.error(`Can't load image ${path}`);
-            return;
-        }
+        IMAGE_LIST.push(image);
     }
 
     setImage(imageName, image);

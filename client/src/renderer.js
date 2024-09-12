@@ -134,7 +134,7 @@ function draw(timestamp) {
         }
     }
 
-    l = spinners.length;
+    l = spinners?.length || 0;
     for (let i = 0; i < l; i++) {
         ctx.fillStyle = HOVER_COLOR;
         ctx.strokeStyle = "#000";

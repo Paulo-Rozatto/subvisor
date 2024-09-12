@@ -1,7 +1,8 @@
 import { IMAGE_LIST, setImage } from "../app";
 import { select, selected } from "./dataset-load-handler";
+import { ClassesHandler } from "./classes-handler";
 import { EXTENSION_REGEX } from "../utils";
-import { parse } from "../parsers/default";
+import { parse } from "../parsers/folhas"; // temporary only handling folhas dataset
 import { resetTimer } from "./infos-handler";
 
 const dropZone = document.querySelector(".drop-zone");
@@ -22,6 +23,10 @@ function read(file, readType) {
 
 async function loadImage(imageEntry, annotationEntry) {
     const image = IMAGE_LIST.find((img) => img.name === imageEntry.name);
+    // console.log(IMAGE_LIST);
+    // console.log(imageEntry.name);
+    // console.log(IMAGE_LIST[0]?.name === imageEntry.name);
+    // console.log(image);
 
     if (!image) {
         const src = await read(imageEntry, "readAsDataURL");
@@ -34,8 +39,10 @@ async function loadImage(imageEntry, annotationEntry) {
             annotations = [];
         }
 
+        console.log(imageEntry);
         const img = {
             name: imageEntry.name,
+            folder: annotationEntry.folder,
             src,
             annotations,
             filePath: imageEntry.fullPath,
@@ -48,12 +55,31 @@ async function loadImage(imageEntry, annotationEntry) {
     setImage(image.name, image);
 }
 
+function setClasses() {
+    ClassesHandler.setClasses([
+        {
+            name: "leaf1",
+            color: "#ff5555",
+            fill: true,
+            stroke: false,
+        },
+        {
+            name: "square",
+            color: "#55ffff",
+            fill: true,
+            stroke: false,
+        },
+    ]);
+}
+
 async function onDrop(e) {
     e.preventDefault();
     if (!supportsFileSystemAccessAPI) {
         alert("Seu navegador não tem suporte para 'getAsFileSystemHandle'");
         return;
     }
+
+    setClasses();
 
     dropZone.classList.add("hide");
 
@@ -70,13 +96,13 @@ async function onDrop(e) {
     }
 
     const images = [];
-    let annotationsHandle = null;
+    const folders = [];
 
     for await (const [key, value] of dirHandle.entries()) {
         if (key.match(/\.(jpe?g|png|webp)$/i)) {
             images.push(await value.getFile());
-        } else if (key === "annotations" && value.kind === "directory") {
-            annotationsHandle = value;
+        } else if (value.kind === "directory") {
+            folders.push(value);
         }
     }
 
@@ -86,10 +112,15 @@ async function onDrop(e) {
     }
 
     const annotations = [];
-    if (annotationsHandle !== null) {
-        for await (const [key, value] of annotationsHandle.entries()) {
-            if (key.endsWith(".xml")) {
-                annotations.push(await value.getFile());
+    let file;
+    for (const folder of folders) {
+        if (folder !== null) {
+            for await (const [key, value] of folder.entries()) {
+                if (key.endsWith(".xml")) {
+                    file = await value.getFile();
+                    file.folder = folder.name;
+                    annotations.push(file);
+                }
             }
         }
     }
