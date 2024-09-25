@@ -2,8 +2,40 @@ import { EXTENSION_REGEX } from "../utils";
 import { SERVER_URL } from "../api-consumer";
 import { ClassesHandler as classes } from "../handlers/classes-handler";
 
+// classes.setClasses([
+//     {
+//         name: "leaf1",
+//         color: "#ff5555",
+//         fill: true,
+//         stroke: false,
+//     },
+//     {
+//         name: "square",
+//         color: "#55ffff",
+//         fill: true,
+//         stroke: false,
+//     },
+// ]);
+
+setTimeout(() => {
+    classes.setClasses([
+        {
+            name: "leaf1",
+            color: "#ff5555",
+            fill: true,
+            stroke: false,
+        },
+        {
+            name: "square",
+            color: "#55ffff",
+            fill: true,
+            stroke: false,
+        },
+    ]);
+}, 100);
+
 export function parse(fileName, fileText) {
-    // fix xml problem
+    // it fixes the xml problem
     fileText = fileText.replaceAll(/<(\w)(\d+)\s*\/>/gi, "</$1$2>");
 
     const parser = new DOMParser();
@@ -20,13 +52,14 @@ export function parse(fileName, fileText) {
 
     const objects = xml.getElementsByTagName("object")[0];
     if (!objects) {
-        console.error(`ERRO:  ${fileName} não tem tag <objects>`);
+        console.error(`ERRO:  ${fileName} não tem tag <object>`);
         return [];
     }
 
     const elements = objects.children;
     const annotations = [];
 
+    let elClass;
     for (const el of elements) {
         const points = [];
 
@@ -37,8 +70,21 @@ export function parse(fileName, fileText) {
             });
         }
 
+        elClass = classes.get(el.tagName);
+
+        if (elClass === classes.default) {
+            elClass = {
+                name: el.tagName,
+                color: "#ff5555",
+                fill: true,
+                stroke: false,
+            };
+
+            classes.push(elClass);
+        }
+
         annotations.push({
-            class: classes.get(el.tagName),
+            class: elClass,
             points,
         });
     }

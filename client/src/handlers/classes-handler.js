@@ -176,6 +176,10 @@ function setClasses(newClasses) {
     classesOptions.append(fragment);
 }
 
+function push(newClass) {
+    classes.push(newClass);
+}
+
 classesWrapper.addEventListener("click", toggleClassesOptions);
 document
     .querySelector("#add-class-button")
@@ -191,6 +195,8 @@ document.addEventListener("pointerdown", closeClassesOptions);
 
 export const ClassesHandler = {
     setClasses,
+
+    push,
 
     get current() {
         return currentClass;
