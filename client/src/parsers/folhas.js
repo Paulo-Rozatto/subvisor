@@ -1,21 +1,6 @@
+import { SERVER_URL, getXml } from "../api-consumer";
 import { EXTENSION_REGEX } from "../utils";
-import { SERVER_URL } from "../api-consumer";
 import { ClassesHandler as classes } from "../handlers/classes-handler";
-
-// classes.setClasses([
-//     {
-//         name: "leaf1",
-//         color: "#ff5555",
-//         fill: true,
-//         stroke: false,
-//     },
-//     {
-//         name: "square",
-//         color: "#55ffff",
-//         fill: true,
-//         stroke: false,
-//     },
-// ]);
 
 setTimeout(() => {
     classes.setClasses([
@@ -95,8 +80,9 @@ export function parse(fileName, fileText) {
 export async function fetchParse(path, imageName) {
     const src = `${SERVER_URL}/datasets/${path}/${imageName}`;
     const xmlName = imageName.replace(EXTENSION_REGEX, ".xml");
-    const xmlPath = `${SERVER_URL}/datasets/${path}/annotations/${xmlName}`;
-    const response = await fetch(xmlPath);
+    // const xmlPath = `${SERVER_URL}/datasets/${path}/annotations/${xmlName}`;
+    // const response = await fetch(xmlPath);
+    const response = getXml(path, xmlName);
 
     if (!response.ok) {
         console.error(

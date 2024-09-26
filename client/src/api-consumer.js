@@ -64,6 +64,12 @@ export async function saveXml(path, className, fileName, fileContent) {
     });
 }
 
+export async function getXml(path, fileName) {
+    return await fetch(
+        `${API_URL}/datasets/annotation?path=${path}&fileName=${fileName}`
+    );
+}
+
 export async function saveConfig(path, config) {
     // todo: treat exceptions
     await fetch(`${API_URL}/datasets/save-config`, {
