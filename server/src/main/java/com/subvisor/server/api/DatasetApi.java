@@ -5,6 +5,8 @@ import com.subvisor.server.models.ConfigUpdateMessage;
 import com.subvisor.server.models.DatasetInfo;
 import com.subvisor.server.neuralnetwork.Embeddings;
 import org.apache.commons.io.FileUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,13 +27,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+// todo: I have to implement proper logging and handling exceptions and bad requests
+// todo: Currently, navigation works in paths and it shouldn't (../), so sanitize paths passed
 
 @RestController
 @RequestMapping("/api/datasets")
-@CrossOrigin(origins = "http://localhost:1234")
+@CrossOrigin(origins = {"http://localhost:1234", "http://localhost:8080"})
 public class DatasetApi {
     private static final Path DATASETS_PATH = Paths.get(App.DATA_DIR_PATH, "datasets");
-    private static final String PATH_REGEX = "{path:(?:\\w/?)+}";
 
     @GetMapping("/list")
     public List<String> listDatasetDirs() {
@@ -63,10 +68,35 @@ public class DatasetApi {
                 .collect(Collectors.toList());
     }
 
+    @GetMapping(value = "/annotation", produces = "application/xml")
+    public ResponseEntity<String> getAnnotation(String path, String fileName) {
+        try {
+            Path realPath = Paths.get(DATASETS_PATH.toString(), path);
+
+            try (Stream<Path> stream = Files.walk(realPath)) {
+                Path filePath = stream
+                        .filter(Files::isRegularFile)
+                        .filter(fp -> fp.getFileName().toString().equals(fileName))
+                        .findFirst()
+                        .orElse(null);
+
+                if (filePath != null) {
+                    String fileContent = new String(Files.readAllBytes(filePath));
+                    return ResponseEntity.ok(fileContent);
+                } else {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Annotation not found");
+                }
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error occurred: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/dataset-info")
     public DatasetInfo getImageList(@RequestParam String path) {
         String realPath = Paths.get(DATASETS_PATH.toString(), path).toString();
-        File[] images = new File(realPath).listFiles(file -> file.getName().endsWith(".jpg"));
+        File[] images = new File(realPath).listFiles(file -> file.getName().matches(".*\\.(?:jpe?g|png|webp)$"));
 
         if (images == null) {
             return null;

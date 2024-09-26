@@ -1,6 +1,7 @@
+import { SERVER_URL, getXml } from "../api-consumer";
 import { EXTENSION_REGEX } from "../utils";
-import { SERVER_URL } from "../api-consumer";
 import { ClassesHandler as classes } from "../handlers/classes-handler";
+import { parse as folhasParse } from "./folhas"; // todo: this is temporary i hope, parsers should not know other parsers
 import { getTime } from "../handlers/infos-handler";
 
 export const NORMALIZER = 4624;
@@ -49,8 +50,7 @@ export function parse(fileName, fileText) {
 export async function fetchParse(path, imageName) {
     const src = `${SERVER_URL}/datasets/${path}/${imageName}`;
     const xmlName = imageName.replace(EXTENSION_REGEX, ".xml");
-    const xmlPath = `${SERVER_URL}/datasets/${path}/annotations/${xmlName}`;
-    const response = await fetch(xmlPath);
+    const response = await getXml(path, xmlName);
 
     if (!response.ok) {
         console.error(
@@ -60,9 +60,12 @@ export async function fetchParse(path, imageName) {
 
     const xmlText = await response.text();
 
+    // todo: that should not be handled here
+    const rightParse = xmlText.includes("objects") ? parse : folhasParse;
+
     return {
         src,
-        annotations: parse(xmlName, xmlText),
+        annotations: rightParse(xmlName, xmlText),
         filePath: src.split("datasets")[1],
         spinners: [],
     };
