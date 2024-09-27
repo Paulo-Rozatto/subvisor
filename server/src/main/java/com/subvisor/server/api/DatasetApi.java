@@ -76,6 +76,8 @@ public class DatasetApi {
             try (Stream<Path> stream = Files.walk(realPath)) {
                 Path filePath = stream
                         .filter(Files::isRegularFile)
+                        .filter(pth -> pth.toString().endsWith(".xml"))
+                        .sorted((p1, p2) -> p1.toString().compareToIgnoreCase(p2.toString()))
                         .filter(fp -> fp.getFileName().toString().equals(fileName))
                         .findFirst()
                         .orElse(null);

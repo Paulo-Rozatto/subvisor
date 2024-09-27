@@ -25,7 +25,7 @@ import static com.subvisor.server.App.DATA_DIR_PATH;
 
 @RestController
 @RequestMapping("/api/nn")
-@CrossOrigin(origins = "http://localhost:1234")
+@CrossOrigin(origins = {"http://localhost:1234", "http://localhost:8080"})
 public class NNApi {
 
     private static final Path CHECKPOINTS_PATH = Paths.get(App.DATA_DIR_PATH, "checkpoints");
