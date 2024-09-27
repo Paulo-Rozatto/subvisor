@@ -125,6 +125,38 @@ public class DatasetApi {
         return new DatasetInfo(configs, imagesList);
     }
 
+    // todo: should be temporary i think
+    @GetMapping("/open")
+    public Boolean openDatasetFolder(@RequestParam String path) {
+        String folderPath = Paths.get(DATASETS_PATH.toString(), path).toString();
+        File file = new File(folderPath);
+
+        if (!file.exists() || !file.isDirectory()) {
+            System.out.println("Invalid folder path.");
+            return false;
+        }
+
+        try {
+            String os = System.getProperty("os.name").toLowerCase();
+
+            if (os.contains("win")) {
+                // Windows
+                Runtime.getRuntime().exec("explorer.exe /select," + folderPath);
+            } else if (os.contains("mac")) {
+                // macOS
+                Runtime.getRuntime().exec("open " + folderPath);
+            } else if (os.contains("nix") || os.contains("nux")) {
+                // Linux
+                Runtime.getRuntime().exec("xdg-open " + folderPath);
+            } else {
+                System.out.println("Unsupported operating system.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
+
     // todo: the file content should actually be only the points, whe should make the file formatting in the backend
     @PostMapping("/save-annotation")
     public void saveAnnotation(@RequestBody Map<String, String> payload) {

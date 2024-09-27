@@ -93,3 +93,7 @@ export async function loadCheckpoint(checkpoint) {
         body: checkpoint,
     });
 }
+
+export function requestOpenFolder(path) {
+    fetch(`${API_URL}/datasets/open?path=${path}`);
+}

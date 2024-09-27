@@ -10,6 +10,7 @@ const datasetsButton = document.querySelector("#datasets-list-button");
 const datasetsModal = document.querySelector("#datasets-modal");
 const datasetsList = document.querySelector("#datasets-list");
 const datasetsPick = document.querySelector("#datasets-pick");
+const openFolder = document.querySelector("#open-folder");
 const imageList = document.querySelector(".image-list");
 
 export let openPath = "";
@@ -172,5 +173,10 @@ async function pickDataset() {
     imageList.append(fragment);
 }
 
+function openLocalFolder() {
+    API.requestOpenFolder(currentPath);
+}
+
 datasetsButton.addEventListener("click", showDatasets);
 datasetsPick.addEventListener("click", pickDataset);
+openFolder.addEventListener("click", openLocalFolder);
