@@ -112,7 +112,7 @@ public class SamHq {
 
             MatOfPoint2f polyPoints = new MatOfPoint2f(contours.get(maxValIdx).toArray());
             double peri = Imgproc.arcLength(polyPoints, true);
-            Imgproc.approxPolyDP(polyPoints, polyPoints, 0.00007 * peri, true);
+            Imgproc.approxPolyDP(polyPoints, polyPoints, 0.01 * peri, true);
 
             StringBuilder stringArray = new StringBuilder("[");
             String x, y;
