@@ -178,6 +178,7 @@ function setClasses(newClasses) {
 
 function push(newClass) {
     classes.push(newClass);
+    saveConfig(openPath, { classes });
 }
 
 classesWrapper.addEventListener("click", toggleClassesOptions);
