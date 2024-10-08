@@ -2,22 +2,22 @@ import { SERVER_URL, getXml } from "../api-consumer";
 import { EXTENSION_REGEX } from "../utils";
 import { ClassesHandler as classes } from "../handlers/classes-handler";
 
-setTimeout(() => {
-    classes.setClasses([
-        {
-            name: "leaf1",
-            color: "#ff5555",
-            fill: true,
-            stroke: false,
-        },
-        {
-            name: "square",
-            color: "#55ffff",
-            fill: true,
-            stroke: false,
-        },
-    ]);
-}, 100);
+const folhasClasses = [
+    {
+        name: "square",
+        color: "#55ffff",
+        enumerate: false,
+        fill: true,
+        stroke: false,
+    },
+    {
+        name: "leaf1",
+        color: "#ff5555",
+        enumerate: false,
+        fill: true,
+        stroke: false,
+    },
+];
 
 export function parse(fileName, fileText) {
     // it fixes the xml problem
@@ -58,12 +58,10 @@ export function parse(fileName, fileText) {
         elClass = classes.get(el.tagName);
 
         if (elClass === classes.default) {
-            elClass = {
-                name: el.tagName,
-                color: "#ff5555",
-                fill: true,
-                stroke: false,
-            };
+            elClass = /square/.test(el.tagName)
+                ? folhasClasses[0]
+                : {...folhasClasses[1]};
+            elClass.name = el.tagName;
 
             classes.push(elClass);
         }

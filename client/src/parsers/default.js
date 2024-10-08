@@ -1,10 +1,9 @@
+import { EXTENSION_REGEX, getBoudingBox } from "../utils";
 import { SERVER_URL, getXml } from "../api-consumer";
-import { EXTENSION_REGEX } from "../utils";
 import { ClassesHandler as classes } from "../handlers/classes-handler";
 import { parse as folhasParse } from "./folhas"; // todo: this is temporary i hope, parsers should not know other parsers
-import { getTime } from "../handlers/infos-handler";
 
-export const NORMALIZER = 4624;
+export const NORMALIZER = 1;
 
 export function parse(fileName, fileText) {
     const parser = new DOMParser();
@@ -28,8 +27,14 @@ export function parse(fileName, fileText) {
     const elements = objects.children;
     const annotations = [];
 
-    for (const el of elements) {
+    for (let el of elements) {
         const points = [];
+
+        // reconhece formato novo com bouding box sem parar de funcionar para o antigo
+        const pointsTag = el.getElementsByTagName("points")[0];
+        if (pointsTag) {
+            el = pointsTag;
+        }
 
         for (let i = 0; i < el.children.length; i += 2) {
             points.push({
@@ -84,25 +89,39 @@ export function stringify(dirName, imageName, annotations) {
 
         const space1 = " ".repeat(6);
         const space2 = " ".repeat(8);
-        let coordinates = "";
+        const space3 = " ".repeat(10);
+
+        const [x, y, width, height] = getBoudingBox(points);
+
+        const bbox = `${space1}<bbox>
+${space2}<x>${x}</x>
+${space2}<y>${y}</y>
+${space2}<width>${width}</width>
+${space2}<height>${height}</height>
+${space1}</bbox>
+`;
+
+        let coordinates = space1 + "<points>\n";
 
         for (let i = 0; i < points.length; i++) {
-            const x = `${space1}<x${i + 1}>${points[i].x / NORMALIZER}</x${
+            const x = `${space2}<x${i + 1}>${points[i].x / NORMALIZER}</x${
                 i + 1
             }>\n`;
-            const y = `${space2}<y${i + 1}>${points[i].y / NORMALIZER}</y${
+            const y = `${space3}<y${i + 1}>${points[i].y / NORMALIZER}</y${
                 i + 1
             }>\n`;
             coordinates += x + y;
         }
+        coordinates += space1 + "</points>\n";
 
-        arr.push(`    <${className}>\n${coordinates}    </${className}>`);
+        arr.push(
+            `    <${className}>\n${bbox + coordinates}    </${className}>`
+        );
     }
 
     return `<annotation>
   <dir>${dirName}</dir>
   <filename>${imageName}</filename>
-  <time>${getTime()}</time>
   <objects>
 ${arr.join("\n")}
   </objects>

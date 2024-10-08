@@ -25,10 +25,6 @@ function updateTimer() {
         .padStart(2, "0")}`;
 }
 
-export function getTime() {
-    return time;
-}
-
 export function resetTimer() {
     clearInterval(interval);
     time = 0;
