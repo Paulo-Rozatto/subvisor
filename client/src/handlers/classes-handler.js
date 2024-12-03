@@ -150,8 +150,6 @@ function setClasses(newClasses) {
     const idx = classes.findIndex((c) => c.name === "default");
     if (idx === -1) {
         classes.push(defaultClass);
-    } else {
-        classes.splice(idx, 1, defaultClass);
     }
 
     classesOptions.textContent = "";
