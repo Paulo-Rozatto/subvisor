@@ -44,7 +44,7 @@ export function parse(fileName, fileText) {
         }
 
         annotations.push({
-            class: classes.get(el.tagName),
+            class: classes.get(el.parentElement.tagName),
             points,
         });
     }

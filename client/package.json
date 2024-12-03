@@ -7,8 +7,7 @@
     "build-dev": "rm -rf dist && parcel build index.html --no-optimize --public-url ./",
     "build": "rm -rf dist && parcel build index.html --public-url ./",
     "pages": "push-dir --dir=dist --branch=gh-pages --cleanup --verbose",
-    "deploy": "npm run build && npm run pages",
-    "prepare": "husky install"
+    "deploy": "npm run build && npm run pages"
   },
   "repository": {
     "type": "git",
