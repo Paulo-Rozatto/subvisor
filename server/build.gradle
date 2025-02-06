@@ -27,4 +27,6 @@ dependencies {
 	implementation 'commons-io:commons-io:2.13.0'
 	implementation group: 'com.microsoft.onnxruntime', name: 'onnxruntime', version: '1.17.3'
 	implementation 'org.openpnp:opencv:4.8.1-0'
+	compileOnly 'org.projectlombok:lombok:1.18.36'
+	annotationProcessor 'org.projectlombok:lombok:1.18.36'
 }
