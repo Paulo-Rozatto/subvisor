@@ -27,6 +27,8 @@ import java.util.Optional;
 import static org.opencv.core.CvType.CV_32F;
 import static org.opencv.core.CvType.CV_8UC1;
 
+// todo: log errors here
+
 public class SamHq {
     final private OrtEnvironment env;
     final private OrtSession encoderSession;

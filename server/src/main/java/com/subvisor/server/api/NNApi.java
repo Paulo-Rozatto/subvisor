@@ -3,12 +3,9 @@ package com.subvisor.server.api;
 import com.subvisor.server.App;
 import com.subvisor.server.models.Contour;
 import com.subvisor.server.neuralnetwork.SamHq;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,21 +23,25 @@ import static com.subvisor.server.App.DATA_DIR_PATH;
 @RestController
 @RequestMapping("/api/nn")
 @CrossOrigin(origins = {"http://localhost:1234", "http://localhost:8080"})
+@Slf4j
 public class NNApi {
 
     private static final Path CHECKPOINTS_PATH = Paths.get(App.DATA_DIR_PATH, "checkpoints");
 
     final private SamHq samHq = new SamHq();
+    private String currentCheckpoint = "Default";
 
     @GetMapping("/predict")
-    public Contour predict(String path, String promptMask, String promptPoints, String promptLabels) {
+    public ResponseEntity<Contour> predict(String path, String promptMask, String promptPoints, String promptLabels) {
+        log.info("Predicting contour for {} with points '{}' and labels '{}'", path, promptPoints, promptLabels);
+
         String imagePath = Paths.get(DATA_DIR_PATH, "datasets", path).toString();
         String result = samHq.run(imagePath, promptMask, promptPoints, promptLabels);
-        return new Contour(result);
+        return ResponseEntity.ok(new Contour(result));
     }
 
     @GetMapping("/checkpoints")
-    public List<String> checkpoints() {
+    public ResponseEntity<List<String>> checkpoints() {
         String path = CHECKPOINTS_PATH.toString();
         File[] files = new File(path).listFiles(File::isFile);
 
@@ -55,13 +56,16 @@ public class NNApi {
         }
 
         fileList.add(0, "Default");
-        return fileList;
+        return ResponseEntity.ok(fileList);
     }
 
     @PostMapping("/load-checkpoint")
     public void setCheckpoint(@RequestBody String checkpoint) {
+        log.info("Loading checkpoint '{}'.", checkpoint);
+
         if (Objects.equals(checkpoint, "Default")) {
             samHq.updateDecoderSession(Objects.requireNonNull(getClass().getResourceAsStream("/models/decoder.onnx")));
+            currentCheckpoint = checkpoint;
             return;
         }
 
@@ -69,8 +73,9 @@ public class NNApi {
         try {
             InputStream stream = new FileInputStream(path.toString());
             samHq.updateDecoderSession(stream);
+            currentCheckpoint = checkpoint;
         } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
+            log.error("Failed to load checkpoint '{}'.", checkpoint, e);
         }
     }
 }

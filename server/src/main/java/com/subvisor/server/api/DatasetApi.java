@@ -4,16 +4,11 @@ import com.subvisor.server.App;
 import com.subvisor.server.models.ConfigUpdateMessage;
 import com.subvisor.server.models.DatasetInfo;
 import com.subvisor.server.neuralnetwork.Embeddings;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -29,12 +24,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-// todo: I have to implement proper logging and handling exceptions and bad requests
 // todo: Currently, navigation works in paths and it shouldn't (../), so sanitize paths passed
 
 @RestController
 @RequestMapping("/api/datasets")
 @CrossOrigin(origins = {"http://localhost:1234", "http://localhost:8080"})
+@Slf4j
 public class DatasetApi {
     private static final Path DATASETS_PATH = Paths.get(App.DATA_DIR_PATH, "datasets");
 
@@ -86,22 +81,30 @@ public class DatasetApi {
                     String fileContent = new String(Files.readAllBytes(filePath));
                     return ResponseEntity.ok(fileContent);
                 } else {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Annotation not found");
+                    return ResponseEntity
+                            .status(HttpStatus.NOT_FOUND)
+                            .body("Annotation not found.");
                 }
             }
 
         } catch (IOException e) {
-            throw new RuntimeException("Error occurred: " + e.getMessage());
+            log.error("Failed to fetch file {} at path {}", fileName, path, e);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred.");
         }
     }
 
     @GetMapping("/dataset-info")
-    public DatasetInfo getImageList(@RequestParam String path) {
+    public ResponseEntity<DatasetInfo> getImageList(@RequestParam String path) {
         String realPath = Paths.get(DATASETS_PATH.toString(), path).toString();
         File[] images = new File(realPath).listFiles(file -> file.getName().matches(".*\\.(?:jpe?g|png|webp)$"));
 
         if (images == null) {
-            return null;
+            log.warn("No images found at {}.", realPath);
+            return ResponseEntity.
+                    status(HttpStatus.NOT_FOUND)
+                    .body(null);
         }
 
         List<String> imagesList = Arrays.stream(images)
@@ -118,24 +121,29 @@ public class DatasetApi {
             try {
                 configs = FileUtils.readFileToString(configFile, "utf-8");
             } catch (IOException e) {
-                throw new RuntimeException("Couldn't find config file: " + configPath);
+                log.error("Failed to fetch config file {} at path {}", configFile, path, e);
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body(null);
             }
         }
 
         Embeddings.clearCache();
 
-        return new DatasetInfo(configs, imagesList);
+        return ResponseEntity.ok(new DatasetInfo(configs, imagesList));
     }
 
     // todo: should be temporary i think
     @GetMapping("/open")
-    public Boolean openDatasetFolder(@RequestParam String path) {
+    public ResponseEntity<Boolean> openDatasetFolder(@RequestParam String path) {
         String folderPath = Paths.get(DATASETS_PATH.toString(), path).toString();
         File file = new File(folderPath);
 
         if (!file.exists() || !file.isDirectory()) {
-            System.out.println("Invalid folder path.");
-            return false;
+            log.error("Invalid folder path: {}.", path);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(false);
         }
 
         try {
@@ -151,12 +159,15 @@ public class DatasetApi {
                 // Linux
                 Runtime.getRuntime().exec("xdg-open " + folderPath);
             } else {
-                System.out.println("Unsupported operating system.");
+                log.error("Unsupported operating system.");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Failed to open file system at path {}.", path, e);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(false);
         }
-        return true;
+        return ResponseEntity.ok(true);
     }
 
     // todo: the file content should actually be only the points, whe should make the file formatting in the backend
@@ -170,6 +181,7 @@ public class DatasetApi {
         // can it be exploited?
         Path dirPath = Paths.get(DATASETS_PATH.toString(), path, className);
         try {
+            log.info("Saving annotation file '{}' at path {}", fileName, path);
             Files.createDirectories(dirPath);
             File file = new File(dirPath + "/" + fileName);
             FileWriter fw = new FileWriter(file.getAbsoluteFile());
@@ -177,7 +189,7 @@ public class DatasetApi {
             bw.write(fileContent);
             bw.close();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("An error occurred when trying to save annotation with the payload: {}", payload);
         }
 
     }
@@ -189,9 +201,10 @@ public class DatasetApi {
         File configFile = new File(configPath);
 
         try {
+            log.info("Saving config file at {}.", configPath);
             FileUtils.writeStringToFile(configFile, payload.configString(), "utf-8");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("An error occurred when trying to save config at path {} with payload: {} ", configPath, payload);
         }
     }
 }
