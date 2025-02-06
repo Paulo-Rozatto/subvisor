@@ -12,12 +12,24 @@ const datasetsList = document.querySelector("#datasets-list");
 const datasetsPick = document.querySelector("#datasets-pick");
 const openFolder = document.querySelector("#open-folder");
 const imageList = document.querySelector(".image-list");
+const currentPathEl = document.querySelector("#current-path");
 
 export let openPath = "";
-export let currentPath = "";
+let currentPath = "/";
 export let selected;
 
 export const select = (el) => (selected = el);
+
+function getParent(path) {
+    if (path != "/") {
+        path = path.split("/");
+        path.splice(-2, 1);
+        path = path.join("/");
+        return path;
+    }
+
+    return null;
+}
 
 async function loadBackendImage(path, imageName, element) {
     let image = IMAGE_LIST.find((img) => img.name === imageName);
@@ -61,38 +73,56 @@ async function loadBackendImage(path, imageName, element) {
 
 async function enterDir(event) {
     const path = event.target.getAttribute("path") || event.target.innerText;
-    const dirs = await API.fetchPath(path);
 
-    if (!dirs) {
+
+
+    let parentPath;
+    if (event.target.innerText == "..") {
+        currentPath = path
+        parentPath = getParent(path)
+
+    } else {
+        parentPath = currentPath;
+        currentPath += path + "/";
+    }
+
+    const dirsInfo = await API.fetchPath(currentPath);
+
+    if (!dirsInfo) {
         return;
     }
 
-    let parentPath;
-    if (path !== "/") {
-        // parent = path.match(/([\w-].+)\//)?.[1] || "/";
-        parentPath = path.substring(0, path.lastIndexOf("/")) || "/";
-    }
     datasetsList.innerHTML = "";
-    currentPath = path;
-    // eslint-disable-next-line no-use-before-define
-    appendToDirList(dirs, parentPath);
+
+    appendToDirList(dirsInfo, parentPath);
+
+    currentPathEl.innerText = currentPath;
 }
 
-function appendToDirList(dirs, parent) {
+function appendToDirList(dirsInfo, parent) {
     const fragment = new DocumentFragment();
+    const { directories, files } = dirsInfo
 
     if (parent) {
         const element = document.createElement("li");
         element.innerText = "..";
+        element.classList.add("dir")
         element.setAttribute("path", parent);
         element.onclick = enterDir;
         fragment.append(element);
     }
 
-    dirs.forEach((dir) => {
+    directories.forEach((dir) => {
         const element = document.createElement("li");
         element.innerText = dir;
+        element.classList.add("dir")
         element.onclick = enterDir;
+        fragment.append(element);
+    });
+
+    files.forEach((file) => {
+        const element = document.createElement("li");
+        element.innerText = file;
         fragment.append(element);
     });
 
@@ -116,11 +146,7 @@ async function showDatasets() {
         return;
     }
 
-    let parentPath;
-    if (currentPath !== "/") {
-        parentPath =
-            currentPath.substring(0, currentPath.lastIndexOf("/")) || "/";
-    }
+    let parentPath = getParent(currentPath);
     datasetsList.innerHTML = "";
     appendToDirList(dirs, parentPath);
 }
@@ -139,7 +165,7 @@ async function pickDataset() {
     ClassesHandler.setClasses(classes);
     ClassesHandler.current = "";
 
-    const dirName = path.split("/").reverse()[0];
+    const dirName = path.split("/").reverse()[1];
     document.querySelector("#title").innerHTML = dirName;
 
     IMAGE_LIST.length = 0;
