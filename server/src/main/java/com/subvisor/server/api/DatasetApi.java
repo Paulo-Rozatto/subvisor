@@ -3,6 +3,7 @@ package com.subvisor.server.api;
 import com.subvisor.server.App;
 import com.subvisor.server.models.ConfigUpdateMessage;
 import com.subvisor.server.models.DatasetInfo;
+import com.subvisor.server.models.DirectoryInfo;
 import com.subvisor.server.neuralnetwork.Embeddings;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -17,11 +18,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 // todo: Currently, navigation works in paths and it shouldn't (../), so sanitize paths passed
@@ -34,34 +33,48 @@ public class DatasetApi {
     private static final Path DATASETS_PATH = Paths.get(App.DATA_DIR_PATH, "datasets");
 
     @GetMapping("/list")
-    public List<String> listDatasetDirs() {
+    public ResponseEntity<DirectoryInfo> listDatasetDirs() {
         String path = DATASETS_PATH.toString();
         File[] dirs = new File(path).listFiles(File::isDirectory);
+        File[] files = new File(path).listFiles(File::isFile);
 
-        if (dirs == null) {
-            return new ArrayList<>();
-        }
+        List<String> dirList = dirs == null ? List.of() : Arrays.stream(dirs).map(File::getName).sorted().toList();
+        List<String> fileList = files == null ? List.of() : Arrays.stream(files).map(File::getName).sorted().toList();
 
-        return Arrays.stream(dirs)
-                .map(File::getName)
-                .sorted()
-                .collect(Collectors.toList());
+        return ResponseEntity.ok(new DirectoryInfo(dirList, fileList));
     }
+
+//    @GetMapping("/dir")
+//    public ResponseEntity<DirectoryInfo> getDataset(@RequestParam String path) {
+//        String realPath = Paths.get(DATASETS_PATH.toString(), path).toString();
+//        File[] dirs = new File(realPath).listFiles(File::isDirectory);
+//        File[] files = new File(realPath).listFiles(File::isFile);
+//
+//        List<String> dirList = dirs == null ? List.of() : Arrays.stream(dirs)
+//                .map(file -> DATASETS_PATH.relativize(file.toPath()).toString())
+//                .sorted()
+//                .toList();
+//
+//        List<String> fileList = files == null ? List.of() : Arrays.stream(files)
+//                .map(file -> DATASETS_PATH.relativize(file.toPath()).toString())
+//                .sorted()
+//                .toList();
+//
+//        return ResponseEntity.ok(new DirectoryInfo(dirList, fileList));
+//    }
 
     @GetMapping("/dir")
-    public List<String> getDataset(@RequestParam String path) {
+    public ResponseEntity<DirectoryInfo> getDataset(@RequestParam String path) {
         String realPath = Paths.get(DATASETS_PATH.toString(), path).toString();
         File[] dirs = new File(realPath).listFiles(File::isDirectory);
+        File[] files = new File(realPath).listFiles(File::isFile);
 
-        if (dirs == null) {
-            return new ArrayList<>();
-        }
+        List<String> dirList = dirs == null ? List.of() : Arrays.stream(dirs).map(File::getName).sorted().toList();
+        List<String> fileList = files == null ? List.of() : Arrays.stream(files).map(File::getName).sorted().toList();
 
-        return Arrays.stream(dirs)
-                .map((file) -> DATASETS_PATH.relativize(file.toPath()).toString())
-                .sorted()
-                .collect(Collectors.toList());
+        return ResponseEntity.ok(new DirectoryInfo(dirList, fileList));
     }
+
 
     @GetMapping(value = "/annotation", produces = "application/xml")
     public ResponseEntity<String> getAnnotation(String path, String fileName) {
@@ -151,7 +164,7 @@ public class DatasetApi {
 
             if (os.contains("win")) {
                 // Windows
-                Runtime.getRuntime().exec("explorer.exe /select," + folderPath);
+                Runtime.getRuntime().exec("explorer.exe " + folderPath);
             } else if (os.contains("mac")) {
                 // macOS
                 Runtime.getRuntime().exec("open " + folderPath);

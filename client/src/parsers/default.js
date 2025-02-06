@@ -53,7 +53,7 @@ export function parse(fileName, fileText) {
 }
 
 export async function fetchParse(path, imageName) {
-    const src = `${SERVER_URL}/datasets/${path}/${imageName}`;
+    const src = `${SERVER_URL}/datasets${path}${imageName}`;
     const xmlName = imageName.replace(EXTENSION_REGEX, ".xml");
     const response = await getXml(path, xmlName);
 
@@ -104,12 +104,10 @@ ${space1}</bbox>
         let coordinates = space1 + "<points>\n";
 
         for (let i = 0; i < points.length; i++) {
-            const x = `${space2}<x${i + 1}>${points[i].x / NORMALIZER}</x${
-                i + 1
-            }>\n`;
-            const y = `${space3}<y${i + 1}>${points[i].y / NORMALIZER}</y${
-                i + 1
-            }>\n`;
+            const x = `${space2}<x${i + 1}>${points[i].x / NORMALIZER}</x${i + 1
+                }>\n`;
+            const y = `${space3}<y${i + 1}>${points[i].y / NORMALIZER}</y${i + 1
+                }>\n`;
             coordinates += x + y;
         }
         coordinates += space1 + "</points>\n";

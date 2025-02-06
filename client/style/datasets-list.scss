@@ -10,6 +10,10 @@
         display: flex;
         align-items: center;
     }
+
+    small {
+        font-family: 'Courier New', Courier, monospace;
+    }
 }
 
 #datasets-list {
@@ -27,15 +31,18 @@
         border-bottom: 1px solid $accent;
         font-family: monospace;
         padding: 0.5rem;
+    }
+
+    .dir {
         cursor: pointer;
     }
 
-    li:hover {
+    .dir:hover {
         background-color: $hover;
         color: $base;
     }
 
-    li::before {
+    .dir::before {
         content: "\F3D7";
         font-family: "bootstrap-icons";
         padding-right: 0.5rem;
