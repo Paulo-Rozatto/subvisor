@@ -1,6 +1,7 @@
 package com.subvisor.server.api;
 
 import com.subvisor.server.App;
+import com.subvisor.server.models.CheckpointsInfo;
 import com.subvisor.server.models.Contour;
 import com.subvisor.server.neuralnetwork.SamHq;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +42,7 @@ public class NNApi {
     }
 
     @GetMapping("/checkpoints")
-    public ResponseEntity<List<String>> checkpoints() {
+    public ResponseEntity<CheckpointsInfo> checkpoints() {
         String path = CHECKPOINTS_PATH.toString();
         File[] files = new File(path).listFiles(File::isFile);
 
@@ -56,7 +57,7 @@ public class NNApi {
         }
 
         fileList.add(0, "Default");
-        return ResponseEntity.ok(fileList);
+        return ResponseEntity.ok(new CheckpointsInfo(currentCheckpoint, fileList));
     }
 
     @PostMapping("/load-checkpoint")

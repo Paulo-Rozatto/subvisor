@@ -4,15 +4,16 @@ import { focusCanvas } from "../renderer";
 const checkpointsSelect = document.querySelector("#checkpoints");
 
 async function update() {
-    const list = await fetchCheckpointList();
+    const { currentCheckpoint, checkpointList } = await fetchCheckpointList();
 
     let options = "";
 
-    for (const el of list) {
+    for (const el of checkpointList) {
         options += `<option value=${el}>${el}</option>`;
     }
 
     checkpointsSelect.innerHTML = options;
+    checkpointsSelect.value = currentCheckpoint;
 }
 
 function onChange() {
@@ -27,4 +28,3 @@ function onChange() {
 checkpointsSelect.addEventListener("change", onChange);
 
 update();
-onChange();
