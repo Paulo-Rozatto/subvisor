@@ -181,7 +181,28 @@ const Edit = {
         }
     },
 
-    reset() {},
+    rotate(isLeft) {
+        if (this._poly == null) {
+            return;
+        }
+
+        if (isLeft) {
+            const point = this._poly.points.pop()
+            if (point) {
+                this._poly.points.unshift(point)
+            }
+            
+        } else {
+            const point = this._poly.points.shift()
+            if (point) {
+                this._poly.points.push(point)
+            }
+        }
+
+        render();
+    },
+
+    reset() { },
 
     onFocus(poly) {
         if (this._poly !== null) {
@@ -273,7 +294,7 @@ const Edit = {
             }
             points.splice(index + 1, 0, newPoint);
         }
-        
+
         setUiPolyLength(poly.points.length)
         focus.point = newPoint;
         hover.point = null;
@@ -283,7 +304,7 @@ const Edit = {
         hoverPoints(e, this._poly, hover);
     },
 
-    onEnter() {},
+    onEnter() { },
 
     onDelete() {
         let idx;
@@ -315,6 +336,7 @@ const Edit = {
         }
         focus.point = null;
     },
+
 };
 
 const PredictPoints = {
@@ -339,6 +361,8 @@ const PredictPoints = {
             this._poly.outline = false;
         }
     },
+
+    rotate() { },
 
     reset() {
         foreground.points.length = 0;
@@ -491,7 +515,7 @@ const PredictBox = {
         }
     },
 
-    onDelete() {},
+    onDelete() { },
 };
 
 export let active = Edit;

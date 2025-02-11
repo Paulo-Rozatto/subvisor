@@ -340,6 +340,13 @@ function onKeyDown(e) {
             tools.active.onEnter();
             break;
         }
+
+        case "arrowright":
+        case "arrowleft": {
+            console.log(key);
+            tools.active.rotate(key == "arrowleft");
+            break
+        }
     }
 }
 
