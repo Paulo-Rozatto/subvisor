@@ -343,7 +343,6 @@ function onKeyDown(e) {
 
         case "arrowright":
         case "arrowleft": {
-            console.log(key);
             tools.active.rotate(key == "arrowleft");
             break
         }
