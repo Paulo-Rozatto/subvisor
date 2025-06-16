@@ -21,6 +21,8 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
 // todo: Currently, navigation works in paths and it shouldn't (../), so sanitize paths passed
@@ -31,6 +33,7 @@ import java.util.stream.Stream;
 @Slf4j
 public class DatasetApi {
     private static final Path DATASETS_PATH = Paths.get(App.DATA_DIR_PATH, "datasets");
+    private final ConcurrentHashMap<String, ReentrantLock> locks = new ConcurrentHashMap<>();
 
     @GetMapping("/list")
     public ResponseEntity<DirectoryInfo> listDatasetDirs() {
@@ -213,11 +216,15 @@ public class DatasetApi {
         String configPath = Paths.get(DATASETS_PATH.toString(), rootPath, "config.json").toString();
         File configFile = new File(configPath);
 
+        ReentrantLock lock = locks.computeIfAbsent(configPath, k -> new ReentrantLock());
+        lock.lock();
         try {
             log.info("Saving config file at {}.", configPath);
             FileUtils.writeStringToFile(configFile, payload.configString(), "utf-8");
         } catch (IOException e) {
             log.error("An error occurred when trying to save config at path {} with payload: {} ", configPath, payload);
+        } finally {
+            lock.unlock();
         }
     }
 }

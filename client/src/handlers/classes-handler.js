@@ -12,6 +12,25 @@ const defaultClass = {
     stroke: false,
 };
 
+// Lista de cores padrao
+const COLORS = [
+    '#e6194B',
+    '#ffe119',
+    '#4363d8',
+    '#f58231',
+    '#42d4f4',
+    '#f032e6',
+    '#fabed4',
+    '#469990',
+    '#dcbeff',
+    '#9A6324',
+    '#fffac8',
+    '#800000',
+    '#aaffc3',
+    '#000075',
+    '#a9a9a9',
+]
+
 let currentClass = defaultClass;
 let classes = [];
 
@@ -74,6 +93,21 @@ function selectClassOption(event) {
     swithClass();
 }
 
+function createNewClass(newClass) {
+    classes.push(newClass);
+
+    saveConfig(openPath, { classes });
+
+    const newEl = document.createElement("li");
+    newEl.innerText = newClass.name;
+    newEl.onclick = selectClassOption;
+    newEl.value = newClass.name;
+
+    const fragment = new DocumentFragment();
+    fragment.append(newEl);
+    classesOptions.append(fragment);
+}
+
 function saveNewClass(event) {
     event.preventDefault();
     const missing = [];
@@ -92,28 +126,30 @@ function saveNewClass(event) {
     }
 
     const className = classNameInput.value.trim();
-    classes.push({
-        name: className,
-        color: classColorInput.value,
-        limit: parseInt(pointLimitInput.value) || undefined,
-        enumerate: enumerateCheckbox.checked,
-        fill: true,
-        stroke: false,
-    });
+    const existingClass = classes.find((c) => c.name == className);
 
-    saveConfig(openPath, { classes });
+    if (!existingClass) {
+        createNewClass({
+            name: className,
+            color: classColorInput.value,
+            limit: parseInt(pointLimitInput.value) || undefined,
+            enumerate: enumerateCheckbox.checked,
+            fill: true,
+            stroke: false,
+        });
+    } else {
+        existingClass.color = classColorInput.value;
+        existingClass.limit = parseInt(pointLimitInput.value) || undefined;
+        existingClass.enumerate = enumerateCheckbox.checked;
+        existingClass.fill = true;
+        existingClass.stroke = false;
 
-    const newEl = document.createElement("li");
-    newEl.innerText = className;
-    newEl.onclick = selectClassOption;
-    newEl.value = className;
-
-    const fragment = new DocumentFragment();
-    fragment.append(newEl);
-    classesOptions.append(fragment);
+        saveConfig(openPath, { classes });
+    }
 
     classesOptions.value = className;
     swithClass();
+
     modalToggle(classesModal);
 }
 
@@ -213,6 +249,32 @@ export const ClassesHandler = {
     },
 
     get(className) {
-        return classes.find((c) => c.name === className) || defaultClass;
+        if (!className || !className?.trim().length > 0) {
+            return defaultClass;
+        }
+
+        let annotationClass = classes.find((c) => c.name === className);
+
+        if (!annotationClass) {
+            let usedColors = classes.map((c) => c.color)
+            let color = COLORS.find((c) => !usedColors.includes(c));
+
+            if (!color) {
+                color = COLORS.shift();
+                COLORS.push(color);
+            }
+
+            annotationClass = {
+                name: className.trim(),
+                color: color,
+                enumerate: enumerateCheckbox.checked,
+                fill: true,
+                stroke: false,
+            }
+
+            createNewClass(annotationClass);
+        }
+
+        return annotationClass;
     },
 };

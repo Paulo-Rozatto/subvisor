@@ -43,8 +43,10 @@ export function parse(fileName, fileText) {
             });
         }
 
+        const className = el.tagName == 'points' ? el.parentElement.tagName : el.tagName;
+
         annotations.push({
-            class: classes.get(el.parentElement.tagName),
+            class: classes.get(className),
             points,
         });
     }
