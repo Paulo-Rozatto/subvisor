@@ -8,6 +8,8 @@ import { setUiPolyLength } from "./handlers/infos-handler.js";
 import { stringify } from "./parsers/default.js";
 
 export const IMAGE_LIST = [];
+const coordX = document.querySelector("#coord-x");
+const coordY = document.querySelector("#coord-y");
 
 export const focus = {
     _image: null,
@@ -54,6 +56,11 @@ export const focus = {
 
         if (newPoint !== null) {
             newPoint.focused = true;
+            coordX.innerText = Math.round(newPoint.x);
+            coordY.innerText = Math.round(newPoint.y);
+        } else {
+            coordX.innerText = '000';
+            coordY.innerText = '000';
         }
 
         this._point = newPoint;
@@ -194,6 +201,8 @@ function onMouseMove(e) {
         }
 
         event2canvas(e, hover.point);
+        coordX.innerText = Math.round(hover.point.x);
+        coordY.innerText = Math.round(hover.point.y);
         renderer.render();
         return;
     }
